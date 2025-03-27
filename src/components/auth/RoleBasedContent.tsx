@@ -14,9 +14,10 @@ const RoleBasedContent: React.FC<RoleBasedContentProps> = ({
   children,
   fallback = null
 }) => {
-  const { profile } = useAuth();
+  const { profile, isLoading } = useAuth();
   
-  if (!profile) {
+  // Don't render anything while still loading profile
+  if (isLoading || !profile) {
     return null;
   }
   

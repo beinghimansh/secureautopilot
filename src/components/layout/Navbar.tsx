@@ -1,25 +1,32 @@
 
 import React, { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Bell, Settings, User, Menu, X } from 'lucide-react';
 import Button from '../common/Button';
 import { FadeIn } from '../common/Transitions';
+import { useAuth } from '@/contexts/AuthContext';
 
 const Navbar = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   
-  const isLoggedIn = location.pathname !== '/'; // Simple check for demo
+  const { user, signOut } = useAuth();
   
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
+  };
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate('/auth');
   };
   
   return (
     <header className="sticky top-0 z-50 w-full border-b border-gray-100 bg-white/80 backdrop-blur-lg">
       <div className="container flex h-16 items-center justify-between px-4 sm:px-6">
         <div className="flex items-center">
-          <Link to={isLoggedIn ? "/dashboard" : "/"} className="flex items-center mr-6">
+          <Link to={user ? "/dashboard" : "/"} className="flex items-center mr-6">
             <div className="flex items-center">
               <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center mr-2">
                 <svg 
@@ -41,7 +48,7 @@ const Navbar = () => {
             </div>
           </Link>
           
-          {isLoggedIn && (
+          {user && (
             <nav className="hidden md:flex items-center space-x-6">
               <Link 
                 to="/dashboard" 
@@ -66,7 +73,7 @@ const Navbar = () => {
         </div>
         
         <div className="flex items-center space-x-2">
-          {isLoggedIn ? (
+          {user ? (
             <>
               <button className="p-2 rounded-full hover:bg-gray-100 transition-colors">
                 <Bell size={20} className="text-gray-600" />
@@ -78,6 +85,12 @@ const Navbar = () => {
                 <User size={16} className="text-gray-600" />
               </div>
               <button 
+                onClick={handleSignOut}
+                className="hidden md:inline-flex px-3 py-1.5 text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 rounded transition-colors"
+              >
+                Sign Out
+              </button>
+              <button 
                 className="md:hidden p-2 rounded-full hover:bg-gray-100 transition-colors"
                 onClick={toggleMenu}
               >
@@ -86,10 +99,10 @@ const Navbar = () => {
             </>
           ) : (
             <>
-              <Link to="/">
+              <Link to="/auth">
                 <Button variant="outline" size="sm">Sign In</Button>
               </Link>
-              <Link to="/">
+              <Link to="/auth?mode=register">
                 <Button size="sm">Sign Up</Button>
               </Link>
             </>
@@ -98,7 +111,7 @@ const Navbar = () => {
       </div>
       
       {/* Mobile menu */}
-      {isMenuOpen && isLoggedIn && (
+      {isMenuOpen && user && (
         <FadeIn className="md:hidden">
           <nav className="flex flex-col space-y-4 px-4 py-4 bg-white border-t border-gray-100">
             <Link 
@@ -129,6 +142,12 @@ const Navbar = () => {
             >
               Settings
             </Link>
+            <button 
+              onClick={handleSignOut}
+              className="text-sm font-medium text-red-600 hover:text-red-800 text-left"
+            >
+              Sign Out
+            </button>
           </nav>
         </FadeIn>
       )}

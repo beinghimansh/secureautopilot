@@ -1,11 +1,14 @@
 
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { PageTransition } from '@/components/common/Transitions';
 
 const AuthPage = () => {
-  const [isLogin, setIsLogin] = useState(true);
+  const [searchParams] = useSearchParams();
+  const initialMode = searchParams.get('mode') === 'register' ? false : true;
+  
+  const [isLogin, setIsLogin] = useState(initialMode);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [firstName, setFirstName] = useState('');
@@ -31,14 +34,18 @@ const AuthPage = () => {
     try {
       if (isLogin) {
         await signIn(email, password);
+        // The redirect will be handled by the useEffect above
       } else {
         await signUp(email, password, {
           first_name: firstName,
           last_name: lastName,
           email
         });
+        // After signup, switch to login mode so they can sign in
+        setIsLogin(true);
       }
     } catch (err: any) {
+      console.error("Auth error:", err);
       setError(err.message || 'Authentication failed');
     } finally {
       setIsLoading(false);

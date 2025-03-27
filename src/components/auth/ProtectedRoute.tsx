@@ -1,11 +1,12 @@
 
-import React from 'react';
-import { Navigate } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { Navigate, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { UserRole } from '@/types/database.types';
 
 type ProtectedRouteProps = {
   children: React.ReactNode;
-  requiredRole?: string[];
+  requiredRole?: UserRole[];
 };
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ 
@@ -13,6 +14,14 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   requiredRole 
 }) => {
   const { user, profile, isLoading } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    // Double-check auth state after component mounts
+    if (!isLoading && !user) {
+      navigate('/auth');
+    }
+  }, [user, isLoading, navigate]);
 
   if (isLoading) {
     return (

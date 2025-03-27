@@ -15,7 +15,14 @@ import Auth from "./pages/Auth";
 import SuperAdminSetup from "./pages/SuperAdminSetup";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+      retry: 1
+    }
+  }
+});
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
