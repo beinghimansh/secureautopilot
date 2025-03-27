@@ -57,10 +57,11 @@ export async function getOrganizations() {
   return data as Organization[];
 }
 
-export async function createOrganization(organization: Partial<Organization>) {
+// Updated to ensure required fields are present
+export async function createOrganization(organization: Pick<Organization, 'name' | 'slug'> & Partial<Omit<Organization, 'name' | 'slug'>>) {
   const { data, error } = await supabase
     .from('organizations')
-    .insert([organization])
+    .insert(organization)
     .select()
     .single();
 
