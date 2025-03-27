@@ -1,26 +1,38 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Bell, Settings, User, Menu, X } from 'lucide-react';
 import Button from '../common/Button';
 import { FadeIn } from '../common/Transitions';
 import { useAuth } from '@/contexts/AuthContext';
+import { toast } from 'sonner';
 
 const Navbar = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   
-  const { user, signOut } = useAuth();
+  const { user, profile, signOut } = useAuth();
   
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
   };
 
   const handleSignOut = async () => {
-    await signOut();
-    navigate('/auth');
+    try {
+      await signOut();
+      toast.success('Successfully signed out');
+      navigate('/auth');
+    } catch (error) {
+      console.error('Error signing out:', error);
+      toast.error('Failed to sign out. Please try again.');
+    }
   };
+
+  useEffect(() => {
+    // Close mobile menu when navigating to a new page
+    setIsMenuOpen(false);
+  }, [location.pathname]);
   
   return (
     <header className="sticky top-0 z-50 w-full border-b border-gray-100 bg-white/80 backdrop-blur-lg">
@@ -68,6 +80,12 @@ const Navbar = () => {
               >
                 Tasks
               </Link>
+              <Link 
+                to="/policies" 
+                className={`text-sm font-medium transition-colors hover:text-primary ${location.pathname === '/policies' ? 'text-primary' : 'text-gray-600'}`}
+              >
+                Policies
+              </Link>
             </nav>
           )}
         </div>
@@ -75,9 +93,9 @@ const Navbar = () => {
         <div className="flex items-center space-x-2">
           {user ? (
             <>
-              <button className="p-2 rounded-full hover:bg-gray-100 transition-colors">
+              <Link to="/notifications" className="p-2 rounded-full hover:bg-gray-100 transition-colors">
                 <Bell size={20} className="text-gray-600" />
-              </button>
+              </Link>
               <Link to="/settings" className="p-2 rounded-full hover:bg-gray-100 transition-colors">
                 <Settings size={20} className="text-gray-600" />
               </Link>
@@ -117,28 +135,30 @@ const Navbar = () => {
             <Link 
               to="/dashboard" 
               className={`text-sm font-medium transition-colors hover:text-primary ${location.pathname === '/dashboard' ? 'text-primary' : 'text-gray-600'}`}
-              onClick={() => setIsMenuOpen(false)}
             >
               Dashboard
             </Link>
             <Link 
               to="/compliance" 
               className={`text-sm font-medium transition-colors hover:text-primary ${location.pathname === '/compliance' ? 'text-primary' : 'text-gray-600'}`}
-              onClick={() => setIsMenuOpen(false)}
             >
               Compliance
             </Link>
             <Link 
               to="/tasks" 
               className={`text-sm font-medium transition-colors hover:text-primary ${location.pathname === '/tasks' ? 'text-primary' : 'text-gray-600'}`}
-              onClick={() => setIsMenuOpen(false)}
             >
               Tasks
             </Link>
             <Link 
+              to="/policies" 
+              className={`text-sm font-medium transition-colors hover:text-primary ${location.pathname === '/policies' ? 'text-primary' : 'text-gray-600'}`}
+            >
+              Policies
+            </Link>
+            <Link 
               to="/settings" 
               className={`text-sm font-medium transition-colors hover:text-primary ${location.pathname === '/settings' ? 'text-primary' : 'text-gray-600'}`}
-              onClick={() => setIsMenuOpen(false)}
             >
               Settings
             </Link>

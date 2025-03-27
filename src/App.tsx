@@ -3,7 +3,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import Index from "./pages/Index";
 import Dashboard from "./pages/Dashboard";
@@ -14,6 +14,12 @@ import NotFound from "./pages/NotFound";
 import Auth from "./pages/Auth";
 import SuperAdminSetup from "./pages/SuperAdminSetup";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
+import { UserRole } from "./types/database.types";
+
+// Define role-specific routes
+const superAdminRoutes: UserRole[] = ['super_admin'];
+const adminRoutes: UserRole[] = ['super_admin', 'company_admin'];
+const standardRoutes: UserRole[] = ['super_admin', 'company_admin', 'compliance_officer', 'employee', 'auditor'];
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -32,9 +38,21 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <Routes>
+            {/* Public routes */}
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<Auth />} />
-            <Route path="/super-admin-setup" element={<SuperAdminSetup />} />
+            
+            {/* Super Admin Only */}
+            <Route 
+              path="/super-admin-setup" 
+              element={
+                <ProtectedRoute requiredRole={superAdminRoutes}>
+                  <SuperAdminSetup />
+                </ProtectedRoute>
+              } 
+            />
+            
+            {/* Standard routes for authenticated users */}
             <Route 
               path="/dashboard" 
               element={
@@ -67,7 +85,86 @@ const App = () => (
                 </ProtectedRoute>
               } 
             />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+
+            {/* Admin Features */}
+            <Route 
+              path="/team" 
+              element={
+                <ProtectedRoute requiredRole={adminRoutes}>
+                  <div className="min-h-screen bg-gray-50">
+                    <h1 className="text-2xl p-10 text-center">Team Management Page (Coming Soon)</h1>
+                    <p className="text-center"><a href="/dashboard" className="text-primary hover:underline">Return to Dashboard</a></p>
+                  </div>
+                </ProtectedRoute>
+              } 
+            />
+            
+            {/* Placeholder routes for sidebar items */}
+            <Route 
+              path="/policies" 
+              element={
+                <ProtectedRoute>
+                  <div className="min-h-screen bg-gray-50">
+                    <h1 className="text-2xl p-10 text-center">Policies Page (Coming Soon)</h1>
+                    <p className="text-center"><a href="/dashboard" className="text-primary hover:underline">Return to Dashboard</a></p>
+                  </div>
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/reports" 
+              element={
+                <ProtectedRoute>
+                  <div className="min-h-screen bg-gray-50">
+                    <h1 className="text-2xl p-10 text-center">Reports Page (Coming Soon)</h1>
+                    <p className="text-center"><a href="/dashboard" className="text-primary hover:underline">Return to Dashboard</a></p>
+                  </div>
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/data-sources" 
+              element={
+                <ProtectedRoute>
+                  <div className="min-h-screen bg-gray-50">
+                    <h1 className="text-2xl p-10 text-center">Data Sources Page (Coming Soon)</h1>
+                    <p className="text-center"><a href="/dashboard" className="text-primary hover:underline">Return to Dashboard</a></p>
+                  </div>
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/cloud-security" 
+              element={
+                <ProtectedRoute>
+                  <div className="min-h-screen bg-gray-50">
+                    <h1 className="text-2xl p-10 text-center">Cloud Security Page (Coming Soon)</h1>
+                    <p className="text-center"><a href="/dashboard" className="text-primary hover:underline">Return to Dashboard</a></p>
+                  </div>
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/notifications" 
+              element={
+                <ProtectedRoute>
+                  <div className="min-h-screen bg-gray-50">
+                    <h1 className="text-2xl p-10 text-center">Notifications Page (Coming Soon)</h1>
+                    <p className="text-center"><a href="/dashboard" className="text-primary hover:underline">Return to Dashboard</a></p>
+                  </div>
+                </ProtectedRoute>
+              } 
+            />
+            
+            {/* Redirect from auth to dashboard if already logged in */}
+            <Route 
+              path="/auth" 
+              element={
+                <Auth />
+              } 
+            />
+            
+            {/* Catch-all route */}
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

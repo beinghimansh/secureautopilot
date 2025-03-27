@@ -3,6 +3,7 @@ import React, { useEffect } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { UserRole } from '@/types/database.types';
+import { toast } from 'sonner';
 
 type ProtectedRouteProps = {
   children: React.ReactNode;
@@ -19,9 +20,16 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   useEffect(() => {
     // Double-check auth state after component mounts
     if (!isLoading && !user) {
+      toast.error('You must be signed in to access this page');
       navigate('/auth');
     }
-  }, [user, isLoading, navigate]);
+    
+    // Check role-based access if specified
+    if (!isLoading && user && profile && requiredRole && !requiredRole.includes(profile.role)) {
+      toast.error('You do not have permission to access this page');
+      navigate('/dashboard');
+    }
+  }, [user, profile, isLoading, navigate, requiredRole]);
 
   if (isLoading) {
     return (
