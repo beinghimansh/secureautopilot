@@ -99,7 +99,7 @@ const App = () => (
               } 
             />
             
-            {/* Placeholder routes for sidebar items */}
+            {/* Policy Management */}
             <Route 
               path="/policies" 
               element={
@@ -111,6 +111,34 @@ const App = () => (
                 </ProtectedRoute>
               } 
             />
+            
+            {/* Audit Management */}
+            <Route 
+              path="/audits" 
+              element={
+                <ProtectedRoute>
+                  <div className="min-h-screen bg-gray-50">
+                    <h1 className="text-2xl p-10 text-center">Audit Management (Coming Soon)</h1>
+                    <p className="text-center"><a href="/dashboard" className="text-primary hover:underline">Return to Dashboard</a></p>
+                  </div>
+                </ProtectedRoute>
+              } 
+            />
+            
+            {/* Risk Assessment */}
+            <Route 
+              path="/risk-assessment" 
+              element={
+                <ProtectedRoute>
+                  <div className="min-h-screen bg-gray-50">
+                    <h1 className="text-2xl p-10 text-center">Risk Assessment (Coming Soon)</h1>
+                    <p className="text-center"><a href="/dashboard" className="text-primary hover:underline">Return to Dashboard</a></p>
+                  </div>
+                </ProtectedRoute>
+              } 
+            />
+            
+            {/* Reports */}
             <Route 
               path="/reports" 
               element={
@@ -122,6 +150,8 @@ const App = () => (
                 </ProtectedRoute>
               } 
             />
+            
+            {/* Data Sources */}
             <Route 
               path="/data-sources" 
               element={
@@ -133,6 +163,8 @@ const App = () => (
                 </ProtectedRoute>
               } 
             />
+            
+            {/* Cloud Security */}
             <Route 
               path="/cloud-security" 
               element={
@@ -144,6 +176,8 @@ const App = () => (
                 </ProtectedRoute>
               } 
             />
+            
+            {/* Notifications */}
             <Route 
               path="/notifications" 
               element={
@@ -153,14 +187,6 @@ const App = () => (
                     <p className="text-center"><a href="/dashboard" className="text-primary hover:underline">Return to Dashboard</a></p>
                   </div>
                 </ProtectedRoute>
-              } 
-            />
-            
-            {/* Redirect from auth to dashboard if already logged in */}
-            <Route 
-              path="/auth" 
-              element={
-                <Auth />
               } 
             />
             
