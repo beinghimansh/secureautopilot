@@ -1,8 +1,11 @@
 
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.4';
 
 const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
+const supabaseUrl = Deno.env.get('SUPABASE_URL');
+const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -102,22 +105,34 @@ serve(async (req) => {
   }
 
   try {
+    // Check for required environment variables
     if (!openAIApiKey) {
+      console.error("OpenAI API Key not configured");
       throw new Error("OPENAI_API_KEY is not configured in the environment variables");
     }
 
+    if (!supabaseUrl || !supabaseServiceKey) {
+      console.error("Supabase credentials not configured");
+      throw new Error("Supabase credentials are not configured properly");
+    }
+
+    // Initialize Supabase client with service role key for admin access
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
     console.log("Starting policy generation...");
     const requestBody = await req.json();
+    
+    // Destructure request body with default values
     const { 
-      companyName, 
-      industry, 
-      companySize, 
-      dataTypes, 
-      frameworkType,
-      businessLocation,
-      infrastructureDetails,
-      securityControls,
-      riskAppetite,
+      companyName = "Unknown Company", 
+      industry = "Technology", 
+      companySize = "1-10 employees", 
+      dataTypes = "Generic data", 
+      frameworkType = "iso27001",
+      businessLocation = "",
+      infrastructureDetails = "",
+      securityControls = [],
+      riskAppetite = "Moderate",
       organizationId,
       userId
     } = requestBody;
@@ -128,6 +143,41 @@ serve(async (req) => {
       riskAppetite: riskAppetite || "Moderate"
     });
 
+    // First, store company details in the database
+    try {
+      console.log("Storing company details in the database...");
+      
+      const { data: companyData, error: companyError } = await supabase
+        .from('company_profiles')
+        .upsert({
+          name: companyName,
+          industry,
+          company_size: companySize,
+          data_types: dataTypes,
+          business_location: businessLocation,
+          infrastructure_details: infrastructureDetails,
+          security_controls: securityControls,
+          risk_appetite: riskAppetite,
+          organization_id: organizationId,
+          created_by: userId,
+          updated_at: new Date().toISOString()
+        }, { onConflict: 'name,organization_id' })
+        .select();
+      
+      if (companyError) {
+        console.error("Error storing company details:", companyError);
+        // Continue with policy generation even if storing details fails
+      } else {
+        console.log("Company details stored successfully:", companyData);
+      }
+    } catch (dbError) {
+      console.error("Database operation failed:", dbError);
+      // Continue with policy generation even if storing details fails
+    }
+
+    // Now proceed with OpenAI API call
+    console.log("Calling OpenAI API with key starting with:", openAIApiKey.substring(0, 5) + "...");
+    
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -163,7 +213,7 @@ serve(async (req) => {
       }),
     });
 
-    console.log("OpenAI response status:", response.status);
+    console.log("OpenAI API response status:", response.status);
     
     if (!response.ok) {
       const errorData = await response.json();
@@ -205,11 +255,34 @@ serve(async (req) => {
 
     // Store in Supabase if organizationId and userId are provided
     let policyId = null;
-    if (organizationId && userId) {
-      // This would be implemented with a real database insert
-      console.log("Would store policy in database for org:", organizationId, "user:", userId);
-      // In a real implementation, we would get back the ID of the newly created policy
-      policyId = "simulated-policy-id";
+    if (userId) {
+      try {
+        console.log("Storing policy in database...");
+        const { data: policyData, error: policyError } = await supabase
+          .from('generated_policies')
+          .insert({
+            organization_id: organizationId,
+            framework_type: frameworkType,
+            policy_content: formattedPolicy,
+            risk_assessment: riskAssessment,
+            implementation_guide: implementationGuide,
+            gaps_analysis: gapsAnalysis,
+            ai_suggestions: aiSuggestions,
+            created_by: userId
+          })
+          .select();
+        
+        if (policyError) {
+          console.error("Error storing policy in database:", policyError);
+        } else {
+          console.log("Policy stored successfully:", policyData);
+          if (policyData && policyData.length > 0) {
+            policyId = policyData[0].id;
+          }
+        }
+      } catch (dbError) {
+        console.error("Database operation failed:", dbError);
+      }
     }
 
     return new Response(JSON.stringify({

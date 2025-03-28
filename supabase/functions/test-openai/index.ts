@@ -17,10 +17,12 @@ serve(async (req) => {
 
   try {
     if (!openAIApiKey) {
+      console.error("OpenAI API Key not configured");
       throw new Error("OPENAI_API_KEY is not configured in the environment variables");
     }
 
-    console.log("Testing OpenAI API connection...");
+    console.log("Testing OpenAI API connection with key starting with:", openAIApiKey.substring(0, 5) + "...");
+    console.log("Request method:", req.method);
     
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -37,6 +39,8 @@ serve(async (req) => {
       }),
     });
 
+    console.log("OpenAI API Status:", response.status);
+    
     if (!response.ok) {
       const errorData = await response.json();
       console.error("OpenAI API Error:", errorData);

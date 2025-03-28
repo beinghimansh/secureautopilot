@@ -13,6 +13,7 @@ const OpenAITest = () => {
     setResult(null);
     
     try {
+      console.log("Sending test request to OpenAI edge function");
       const { data, error } = await supabase.functions.invoke('test-openai');
       
       if (error) {
