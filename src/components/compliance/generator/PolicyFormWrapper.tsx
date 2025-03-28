@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { AlertCircle } from 'lucide-react';
+import { AlertCircle, FileText } from 'lucide-react';
 import Button from '@/components/common/Button';
 import { Card, CardContent } from '@/components/common/Card';
 import { PolicyGeneratorSteps } from './PolicyGeneratorSteps';
