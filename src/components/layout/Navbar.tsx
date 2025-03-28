@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Bell, Settings, User, Menu, X, Shield } from 'lucide-react';
+import { Bell, User, Menu, X } from 'lucide-react';
 import Button from '../common/Button';
 import { FadeIn } from '../common/Transitions';
 import { useAuth } from '@/contexts/AuthContext';
@@ -43,13 +43,8 @@ const Navbar = () => {
     <header className="sticky top-0 z-50 w-full border-b border-gray-100 bg-white/80 backdrop-blur-lg">
       <div className="container flex h-16 items-center justify-between px-4 sm:px-6">
         <div className="flex items-center">
-          <Link to={user ? "/dashboard" : "/"} className="flex items-center mr-6">
-            <div className="flex items-center">
-              <div className="h-9 w-9 rounded-full bg-primary flex items-center justify-center mr-2">
-                <Shield size={20} className="text-white" />
-              </div>
-              <span className="text-xl font-bold tracking-tight text-gray-900">ComplyFlow</span>
-            </div>
+          <Link to={user ? "/dashboard" : "/"} className="text-xl font-bold tracking-tight text-gray-900">
+            ComplyFlow
           </Link>
         </div>
         
@@ -58,9 +53,6 @@ const Navbar = () => {
             <>
               <Link to="/notifications" className="p-2 rounded-full hover:bg-gray-100 transition-colors">
                 <Bell size={20} className="text-gray-600" />
-              </Link>
-              <Link to="/settings" className="p-2 rounded-full hover:bg-gray-100 transition-colors">
-                <Settings size={20} className="text-gray-600" />
               </Link>
               <div className="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center">
                 <User size={16} className="text-gray-600" />
@@ -118,12 +110,6 @@ const Navbar = () => {
               className={`text-sm font-medium transition-colors hover:text-primary ${location.pathname === '/policies' ? 'text-primary' : 'text-gray-600'}`}
             >
               Policies
-            </Link>
-            <Link 
-              to="/settings" 
-              className={`text-sm font-medium transition-colors hover:text-primary ${location.pathname === '/settings' ? 'text-primary' : 'text-gray-600'}`}
-            >
-              Settings
             </Link>
             <button 
               onClick={handleSignOut}

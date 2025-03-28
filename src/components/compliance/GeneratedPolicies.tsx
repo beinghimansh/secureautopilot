@@ -1,9 +1,11 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Button from '@/components/common/Button';
 import { Eye, Download, ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
+import PolicyViewerDialog from '@/components/compliance/policies/PolicyViewerDialog';
+import { supabase } from '@/integrations/supabase/client';
 
 interface GeneratedPoliciesProps {
   frameworkId: string | null;
@@ -15,13 +17,60 @@ const GeneratedPolicies: React.FC<GeneratedPoliciesProps> = ({
   onBackToFrameworks 
 }) => {
   const navigate = useNavigate();
+  const [showPolicyViewer, setShowPolicyViewer] = useState(false);
+  const [policies, setPolicies] = useState([
+    {
+      title: 'Information Security Policy',
+      description: 'Defines how your organization manages, protects and distributes information',
+      status: 'Ready for review',
+      pages: 12,
+      content: `# Information Security Policy\n\n## 1. Introduction\nThis Information Security Policy outlines the security controls and procedures established to protect our organization's information assets.\n\n## 2. Scope\nThis policy applies to all employees, contractors, and third parties who have access to company information.\n\n## 3. Security Controls\n- Access Control\n- Risk Assessment\n- Asset Management\n- Incident Response\n\n## 4. Compliance\nRegular audits will be conducted to ensure compliance with this policy.`
+    },
+    {
+      title: 'Risk Assessment',
+      description: 'Analysis of potential risks and vulnerabilities to your organization',
+      status: 'Ready for review',
+      pages: 8,
+      content: `# Risk Assessment\n\n## 1. Critical Assets\n- Customer data\n- Financial information\n- Intellectual property\n\n## 2. Threats and Vulnerabilities\n- Unauthorized access\n- Data breach\n- System failures\n\n## 3. Risk Mitigation\n- Regular security training\n- System updates and patches\n- Network monitoring`
+    },
+    {
+      title: 'Access Control Policy',
+      description: 'Procedures for controlling access to information and systems',
+      status: 'Ready for review',
+      pages: 6,
+      content: `# Access Control Policy\n\n## 1. Purpose\nThis policy establishes the rules for access control to protect information systems.\n\n## 2. Access Control Principles\n- Least privilege\n- Separation of duties\n- Need to know\n\n## 3. User Access Management\n- User registration\n- Privilege management\n- Password management\n\n## 4. System Access Control\n- Network access control\n- Operating system access control\n- Application access control`
+    },
+    {
+      title: 'Incident Response Plan',
+      description: 'Procedures to detect, respond to and recover from security incidents',
+      status: 'Ready for review',
+      pages: 10,
+      content: `# Incident Response Plan\n\n## 1. Introduction\nThis plan outlines the procedures for responding to security incidents.\n\n## 2. Incident Response Team\n- Roles and responsibilities\n- Contact information\n\n## 3. Incident Response Phases\n- Preparation\n- Detection and Analysis\n- Containment\n- Eradication\n- Recovery\n- Post-incident activity\n\n## 4. Communication Plan\n- Internal communication\n- External communication\n- Legal and regulatory reporting`
+    }
+  ]);
   
   const handleViewPolicies = () => {
-    toast.info('Viewing policies');
+    setShowPolicyViewer(true);
   };
   
-  const handleDownloadPolicies = () => {
-    toast.success('Policies downloaded successfully');
+  const handleDownloadPolicies = async () => {
+    try {
+      // Import the PDF generator utility dynamically
+      const pdfGenerator = await import('@/utils/pdfGenerator');
+      
+      // Create a combined PDF of all policies
+      const allPoliciesContent = policies.map(policy => policy.content).join('\n\n---\n\n');
+      pdfGenerator.downloadPolicyAsPDF(
+        allPoliciesContent, 
+        `${frameworkId}-all-policies.pdf`, 
+        `${frameworkId?.toUpperCase()} Policies`
+      );
+      
+      toast.success('All policies downloaded successfully');
+    } catch (error) {
+      console.error('Error downloading policies:', error);
+      toast.error('Failed to download policies. Please try again.');
+    }
   };
 
   const handleViewRequirements = () => {
@@ -46,32 +95,7 @@ const GeneratedPolicies: React.FC<GeneratedPoliciesProps> = ({
       </div>
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-        {[
-          {
-            title: 'Information Security Policy',
-            description: 'Defines how your organization manages, protects and distributes information',
-            status: 'Ready for review',
-            pages: 12
-          },
-          {
-            title: 'Risk Assessment',
-            description: 'Analysis of potential risks and vulnerabilities to your organization',
-            status: 'Ready for review',
-            pages: 8
-          },
-          {
-            title: 'Access Control Policy',
-            description: 'Procedures for controlling access to information and systems',
-            status: 'Ready for review',
-            pages: 6
-          },
-          {
-            title: 'Incident Response Plan',
-            description: 'Procedures to detect, respond to and recover from security incidents',
-            status: 'Ready for review',
-            pages: 10
-          }
-        ].map((policy, index) => (
+        {policies.map((policy, index) => (
           <div key={index} className="bg-gray-50 rounded-lg p-4 border border-gray-100">
             <div className="flex justify-between items-start">
               <div>
@@ -88,7 +112,19 @@ const GeneratedPolicies: React.FC<GeneratedPoliciesProps> = ({
                 </div>
               </div>
               <div className="flex">
-                <button className="text-gray-500 hover:text-primary">
+                <button 
+                  className="text-gray-500 hover:text-primary"
+                  onClick={() => {
+                    import('@/utils/pdfGenerator').then(module => {
+                      module.downloadPolicyAsPDF(
+                        policy.content, 
+                        `${policy.title.replace(/\s+/g, '-').toLowerCase()}.pdf`, 
+                        policy.title
+                      );
+                      toast.success(`${policy.title} downloaded`);
+                    });
+                  }}
+                >
                   <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" />
                     <polyline points="14 2 14 8 20 8" />
@@ -132,6 +168,13 @@ const GeneratedPolicies: React.FC<GeneratedPoliciesProps> = ({
           </Button>
         </div>
       </div>
+
+      {/* Policy Viewer Dialog */}
+      <PolicyViewerDialog
+        isOpen={showPolicyViewer}
+        onClose={() => setShowPolicyViewer(false)}
+        policies={policies}
+      />
     </div>
   );
 };

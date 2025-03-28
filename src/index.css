@@ -56,6 +56,15 @@ body,
   }
 }
 
+/* For ensuring text is visible when menu items are active */
+.bg-primary {
+  @apply bg-blue-600;
+}
+
+.text-primary-foreground {
+  @apply text-white;
+}
+
 /* Glassmorphism Card Hover Effects */
 .card {
   transition: transform 0.3s ease, box-shadow 0.3s ease, background 0.3s ease;

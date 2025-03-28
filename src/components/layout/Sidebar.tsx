@@ -30,7 +30,7 @@ const SidebarItem = ({ icon, label, href, active }: SidebarItemProps) => {
       className={cn(
         "flex items-center gap-3 rounded-lg px-3 py-2 transition-all duration-300 group",
         active ? 
-          "bg-primary text-white" : 
+          "bg-primary text-primary-foreground" : 
           "text-gray-700 hover:bg-primary/10 hover:text-primary"
       )}
     >
@@ -105,48 +105,6 @@ const Sidebar = () => {
           label="Reports" 
           href="/reports" 
           active={isPathActive('/reports')} 
-        />
-      </div>
-      
-      <div className="mt-6 space-y-1">
-        <div className="px-3 py-2">
-          <h3 className="text-xs font-medium uppercase text-gray-500">INTEGRATIONS</h3>
-        </div>
-        <SidebarItem 
-          icon={<Database size={18} />} 
-          label="Data Sources" 
-          href="/data-sources" 
-          active={isPathActive('/data-sources')} 
-        />
-        <SidebarItem 
-          icon={<Cloud size={18} />} 
-          label="Cloud Security" 
-          href="/cloud-security" 
-          active={isPathActive('/cloud-security')} 
-        />
-        <SidebarItem 
-          icon={<Bell size={18} />} 
-          label="Notifications" 
-          href="/notifications" 
-          active={isPathActive('/notifications')} 
-        />
-      </div>
-      
-      <div className="mt-6 space-y-1">
-        <div className="px-3 py-2">
-          <h3 className="text-xs font-medium uppercase text-gray-500">SETTINGS</h3>
-        </div>
-        <SidebarItem 
-          icon={<Users size={18} />} 
-          label="Team" 
-          href="/team" 
-          active={isPathActive('/team')} 
-        />
-        <SidebarItem 
-          icon={<Settings size={18} />} 
-          label="Settings" 
-          href="/settings" 
-          active={isPathActive('/settings')} 
         />
       </div>
       
