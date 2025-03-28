@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { Button } from '../common/Button';
+import Button from '../common/Button';
 import { Card, CardContent } from '../common/Card';
 import { FadeIn, SlideUp } from '../common/Transitions';
 import { FileText, Plus, CheckCircle, Clock, AlertCircle, Upload, Edit } from 'lucide-react';
