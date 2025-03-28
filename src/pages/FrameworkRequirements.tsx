@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Navbar from '@/components/layout/Navbar';
 import Sidebar from '@/components/layout/Sidebar';
 import { PageTransition } from '@/components/common/Transitions';
@@ -9,6 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import RiskRegister from '@/components/compliance/risks/RiskRegister';
 import DocumentsSection from '@/components/compliance/documents/DocumentsSection';
 import PoliciesSection from '@/components/compliance/policies/PoliciesSection';
+import RulesDisplay from '@/components/compliance/rules/RulesDisplay';
 import { useFrameworkName } from '@/components/compliance/hooks/useFrameworkName';
 
 const FrameworkRequirements = () => {
@@ -46,7 +47,7 @@ const FrameworkRequirements = () => {
 
                 <TabsContent value="controls" className="mt-0">
                   <div className="grid grid-cols-1 gap-6">
-                    <FrameworkControls frameworkId={frameworkId} />
+                    <RulesDisplay frameworkId={frameworkId} />
                   </div>
                 </TabsContent>
 

@@ -30,7 +30,7 @@ const SidebarItem = ({ icon, label, href, active }: SidebarItemProps) => {
       className={cn(
         "flex items-center gap-3 rounded-lg px-3 py-2 transition-all duration-300 group",
         active ? 
-          "bg-primary text-white" : 
+          "bg-primary/90 text-white" : 
           "text-gray-700 hover:bg-primary/10 hover:text-primary"
       )}
     >
@@ -47,27 +47,22 @@ const Sidebar = () => {
   const pathname = location.pathname;
   const { profile } = useAuth();
 
+  // Check if the current path starts with a specific route
+  const isPathActive = (path: string) => {
+    if (path === '/dashboard' && pathname === '/dashboard') return true;
+    if (path === '/compliance' && (pathname === '/compliance' || pathname.includes('/compliance/'))) return true;
+    if (path !== '/dashboard' && path !== '/compliance' && pathname === path) return true;
+    return false;
+  };
+
   return (
     <aside className="hidden lg:flex h-screen sticky top-0 w-64 flex-col border-r bg-white px-3 py-4">
       <div className="mb-6 flex items-center px-2">
         <div className="h-10 w-10 rounded-full bg-primary flex items-center justify-center mr-2">
-          <svg 
-            xmlns="http://www.w3.org/2000/svg" 
-            width="24" 
-            height="24" 
-            viewBox="0 0 24 24" 
-            fill="none" 
-            stroke="currentColor" 
-            strokeWidth="2" 
-            strokeLinecap="round" 
-            strokeLinejoin="round" 
-            className="text-white"
-          >
-            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10" />
-          </svg>
+          <Shield size={24} className="text-white" />
         </div>
         <div>
-          <h1 className="text-xl font-semibold text-gray-900">ComplyFlow</h1>
+          <h1 className="text-xl font-bold text-gray-900">ComplyFlow</h1>
           <p className="text-xs text-gray-500">Compliance made simple</p>
         </div>
       </div>
@@ -80,31 +75,31 @@ const Sidebar = () => {
           icon={<LayoutDashboard size={18} />} 
           label="Dashboard" 
           href="/dashboard" 
-          active={pathname === '/dashboard'} 
+          active={isPathActive('/dashboard')} 
         />
         <SidebarItem 
           icon={<Shield size={18} />} 
           label="Compliance" 
           href="/compliance" 
-          active={pathname === '/compliance'} 
+          active={isPathActive('/compliance')} 
         />
         <SidebarItem 
           icon={<CheckSquare size={18} />} 
           label="Tasks" 
           href="/tasks" 
-          active={pathname === '/tasks'} 
+          active={isPathActive('/tasks')} 
         />
         <SidebarItem 
           icon={<FileText size={18} />} 
           label="Policies" 
           href="/policies" 
-          active={pathname === '/policies'} 
+          active={isPathActive('/policies')} 
         />
         <SidebarItem 
           icon={<BarChart size={18} />} 
           label="Reports" 
           href="/reports" 
-          active={pathname === '/reports'} 
+          active={isPathActive('/reports')} 
         />
       </div>
       
@@ -116,19 +111,19 @@ const Sidebar = () => {
           icon={<Database size={18} />} 
           label="Data Sources" 
           href="/data-sources" 
-          active={pathname === '/data-sources'} 
+          active={isPathActive('/data-sources')} 
         />
         <SidebarItem 
           icon={<Cloud size={18} />} 
           label="Cloud Security" 
           href="/cloud-security" 
-          active={pathname === '/cloud-security'} 
+          active={isPathActive('/cloud-security')} 
         />
         <SidebarItem 
           icon={<Bell size={18} />} 
           label="Notifications" 
           href="/notifications" 
-          active={pathname === '/notifications'} 
+          active={isPathActive('/notifications')} 
         />
       </div>
       
@@ -140,13 +135,13 @@ const Sidebar = () => {
           icon={<Users size={18} />} 
           label="Team" 
           href="/team" 
-          active={pathname === '/team'} 
+          active={isPathActive('/team')} 
         />
         <SidebarItem 
           icon={<Settings size={18} />} 
           label="Settings" 
           href="/settings" 
-          active={pathname === '/settings'} 
+          active={isPathActive('/settings')} 
         />
       </div>
       

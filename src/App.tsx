@@ -8,6 +8,7 @@ import Dashboard from './pages/Dashboard';
 import Auth from './pages/Auth';
 import Tasks from './pages/Tasks';
 import Compliance from './pages/Compliance';
+import Policies from './pages/Policies';
 import Settings from './pages/Settings';
 import Index from './pages/Index';
 import NotFound from './pages/NotFound';
@@ -29,6 +30,7 @@ function App() {
           {/* Protected routes */}
           <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
           <Route path="/tasks" element={<ProtectedRoute><Tasks /></ProtectedRoute>} />
+          <Route path="/policies" element={<ProtectedRoute><Policies /></ProtectedRoute>} />
           <Route path="/compliance" element={<ProtectedRoute><Compliance /></ProtectedRoute>} />
           <Route path="/compliance/:frameworkId/requirements" element={<ProtectedRoute><FrameworkRequirements /></ProtectedRoute>} />
           <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />

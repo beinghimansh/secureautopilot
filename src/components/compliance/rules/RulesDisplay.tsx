@@ -1,24 +1,24 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import RulesList from './RulesList';
 import RuleDetails from './RuleDetails';
-
-interface Rule {
-  id: number;
-  number: string;
-  content: string;
-  status?: 'compliant' | 'non_compliant' | 'in_progress' | 'not_applicable';
-  notes?: string;
-  documents?: any[];
-}
+import { getRulesByFramework, Rule } from './RulesData';
 
 interface RulesDisplayProps {
   frameworkId: string;
-  rules: Rule[];
 }
 
-const RulesDisplay: React.FC<RulesDisplayProps> = ({ frameworkId, rules }) => {
+const RulesDisplay: React.FC<RulesDisplayProps> = ({ frameworkId }) => {
+  const [rules, setRules] = useState<Rule[]>([]);
   const [selectedRule, setSelectedRule] = useState<Rule | null>(null);
+
+  useEffect(() => {
+    // Fetch rules for the selected framework
+    const frameworkRules = getRulesByFramework(frameworkId);
+    setRules(frameworkRules);
+    // Reset selected rule when framework changes
+    setSelectedRule(null);
+  }, [frameworkId]);
 
   const handleRuleClick = (rule: Rule) => {
     setSelectedRule(rule);

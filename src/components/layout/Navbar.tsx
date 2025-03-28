@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Bell, Settings, User, Menu, X } from 'lucide-react';
+import { Bell, Settings, User, Menu, X, Shield } from 'lucide-react';
 import Button from '../common/Button';
 import { FadeIn } from '../common/Transitions';
 import { useAuth } from '@/contexts/AuthContext';
@@ -40,23 +40,10 @@ const Navbar = () => {
         <div className="flex items-center">
           <Link to={user ? "/dashboard" : "/"} className="flex items-center mr-6">
             <div className="flex items-center">
-              <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center mr-2">
-                <svg 
-                  xmlns="http://www.w3.org/2000/svg" 
-                  width="20" 
-                  height="20" 
-                  viewBox="0 0 24 24" 
-                  fill="none" 
-                  stroke="currentColor" 
-                  strokeWidth="2" 
-                  strokeLinecap="round" 
-                  strokeLinejoin="round" 
-                  className="text-white"
-                >
-                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10" />
-                </svg>
+              <div className="h-9 w-9 rounded-full bg-primary flex items-center justify-center mr-2">
+                <Shield size={20} className="text-white" />
               </div>
-              <span className="text-xl font-medium tracking-tight text-gray-900">ComplyFlow</span>
+              <span className="text-xl font-bold tracking-tight text-gray-900">ComplyFlow</span>
             </div>
           </Link>
           
@@ -70,7 +57,7 @@ const Navbar = () => {
               </Link>
               <Link 
                 to="/compliance" 
-                className={`text-sm font-medium transition-colors hover:text-primary ${location.pathname === '/compliance' ? 'text-primary' : 'text-gray-600'}`}
+                className={`text-sm font-medium transition-colors hover:text-primary ${location.pathname === '/compliance' || location.pathname.includes('/compliance/') ? 'text-primary' : 'text-gray-600'}`}
               >
                 Compliance
               </Link>
@@ -140,7 +127,7 @@ const Navbar = () => {
             </Link>
             <Link 
               to="/compliance" 
-              className={`text-sm font-medium transition-colors hover:text-primary ${location.pathname === '/compliance' ? 'text-primary' : 'text-gray-600'}`}
+              className={`text-sm font-medium transition-colors hover:text-primary ${location.pathname === '/compliance' || location.pathname.includes('/compliance/') ? 'text-primary' : 'text-gray-600'}`}
             >
               Compliance
             </Link>
