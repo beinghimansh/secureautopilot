@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import Navbar from '@/components/layout/Navbar';
 import Sidebar from '@/components/layout/Sidebar';
@@ -62,9 +61,7 @@ const FrameworkRequirements = () => {
   const [showPolicyContent, setShowPolicyContent] = useState(false);
   const [selectedPolicy, setSelectedPolicy] = useState<any>(null);
   
-  // Fetch framework data (in a real app)
   useEffect(() => {
-    // Simulated risks data
     setRisks([
       {
         id: '1',
@@ -104,8 +101,6 @@ const FrameworkRequirements = () => {
         created_at: new Date().toISOString(),
       };
 
-      // In a real application, we would save to Supabase here
-      
       setRisks([...risks, risk]);
       setNewRisk({
         title: '',
@@ -138,7 +133,6 @@ const FrameworkRequirements = () => {
   };
 
   const handleGeneratePolicy = async () => {
-    // Validate form data
     if (!policyFormData.companyName || !policyFormData.industry || !policyFormData.companySize || !policyFormData.dataTypes) {
       toast.error('Please fill in all required fields');
       return;
@@ -147,7 +141,11 @@ const FrameworkRequirements = () => {
     setGeneratingPolicy(true);
 
     try {
-      // Call the edge function to generate the policy
+      const { data: sessionData } = await supabase.auth.getSession();
+      const userId = sessionData?.session?.user?.id;
+      
+      const organizationId = null;
+
       const { data, error } = await supabase.functions.invoke('generate-policy', {
         body: {
           companyName: policyFormData.companyName,
@@ -158,7 +156,9 @@ const FrameworkRequirements = () => {
           businessLocation: policyFormData.businessLocation,
           infrastructureDetails: policyFormData.infrastructureDetails,
           securityControls: policyFormData.securityControls,
-          riskAppetite: policyFormData.riskAppetite
+          riskAppetite: policyFormData.riskAppetite,
+          organizationId,
+          userId
         }
       });
 
@@ -166,16 +166,34 @@ const FrameworkRequirements = () => {
         throw error;
       }
 
-      console.log('Policy generated successfully');
+      console.log('Policy generated successfully', data);
 
-      // Add the newly generated policy to the policies array
+      if (userId) {
+        const { error: insertError } = await supabase
+          .from('generated_policies')
+          .insert({
+            organization_id: organizationId,
+            framework_type: frameworkId,
+            policy_content: data.formattedPolicy,
+            risk_assessment: data.riskAssessment,
+            implementation_guide: data.implementationGuide,
+            gaps_analysis: data.gapsAnalysis,
+            ai_suggestions: data.aiSuggestions,
+            created_by: userId
+          });
+          
+        if (insertError) {
+          console.error("Error saving policy to database:", insertError);
+        }
+      }
+
       const newPolicy = {
         id: Date.now().toString(),
         name: `${frameworkId.toUpperCase()} Policy - ${policyFormData.companyName}`,
         created_at: new Date().toISOString(),
         framework: frameworkId,
         company: policyFormData.companyName,
-        content: data.policy,
+        policy_content: data.formattedPolicy,
         riskAssessment: data.riskAssessment,
         implementationGuide: data.implementationGuide,
         gapsAnalysis: data.gapsAnalysis,
@@ -231,6 +249,112 @@ const FrameworkRequirements = () => {
     frameworkId === 'gdpr' ? 'GDPR' : 
     frameworkId === 'hipaa' ? 'HIPAA' : 
     frameworkId === 'pci_dss' ? 'PCI DSS' : 'Compliance';
+
+  const handleDownloadPolicy = (policy: any, section: string) => {
+    let content = '';
+    let filename = '';
+    let title = '';
+    
+    if (section === 'policy') {
+      content = policy.content || policy.policy_content;
+      filename = `${policy.name || 'policy'}-document.pdf`;
+      title = policy.name || 'Policy Document';
+    } else if (section === 'risk') {
+      content = policy.riskAssessment;
+      filename = `${policy.name || 'policy'}-risk-assessment.pdf`;
+      title = `Risk Assessment - ${policy.name || 'Policy Document'}`;
+    } else if (section === 'implementation') {
+      content = policy.implementationGuide;
+      filename = `${policy.name || 'policy'}-implementation-guide.pdf`;
+      title = `Implementation Guide - ${policy.name || 'Policy Document'}`;
+    } else if (section === 'gaps') {
+      content = policy.gapsAnalysis;
+      filename = `${policy.name || 'policy'}-gaps-analysis.pdf`;
+      title = `Gaps Analysis - ${policy.name || 'Policy Document'}`;
+    } else if (section === 'ai') {
+      content = policy.aiSuggestions;
+      filename = `${policy.name || 'policy'}-ai-suggestions.pdf`;
+      title = `AI Suggestions - ${policy.name || 'Policy Document'}`;
+    }
+    
+    import('@/utils/pdfGenerator').then(module => {
+      module.downloadPolicyAsPDF(content, filename, title);
+    });
+  };
+
+  const renderPolicyContentDialog = () => (
+    <Dialog open={showPolicyContent} onOpenChange={setShowPolicyContent}>
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-auto">
+        <DialogHeader>
+          <DialogTitle>{selectedPolicy?.name}</DialogTitle>
+        </DialogHeader>
+        
+        {selectedPolicy && (
+          <div className="py-3">
+            <Tabs defaultValue="policy">
+              <TabsList className="mb-4">
+                <TabsTrigger value="policy">Policy</TabsTrigger>
+                <TabsTrigger value="risk">Risk Assessment</TabsTrigger>
+                <TabsTrigger value="implementation">Implementation Guide</TabsTrigger>
+                <TabsTrigger value="gaps">Gap Analysis</TabsTrigger>
+                <TabsTrigger value="ai">AI Suggestions</TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="policy" className="p-4 bg-gray-50 rounded border whitespace-pre-wrap">
+                {selectedPolicy.content || selectedPolicy.policy_content}
+              </TabsContent>
+              
+              <TabsContent value="risk" className="p-4 bg-gray-50 rounded border whitespace-pre-wrap">
+                {selectedPolicy.riskAssessment}
+              </TabsContent>
+              
+              <TabsContent value="implementation" className="p-4 bg-gray-50 rounded border whitespace-pre-wrap">
+                {selectedPolicy.implementationGuide}
+              </TabsContent>
+              
+              <TabsContent value="gaps" className="p-4 bg-gray-50 rounded border whitespace-pre-wrap">
+                {selectedPolicy.gapsAnalysis}
+              </TabsContent>
+              
+              <TabsContent value="ai" className="p-4 bg-gray-50 rounded border whitespace-pre-wrap">
+                {selectedPolicy.aiSuggestions || "AI suggestions not available for this policy."}
+              </TabsContent>
+            </Tabs>
+          </div>
+        )}
+        
+        <DialogFooter>
+          <Tabs defaultValue="policy">
+            <TabsList>
+              <TabsTrigger value="policy" onClick={() => handleDownloadPolicy(selectedPolicy, 'policy')}>
+                <Download size={16} className="mr-2" />
+                Policy
+              </TabsTrigger>
+              <TabsTrigger value="risk" onClick={() => handleDownloadPolicy(selectedPolicy, 'risk')}>
+                <Download size={16} className="mr-2" />
+                Risk
+              </TabsTrigger>
+              <TabsTrigger value="implementation" onClick={() => handleDownloadPolicy(selectedPolicy, 'implementation')}>
+                <Download size={16} className="mr-2" />
+                Implementation
+              </TabsTrigger>
+              <TabsTrigger value="gaps" onClick={() => handleDownloadPolicy(selectedPolicy, 'gaps')}>
+                <Download size={16} className="mr-2" />
+                Gaps
+              </TabsTrigger>
+              <TabsTrigger value="ai" onClick={() => handleDownloadPolicy(selectedPolicy, 'ai')}>
+                <Download size={16} className="mr-2" />
+                AI Suggestions
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
+          <Button onClick={() => setShowPolicyContent(false)}>
+            Close
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -575,7 +699,6 @@ const FrameworkRequirements = () => {
         </main>
       </div>
 
-      {/* Policy Generator Dialog */}
       <Dialog open={showPolicyGenerator} onOpenChange={setShowPolicyGenerator}>
         <DialogContent className="max-w-3xl">
           <DialogHeader>
@@ -744,57 +867,7 @@ const FrameworkRequirements = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Policy Content Dialog */}
-      <Dialog open={showPolicyContent} onOpenChange={setShowPolicyContent}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-auto">
-          <DialogHeader>
-            <DialogTitle>{selectedPolicy?.name}</DialogTitle>
-          </DialogHeader>
-          
-          {selectedPolicy && (
-            <div className="py-3">
-              <Tabs defaultValue="policy">
-                <TabsList className="mb-4">
-                  <TabsTrigger value="policy">Policy</TabsTrigger>
-                  <TabsTrigger value="risk">Risk Assessment</TabsTrigger>
-                  <TabsTrigger value="implementation">Implementation Guide</TabsTrigger>
-                  <TabsTrigger value="gaps">Gap Analysis</TabsTrigger>
-                  <TabsTrigger value="ai">AI Suggestions</TabsTrigger>
-                </TabsList>
-                
-                <TabsContent value="policy" className="p-4 bg-gray-50 rounded border whitespace-pre-wrap">
-                  {selectedPolicy.content}
-                </TabsContent>
-                
-                <TabsContent value="risk" className="p-4 bg-gray-50 rounded border whitespace-pre-wrap">
-                  {selectedPolicy.riskAssessment}
-                </TabsContent>
-                
-                <TabsContent value="implementation" className="p-4 bg-gray-50 rounded border whitespace-pre-wrap">
-                  {selectedPolicy.implementationGuide}
-                </TabsContent>
-                
-                <TabsContent value="gaps" className="p-4 bg-gray-50 rounded border whitespace-pre-wrap">
-                  {selectedPolicy.gapsAnalysis}
-                </TabsContent>
-                
-                <TabsContent value="ai" className="p-4 bg-gray-50 rounded border whitespace-pre-wrap">
-                  {selectedPolicy.aiSuggestions || "AI suggestions not available for this policy."}
-                </TabsContent>
-              </Tabs>
-            </div>
-          )}
-          
-          <DialogFooter>
-            <Button variant="outline" size="sm" leftIcon={<Download size={16} />}>
-              Download PDF
-            </Button>
-            <Button onClick={() => setShowPolicyContent(false)}>
-              Close
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      {renderPolicyContentDialog()}
     </div>
   );
 };

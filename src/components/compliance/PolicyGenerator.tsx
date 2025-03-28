@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Button from '@/components/common/Button';
@@ -150,6 +149,11 @@ const PolicyGenerator: React.FC<PolicyGeneratorProps> = ({ frameworkId, onComple
     try {
       setGenerating(true);
       
+      const { data: sessionData } = await supabase.auth.getSession();
+      const userId = sessionData?.session?.user?.id;
+      
+      const organizationId = null;
+      
       const { data, error } = await supabase.functions.invoke('generate-policy', {
         body: {
           companyName: formValues.companyName,
@@ -160,7 +164,9 @@ const PolicyGenerator: React.FC<PolicyGeneratorProps> = ({ frameworkId, onComple
           businessLocation: formValues.businessLocation,
           infrastructureDetails: formValues.infrastructureDetails,
           securityControls: formValues.securityControls,
-          riskAppetite: formValues.riskAppetite
+          riskAppetite: formValues.riskAppetite,
+          organizationId,
+          userId
         }
       });
       
@@ -168,14 +174,30 @@ const PolicyGenerator: React.FC<PolicyGeneratorProps> = ({ frameworkId, onComple
         throw new Error(error.message);
       }
 
-      // Save the generated policy to Supabase
-      // This would typically be implemented with a real database call to save the policy
-      // For demo purposes, we'll just simulate success
+      console.log("Policy generation response:", data);
+
+      if (userId) {
+        const { error: insertError } = await supabase
+          .from('generated_policies')
+          .insert({
+            organization_id: organizationId,
+            framework_type: frameworkId,
+            policy_content: data.formattedPolicy,
+            risk_assessment: data.riskAssessment,
+            implementation_guide: data.implementationGuide,
+            gaps_analysis: data.gapsAnalysis,
+            ai_suggestions: data.aiSuggestions,
+            created_by: userId
+          });
+          
+        if (insertError) {
+          console.error("Error saving policy to database:", insertError);
+        }
+      }
       
       toast.success(`${frameworkName} Policy has been generated successfully!`);
       setGenerationSuccess(true);
       
-      // After a short delay, call the onComplete callback
       setTimeout(() => {
         onComplete();
       }, 1000);

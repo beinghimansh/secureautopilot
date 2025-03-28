@@ -155,6 +155,53 @@ export type Database = {
           },
         ]
       }
+      generated_policies: {
+        Row: {
+          ai_suggestions: string | null
+          created_at: string | null
+          created_by: string | null
+          framework_type: string
+          gaps_analysis: string | null
+          id: string
+          implementation_guide: string | null
+          organization_id: string | null
+          policy_content: string
+          risk_assessment: string | null
+        }
+        Insert: {
+          ai_suggestions?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          framework_type: string
+          gaps_analysis?: string | null
+          id?: string
+          implementation_guide?: string | null
+          organization_id?: string | null
+          policy_content: string
+          risk_assessment?: string | null
+        }
+        Update: {
+          ai_suggestions?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          framework_type?: string
+          gaps_analysis?: string | null
+          id?: string
+          implementation_guide?: string | null
+          organization_id?: string | null
+          policy_content?: string
+          risk_assessment?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "generated_policies_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       integrations: {
         Row: {
           config: Json
