@@ -14,6 +14,7 @@ import {
   Cloud
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface SidebarItemProps {
   icon: React.ReactNode;
@@ -44,6 +45,7 @@ const SidebarItem = ({ icon, label, href, active }: SidebarItemProps) => {
 const Sidebar = () => {
   const location = useLocation();
   const pathname = location.pathname;
+  const { profile } = useAuth();
 
   return (
     <aside className="hidden lg:flex h-screen sticky top-0 w-64 flex-col border-r bg-white px-3 py-4">
@@ -72,7 +74,7 @@ const Sidebar = () => {
       
       <div className="space-y-1">
         <div className="px-3 py-2">
-          <h3 className="text-xs font-medium uppercase text-gray-500">General</h3>
+          <h3 className="text-xs font-medium uppercase text-gray-500">GENERAL</h3>
         </div>
         <SidebarItem 
           icon={<LayoutDashboard size={18} />} 
@@ -108,7 +110,7 @@ const Sidebar = () => {
       
       <div className="mt-6 space-y-1">
         <div className="px-3 py-2">
-          <h3 className="text-xs font-medium uppercase text-gray-500">Integrations</h3>
+          <h3 className="text-xs font-medium uppercase text-gray-500">INTEGRATIONS</h3>
         </div>
         <SidebarItem 
           icon={<Database size={18} />} 
@@ -132,7 +134,7 @@ const Sidebar = () => {
       
       <div className="mt-6 space-y-1">
         <div className="px-3 py-2">
-          <h3 className="text-xs font-medium uppercase text-gray-500">Settings</h3>
+          <h3 className="text-xs font-medium uppercase text-gray-500">SETTINGS</h3>
         </div>
         <SidebarItem 
           icon={<Users size={18} />} 

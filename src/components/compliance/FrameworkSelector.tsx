@@ -68,14 +68,14 @@ const FrameworkSelector = ({ onSelectFramework }: FrameworkSelectorProps) => {
         <ScaleIn key={framework.id} delay={index * 100}>
           <Card className="h-full hover:shadow-premium-md transition-all duration-300">
             <CardContent className="p-6 flex flex-col h-full">
-              <div className="mb-4 p-3 bg-primary/10 rounded-full w-16 h-16 flex items-center justify-center text-primary">
+              <div className="mb-4 p-3 bg-blue-100 rounded-full w-16 h-16 flex items-center justify-center text-blue-600">
                 {framework.icon}
               </div>
               <h3 className="text-xl font-medium mb-2">{framework.name}</h3>
               <p className="text-gray-600 mb-6 flex-grow">{framework.description}</p>
               <Button 
                 onClick={() => onSelectFramework(framework.id)}
-                className="w-full mt-auto"
+                className="w-full mt-auto bg-blue-600 hover:bg-blue-700"
               >
                 Select {framework.name}
               </Button>

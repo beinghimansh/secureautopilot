@@ -110,7 +110,7 @@ const CompliancePage = () => {
                   </div>
                   
                   <div className="flex flex-col sm:flex-row justify-center gap-4">
-                    <button className="px-4 py-2 bg-primary text-white rounded-md shadow hover:bg-primary/90 transition-colors">
+                    <button className="px-4 py-2 bg-blue-600 text-white rounded-md shadow hover:bg-blue-700 transition-colors">
                       Export All Policies (PDF)
                     </button>
                     <button className="px-4 py-2 bg-white border border-gray-200 text-gray-700 rounded-md shadow hover:bg-gray-50 transition-colors">
