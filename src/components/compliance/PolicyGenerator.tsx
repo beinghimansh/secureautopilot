@@ -1,10 +1,12 @@
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Button from '@/components/common/Button';
-import { Card, CardContent } from '@/components/common/Card';
 import { toast } from 'sonner';
-import { Loader2, AlertCircle, FileText, Check, Waves } from 'lucide-react';
+import { FileText } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import PolicyFormWrapper from './generator/PolicyFormWrapper';
+import GenerationProgress from './generator/GenerationProgress';
+import GenerationSuccess from './generator/GenerationSuccess';
 
 interface PolicyGeneratorProps {
   frameworkId: string;
@@ -22,6 +24,7 @@ interface FormValues {
   riskAppetite: string;
 }
 
+// Data options
 const industries = [
   'Technology',
   'Healthcare',
@@ -154,7 +157,6 @@ const PolicyGenerator: React.FC<PolicyGeneratorProps> = ({ frameworkId, onComple
       const userId = sessionData?.session?.user?.id;
       
       // First, store the company profile data directly in the component
-      // This is a backup to ensure data is saved even if the edge function fails
       try {
         console.log("Storing company profile data...");
         const { error: companyError } = await supabase
@@ -174,13 +176,11 @@ const PolicyGenerator: React.FC<PolicyGeneratorProps> = ({ frameworkId, onComple
           
         if (companyError) {
           console.error("Error saving company profile data:", companyError);
-          // Continue with policy generation even if storing company profile fails
         } else {
           console.log("Company profile data saved successfully");
         }
       } catch (profileError) {
         console.error("Failed to store company profile:", profileError);
-        // Continue with policy generation even if storing company profile fails
       }
       
       // Create a timeout promise that rejects after 30 seconds
@@ -200,7 +200,7 @@ const PolicyGenerator: React.FC<PolicyGeneratorProps> = ({ frameworkId, onComple
           infrastructureDetails: formValues.infrastructureDetails,
           securityControls: formValues.securityControls,
           riskAppetite: formValues.riskAppetite,
-          organizationId: null, // Will be updated when organizations are implemented
+          organizationId: null,
           userId
         }
       });
@@ -235,7 +235,7 @@ const PolicyGenerator: React.FC<PolicyGeneratorProps> = ({ frameworkId, onComple
           const { error: insertError } = await supabase
             .from('generated_policies')
             .insert({
-              organization_id: null, // Will be updated when organizations are implemented
+              organization_id: null,
               framework_type: frameworkId,
               policy_content: data.formattedPolicy,
               risk_assessment: data.riskAssessment,
@@ -280,392 +280,30 @@ const PolicyGenerator: React.FC<PolicyGeneratorProps> = ({ frameworkId, onComple
     }
   };
 
-  const renderStepOne = () => (
-    <div className="space-y-6">
-      <h2 className="text-xl font-medium">Organization Details</h2>
-      
-      <div className="space-y-4">
-        <div>
-          <label className="block text-sm font-medium mb-1" htmlFor="companyName">
-            Company Name <span className="text-red-500">*</span>
-          </label>
-          <input
-            id="companyName"
-            name="companyName"
-            type="text"
-            className="w-full p-2 border border-gray-300 rounded-md"
-            placeholder="Enter your company name"
-            value={formValues.companyName}
-            onChange={handleInputChange}
-            required
-          />
-        </div>
-        
-        <div>
-          <label className="block text-sm font-medium mb-1" htmlFor="industry">
-            Industry <span className="text-red-500">*</span>
-          </label>
-          <select
-            id="industry"
-            name="industry"
-            className="w-full p-2 border border-gray-300 rounded-md"
-            value={formValues.industry}
-            onChange={handleInputChange}
-            required
-          >
-            <option value="">Select an industry</option>
-            {industries.map(industry => (
-              <option key={industry} value={industry}>{industry}</option>
-            ))}
-          </select>
-        </div>
-        
-        <div>
-          <label className="block text-sm font-medium mb-1" htmlFor="companySize">
-            Company Size <span className="text-red-500">*</span>
-          </label>
-          <select
-            id="companySize"
-            name="companySize"
-            className="w-full p-2 border border-gray-300 rounded-md"
-            value={formValues.companySize}
-            onChange={handleInputChange}
-            required
-          >
-            <option value="">Select company size</option>
-            {companySize.map(size => (
-              <option key={size} value={size}>{size}</option>
-            ))}
-          </select>
-        </div>
-        
-        <div>
-          <label className="block text-sm font-medium mb-1" htmlFor="businessLocation">
-            Primary Business Location
-          </label>
-          <input
-            id="businessLocation"
-            name="businessLocation"
-            type="text"
-            className="w-full p-2 border border-gray-300 rounded-md"
-            placeholder="Country or region"
-            value={formValues.businessLocation}
-            onChange={handleInputChange}
-          />
-        </div>
-      </div>
-    </div>
-  );
-
-  const renderStepTwo = () => (
-    <div className="space-y-6">
-      <h2 className="text-xl font-medium">Data & Infrastructure</h2>
-      
-      <div className="space-y-4">
-        <div>
-          <label className="block text-sm font-medium mb-1" htmlFor="dataTypes">
-            Types of Data Processed <span className="text-red-500">*</span>
-          </label>
-          <textarea
-            id="dataTypes"
-            name="dataTypes"
-            className="w-full p-2 border border-gray-300 rounded-md min-h-[100px]"
-            placeholder="E.g., customer PII, health records, payment information, etc."
-            value={formValues.dataTypes}
-            onChange={handleInputChange}
-            required
-          />
-        </div>
-        
-        <div>
-          <label className="block text-sm font-medium mb-1" htmlFor="infrastructureDetails">
-            Infrastructure Details
-          </label>
-          <textarea
-            id="infrastructureDetails"
-            name="infrastructureDetails"
-            className="w-full p-2 border border-gray-300 rounded-md min-h-[100px]"
-            placeholder="E.g., cloud services used, on-premises infrastructure, BYOD policies, etc."
-            value={formValues.infrastructureDetails}
-            onChange={handleInputChange}
-          />
-        </div>
-      </div>
-    </div>
-  );
-
-  const renderStepThree = () => (
-    <div className="space-y-6">
-      <h2 className="text-xl font-medium">Security & Risk Profile</h2>
-      
-      <div className="space-y-4">
-        <div>
-          <label className="block text-sm font-medium mb-2">
-            Security Controls in Place
-          </label>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-            {securityControlOptions.map(control => (
-              <div key={control} className="flex items-center">
-                <input
-                  type="checkbox"
-                  id={`control-${control}`}
-                  className="mr-2"
-                  checked={formValues.securityControls.includes(control)}
-                  onChange={() => handleCheckboxChange(control)}
-                />
-                <label htmlFor={`control-${control}`}>{control}</label>
-              </div>
-            ))}
-          </div>
-        </div>
-        
-        <div>
-          <label className="block text-sm font-medium mb-1" htmlFor="riskAppetite">
-            Risk Appetite
-          </label>
-          <select
-            id="riskAppetite"
-            name="riskAppetite"
-            className="w-full p-2 border border-gray-300 rounded-md"
-            value={formValues.riskAppetite}
-            onChange={handleInputChange}
-          >
-            {riskAppetiteOptions.map(option => (
-              <option key={option} value={option}>{option}</option>
-            ))}
-          </select>
-        </div>
-      </div>
-    </div>
-  );
-
-  const renderReview = () => (
-    <div className="space-y-6">
-      <h2 className="text-xl font-medium">Review & Generate</h2>
-      
-      <div className="bg-gray-50 p-4 rounded-md border border-gray-200">
-        <h3 className="font-medium mb-2">Organization Details</h3>
-        <dl className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-2 text-sm">
-          <div>
-            <dt className="text-gray-500">Company Name:</dt>
-            <dd>{formValues.companyName}</dd>
-          </div>
-          <div>
-            <dt className="text-gray-500">Industry:</dt>
-            <dd>{formValues.industry}</dd>
-          </div>
-          <div>
-            <dt className="text-gray-500">Company Size:</dt>
-            <dd>{formValues.companySize}</dd>
-          </div>
-          <div>
-            <dt className="text-gray-500">Location:</dt>
-            <dd>{formValues.businessLocation || 'Not specified'}</dd>
-          </div>
-        </dl>
-      </div>
-      
-      <div className="bg-gray-50 p-4 rounded-md border border-gray-200">
-        <h3 className="font-medium mb-2">Data & Infrastructure</h3>
-        <dl className="space-y-2 text-sm">
-          <div>
-            <dt className="text-gray-500">Data Types:</dt>
-            <dd>{formValues.dataTypes}</dd>
-          </div>
-          <div>
-            <dt className="text-gray-500">Infrastructure:</dt>
-            <dd>{formValues.infrastructureDetails || 'Not specified'}</dd>
-          </div>
-        </dl>
-      </div>
-      
-      <div className="bg-gray-50 p-4 rounded-md border border-gray-200">
-        <h3 className="font-medium mb-2">Security & Risk Profile</h3>
-        <dl className="space-y-2 text-sm">
-          <div>
-            <dt className="text-gray-500">Security Controls:</dt>
-            <dd>{formValues.securityControls.length > 0 ? formValues.securityControls.join(', ') : 'None selected'}</dd>
-          </div>
-          <div>
-            <dt className="text-gray-500">Risk Appetite:</dt>
-            <dd>{formValues.riskAppetite}</dd>
-          </div>
-        </dl>
-      </div>
-      
-      <div className="border-t border-gray-200 pt-4">
-        <p className="text-gray-600 mb-4">
-          Our AI will generate the following documents based on your inputs:
-        </p>
-        <ul className="space-y-2">
-          <li className="flex items-center">
-            <Check size={16} className="text-green-500 mr-2" />
-            <span>Comprehensive {frameworkName} Policy</span>
-          </li>
-          <li className="flex items-center">
-            <Check size={16} className="text-green-500 mr-2" />
-            <span>Risk Assessment Document</span>
-          </li>
-          <li className="flex items-center">
-            <Check size={16} className="text-green-500 mr-2" />
-            <span>Implementation Guide</span>
-          </li>
-          <li className="flex items-center">
-            <Check size={16} className="text-green-500 mr-2" />
-            <span>Compliance Gap Analysis</span>
-          </li>
-          <li className="flex items-center">
-            <Check size={16} className="text-green-500 mr-2" />
-            <span>AI-powered Improvement Suggestions</span>
-          </li>
-        </ul>
-      </div>
-    </div>
-  );
-
-  const renderStepIndicator = () => (
-    <div className="mb-8">
-      <ol className="flex items-center w-full">
-        {[1, 2, 3, 4].map((step) => (
-          <li key={step} className={`flex items-center ${step === currentStep ? 'text-blue-600' : step < currentStep ? 'text-green-600' : 'text-gray-500'}`}>
-            <span className={`flex items-center justify-center w-8 h-8 rounded-full border-2 ${
-              step === currentStep 
-                ? 'border-blue-600 text-blue-600' 
-                : step < currentStep 
-                  ? 'border-green-600 bg-green-600 text-white' 
-                  : 'border-gray-500 text-gray-500'
-            }`}>
-              {step < currentStep ? <Check size={16} /> : step}
-            </span>
-            <span className="ml-2 text-sm hidden sm:inline">
-              {step === 1 ? 'Organization' : 
-               step === 2 ? 'Data' : 
-               step === 3 ? 'Security' : 'Review'}
-            </span>
-            {step < 4 && (
-              <div className={`flex-1 h-0.5 mx-2 ${step < currentStep ? 'bg-green-600' : 'bg-gray-300'}`}></div>
-            )}
-          </li>
-        ))}
-      </ol>
-    </div>
-  );
-
-  const renderStepContent = () => {
-    switch (currentStep) {
-      case 1:
-        return renderStepOne();
-      case 2:
-        return renderStepTwo();
-      case 3:
-        return renderStepThree();
-      case 4:
-        return renderReview();
-      default:
-        return null;
-    }
-  };
-
   if (generating) {
-    return (
-      <Card>
-        <CardContent className="p-8">
-          <div className="flex flex-col items-center justify-center py-12">
-            <div className="mb-4">
-              <Waves size={48} className="text-blue-600 animate-pulse" />
-            </div>
-            <h2 className="text-2xl font-bold mb-2">Generating Your {frameworkName} Compliance Package</h2>
-            <p className="text-gray-600 text-center mb-6">
-              Our AI is crafting customized policy documents based on your organization's profile. This may take a minute...
-            </p>
-            <div className="w-full max-w-md mb-4 bg-gray-200 rounded-full h-2.5">
-              <div className="bg-blue-600 h-2.5 rounded-full animate-progress"></div>
-            </div>
-            <p className="text-sm text-gray-500">
-              <Loader2 size={16} className="inline mr-2 animate-spin" />
-              Building comprehensive compliance policies and guides
-            </p>
-          </div>
-        </CardContent>
-      </Card>
-    );
+    return <GenerationProgress frameworkName={frameworkName} />;
   }
 
   if (generationSuccess) {
-    return (
-      <Card>
-        <CardContent className="p-8">
-          <div className="flex flex-col items-center justify-center py-10">
-            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
-              <Check size={32} className="text-green-600" />
-            </div>
-            <h2 className="text-2xl font-bold mb-2">Generation Complete!</h2>
-            <p className="text-gray-600 text-center mb-6">
-              Your {frameworkName} compliance package has been successfully generated.
-            </p>
-            <Button leftIcon={<FileText size={16} />} onClick={onComplete}>
-              View Your Generated Policies
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-    );
+    return <GenerationSuccess frameworkName={frameworkName} onComplete={onComplete} />;
   }
 
   return (
-    <Card>
-      <CardContent className="p-6">
-        <div className="text-center mb-6">
-          <h1 className="text-2xl font-bold">{frameworkName} Policy Generator</h1>
-          <p className="text-gray-600">
-            AI will generate customized policies for your organization based on the {frameworkName} framework
-          </p>
-        </div>
-        
-        {renderStepIndicator()}
-        
-        <form onSubmit={handleSubmit}>
-          {error && (
-            <div className="mb-4 p-3 bg-red-100 border border-red-200 text-red-800 rounded-md flex items-start">
-              <AlertCircle size={20} className="mr-2 mt-0.5 flex-shrink-0" />
-              <p>{error}</p>
-            </div>
-          )}
-          
-          {renderStepContent()}
-          
-          <div className="flex justify-between mt-8 pt-4 border-t border-gray-200">
-            {currentStep > 1 ? (
-              <Button 
-                type="button" 
-                variant="outline" 
-                onClick={prevStep}
-              >
-                Previous
-              </Button>
-            ) : (
-              <div></div>
-            )}
-            
-            {currentStep < 4 ? (
-              <Button 
-                type="button" 
-                onClick={nextStep}
-              >
-                Next
-              </Button>
-            ) : (
-              <Button 
-                type="submit"
-                leftIcon={<FileText size={16} />}
-              >
-                Generate Policies
-              </Button>
-            )}
-          </div>
-        </form>
-      </CardContent>
-    </Card>
+    <PolicyFormWrapper
+      frameworkName={frameworkName}
+      currentStep={currentStep}
+      formValues={formValues}
+      error={error}
+      handleInputChange={handleInputChange}
+      handleCheckboxChange={handleCheckboxChange}
+      handleSubmit={handleSubmit}
+      prevStep={prevStep}
+      nextStep={nextStep}
+      industries={industries}
+      companySizes={companySize}
+      securityControlOptions={securityControlOptions}
+      riskAppetiteOptions={riskAppetiteOptions}
+    />
   );
 };
 
