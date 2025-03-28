@@ -49,8 +49,8 @@ const iso27001Clauses = [
       { id: 'a5.32', number: 'A.5.32', title: 'Intellectual property rights', description: 'Intellectual property rights and the use of proprietary software products are appropriately managed.' },
       { id: 'a5.33', number: 'A.5.33', title: 'Protection of records', description: 'Records are protected from loss, destruction, falsification, unauthorized access and unauthorized release.' },
       { id: 'a5.34', number: 'A.5.34', title: 'Privacy and protection of PII', description: 'Privacy and protection of personally identifiable information are ensured.' },
-      { id: 'a5.35', number: 'A.5.35', title: 'Independent review of information security', description: 'The organization's approach to information security is independently reviewed at planned intervals.' },
-      { id: 'a5.36', number: 'A.5.36', title: 'Compliance with policies, rules and standards for information security', description: 'Compliance with the organization's information security policies, rules and standards is regularly reviewed.' },
+      { id: 'a5.35', number: 'A.5.35', title: 'Independent review of information security', description: 'The organization\'s approach to information security is independently reviewed at planned intervals.' },
+      { id: 'a5.36', number: 'A.5.36', title: 'Compliance with policies, rules and standards for information security', description: 'Compliance with the organization\'s information security policies, rules and standards is regularly reviewed.' },
       { id: 'a5.37', number: 'A.5.37', title: 'Documented operating procedures', description: 'Operating procedures for information processing facilities are documented and made available to all users who need them.' },
     ]
   },
@@ -65,9 +65,9 @@ const iso27001Clauses = [
       { id: 'a6.3', number: 'A.6.3', title: 'Information security awareness, education and training', description: 'Organization members receive appropriate information security awareness, education and training.' },
       { id: 'a6.4', number: 'A.6.4', title: 'Disciplinary process', description: 'A disciplinary process for information security violations is established and communicated.' },
       { id: 'a6.5', number: 'A.6.5', title: 'Responsibilities after termination or change of employment', description: 'Information security responsibilities that remain valid after termination or change of employment are defined, communicated and enforced.' },
-      { id: 'a6.6', number: 'A.6.6', title: 'Confidentiality or non-disclosure agreements', description: 'Confidentiality or non-disclosure agreements reflecting the organization's needs are identified, documented, regularly reviewed and signed.' },
+      { id: 'a6.6', number: 'A.6.6', title: 'Confidentiality or non-disclosure agreements', description: 'Confidentiality or non-disclosure agreements reflecting the organization\'s needs are identified, documented, regularly reviewed and signed.' },
       { id: 'a6.7', number: 'A.6.7', title: 'Remote working', description: 'Security measures are implemented when working remotely.' },
-      { id: 'a6.8', number: 'A.6.8', title: 'Information security event reporting', description: 'The organization's personnel and other relevant interested parties are required to report any observed or suspected information security events.' },
+      { id: 'a6.8', number: 'A.6.8', title: 'Information security event reporting', description: 'The organization\'s personnel and other relevant interested parties are required to report any observed or suspected information security events.' },
     ]
   },
   {
@@ -108,7 +108,7 @@ const iso27001Clauses = [
       { id: 'a8.8', number: 'A.8.8', title: 'Management of technical vulnerabilities', description: 'Technical vulnerabilities are managed in a timely and effective manner.' },
       { id: 'a8.9', number: 'A.8.9', title: 'Configuration management', description: 'Configurations, including security configurations, of hardware, software, services and networks are established, documented, implemented, monitored and reviewed.' },
       { id: 'a8.10', number: 'A.8.10', title: 'Information deletion', description: 'Information stored in information systems, devices or in any other storage media is deleted when no longer required.' },
-      { id: 'a8.11', number: 'A.8.11', title: 'Data masking', description: 'Data masking is implemented in accordance with the organization's access control policy and other related security policies.' },
+      { id: 'a8.11', number: 'A.8.11', title: 'Data masking', description: 'Data masking is implemented in accordance with the organization\'s access control policy and other related security policies.' },
       { id: 'a8.12', number: 'A.8.12', title: 'Data leakage prevention', description: 'Data leakage prevention measures are applied to systems, networks and any devices that process, store or transmit sensitive information.' },
       { id: 'a8.13', number: 'A.8.13', title: 'Information backup', description: 'Backup copies of information, software and system configurations are taken and regularly tested.' },
       { id: 'a8.14', number: 'A.8.14', title: 'Redundancy of information processing facilities', description: 'Information processing facilities are implemented with redundancy sufficient to meet availability requirements.' },
