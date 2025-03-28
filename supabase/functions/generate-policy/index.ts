@@ -117,8 +117,14 @@ serve(async (req) => {
     } = await req.json();
 
     console.log("Generating policy with parameters:", { 
-      companyName, industry, companySize, dataTypes, frameworkType 
+      companyName, industry, companySize, dataTypes, frameworkType, businessLocation,
+      securityControls: securityControls ? securityControls.join(", ") : "None specified",
+      riskAppetite: riskAppetite || "Moderate"
     });
+
+    if (!openAIApiKey) {
+      throw new Error("OPENAI_API_KEY is not configured in the environment variables");
+    }
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -127,7 +133,7 @@ serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4o',
+        model: 'gpt-4o-mini',
         messages: [
           { 
             role: 'system', 
@@ -155,14 +161,23 @@ serve(async (req) => {
       }),
     });
 
+    console.log("OpenAI response status:", response.status);
+    
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error("OpenAI API Error:", errorData);
+      throw new Error(`OpenAI API error: ${JSON.stringify(errorData)}`);
+    }
+
     const data = await response.json();
     console.log("OpenAI response received");
     
-    if (data.error) {
-      throw new Error(`OpenAI API error: ${data.error.message}`);
+    // Parse the function call response
+    if (!data.choices || !data.choices[0] || !data.choices[0].message || !data.choices[0].message.function_call) {
+      console.error("Unexpected OpenAI response format:", data);
+      throw new Error("Unexpected response format from OpenAI API");
     }
     
-    // Parse the function call response
     const functionCall = data.choices[0].message.function_call;
     if (!functionCall) {
       throw new Error("No function call in response");

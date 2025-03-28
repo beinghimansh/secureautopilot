@@ -47,7 +47,10 @@ export const generatePolicyPDF = (
   
   // Process each line
   for (let i = 0; i < lines.length; i++) {
-    const line = lines[i];
+    const line = lines[i].trim();
+    
+    // Skip empty lines at the beginning
+    if (line === '' && yPos <= 50) continue;
     
     // Check if we need a new page
     if (yPos > 270) {
@@ -74,14 +77,36 @@ export const generatePolicyPDF = (
       doc.text(line.substring(4), 10, yPos);
       yPos += 7;
       
-    } else if (line.startsWith('**')) {
+    } else if (line.startsWith('**') && line.endsWith('**')) {
       // Handle bold text
       doc.setFont('helvetica', 'bold');
       const text = line.replace(/\*\*/g, '');
       doc.text(text, 10, yPos);
       yPos += 7;
       
-    } else if (line.trim() === '') {
+    } else if (line.startsWith('**')) {
+      // Handle line starting with bold text
+      const boldEndIndex = line.indexOf('**', 2);
+      if (boldEndIndex > 0) {
+        const boldText = line.substring(2, boldEndIndex);
+        const remainingText = line.substring(boldEndIndex + 2);
+        
+        doc.setFont('helvetica', 'bold');
+        doc.text(boldText, 10, yPos);
+        
+        const boldWidth = doc.getTextWidth(boldText);
+        doc.setFont('helvetica', 'normal');
+        doc.text(remainingText, 10 + boldWidth, yPos);
+        
+        yPos += 7;
+      } else {
+        // Not valid bold format, treat as normal text
+        doc.setFont('helvetica', 'normal');
+        doc.text(line, 10, yPos);
+        yPos += 6;
+      }
+      
+    } else if (line === '') {
       // Empty line
       yPos += 5;
       
@@ -112,21 +137,30 @@ export const downloadPolicyAsPDF = (
   filename: string = 'policy-document.pdf',
   title: string = 'Policy Document'
 ) => {
-  const pdfBlob = generatePolicyPDF(markdownContent, title);
-  const blobUrl = URL.createObjectURL(pdfBlob);
-  
-  // Create a link element to trigger the download
-  const downloadLink = document.createElement('a');
-  downloadLink.href = blobUrl;
-  downloadLink.download = filename;
-  
-  // Trigger the download
-  document.body.appendChild(downloadLink);
-  downloadLink.click();
-  document.body.removeChild(downloadLink);
-  
-  // Clean up the blob URL
-  setTimeout(() => {
-    URL.revokeObjectURL(blobUrl);
-  }, 100);
+  try {
+    console.log("Generating PDF from markdown content:", markdownContent.substring(0, 100) + "...");
+    const pdfBlob = generatePolicyPDF(markdownContent, title);
+    const blobUrl = URL.createObjectURL(pdfBlob);
+    
+    // Create a link element to trigger the download
+    const downloadLink = document.createElement('a');
+    downloadLink.href = blobUrl;
+    downloadLink.download = filename;
+    
+    // Trigger the download
+    document.body.appendChild(downloadLink);
+    downloadLink.click();
+    document.body.removeChild(downloadLink);
+    
+    // Clean up the blob URL
+    setTimeout(() => {
+      URL.revokeObjectURL(blobUrl);
+    }, 100);
+    
+    console.log("PDF generated and download initiated");
+    return true;
+  } catch (error) {
+    console.error("Error generating PDF:", error);
+    return false;
+  }
 };
