@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent } from '../common/Card';
 import { FadeIn } from '../common/Transitions';
@@ -44,7 +45,8 @@ const RulesDisplay: React.FC<RulesDisplayProps> = ({
       rules.find(rule => rule.subrules?.some(subrule => subrule.number === selectedRule))
     : null;
 
-  const handleStatusChange = (status: string) => {
+  // Changed this function to async
+  const handleStatusChange = async (status: string) => {
     setImplementationStatus(status);
     toast.success(`Status updated to ${status.replace('_', ' ')}`);
     
