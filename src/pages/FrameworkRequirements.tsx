@@ -5,9 +5,8 @@ import Sidebar from '@/components/layout/Sidebar';
 import { PageTransition } from '@/components/common/Transitions';
 import { useParams, useNavigate } from 'react-router-dom';
 import FrameworkControls from '@/components/compliance/FrameworkControls';
-import RulesDisplay from '@/components/compliance/RulesDisplay';
 import { Card, CardContent } from '@/components/common/Card';
-import { FileText, AlertTriangle, Plus, Download, ArrowRight, Loader2 } from 'lucide-react';
+import { FileText, AlertTriangle, Plus, Download, ArrowRight, Loader2, Check } from 'lucide-react';
 import Button from '@/components/common/Button';
 import { toast } from 'sonner';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -29,6 +28,10 @@ interface PolicyFormData {
   industry: string;
   companySize: string;
   dataTypes: string;
+  businessLocation: string;
+  infrastructureDetails: string;
+  securityControls: string[];
+  riskAppetite: string;
 }
 
 const FrameworkRequirements = () => {
@@ -49,6 +52,10 @@ const FrameworkRequirements = () => {
     industry: '',
     companySize: '',
     dataTypes: '',
+    businessLocation: '',
+    infrastructureDetails: '',
+    securityControls: [],
+    riskAppetite: 'Moderate'
   });
   const [generatingPolicy, setGeneratingPolicy] = useState(false);
   const [policies, setPolicies] = useState<any[]>([]);
@@ -80,75 +87,54 @@ const FrameworkRequirements = () => {
     ]);
   }, [frameworkId]);
 
-  // Sample rules data
-  const rules = [
-    {
-      id: 1,
-      number: 'A.5.1',
-      content: "Policies for information security",
-    },
-    {
-      id: 2,
-      number: 'A.5.2',
-      content: "Information security roles and responsibilities",
-    },
-    {
-      id: 3,
-      number: 'A.5.3',
-      content: "Segregation of duties",
-    },
-    {
-      id: 4,
-      number: 'A.5.4',
-      content: "Management responsibilities",
-    },
-    {
-      id: 5,
-      number: 'A.5.5',
-      content: "Contact with authorities",
-    },
-    {
-      id: 6,
-      number: 'A.5.6',
-      content: "Contact with special interest groups",
-    },
-    {
-      id: 7,
-      number: 'A.5.7',
-      content: "Threat intelligence",
-    }
-  ];
-
-  const handleAddRisk = () => {
+  const handleAddRisk = async () => {
     if (!newRisk.title || !newRisk.description) {
       toast.error('Please provide both title and description for the risk');
       return;
     }
 
-    const risk: Risk = {
-      id: Date.now().toString(),
-      title: newRisk.title,
-      description: newRisk.description,
-      likelihood: newRisk.likelihood as 'low' | 'medium' | 'high',
-      impact: newRisk.impact as 'low' | 'medium' | 'high',
-      status: 'identified',
-      created_at: new Date().toISOString(),
-    };
+    try {
+      const risk: Risk = {
+        id: Date.now().toString(),
+        title: newRisk.title,
+        description: newRisk.description,
+        likelihood: newRisk.likelihood as 'low' | 'medium' | 'high',
+        impact: newRisk.impact as 'low' | 'medium' | 'high',
+        status: 'identified',
+        created_at: new Date().toISOString(),
+      };
 
-    setRisks([...risks, risk]);
-    setNewRisk({
-      title: '',
-      description: '',
-      likelihood: 'medium',
-      impact: 'medium',
-    });
-    setShowAddRisk(false);
-    toast.success('Risk added successfully');
+      // In a real application, we would save to Supabase here
+      
+      setRisks([...risks, risk]);
+      setNewRisk({
+        title: '',
+        description: '',
+        likelihood: 'medium',
+        impact: 'medium',
+      });
+      setShowAddRisk(false);
+      toast.success('Risk added successfully');
+    } catch (error) {
+      console.error('Error adding risk:', error);
+      toast.error('Failed to add risk');
+    }
   };
 
   const handlePolicyFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setPolicyFormData({ ...policyFormData, [name]: value });
+  };
+
+  const handleSecurityControlChange = (controlName: string) => {
+    const updatedControls = policyFormData.securityControls.includes(controlName)
+      ? policyFormData.securityControls.filter(control => control !== controlName)
+      : [...policyFormData.securityControls, controlName];
+    
+    setPolicyFormData({
+      ...policyFormData,
+      securityControls: updatedControls
+    });
   };
 
   const handleGeneratePolicy = async () => {
@@ -161,19 +147,26 @@ const FrameworkRequirements = () => {
     setGeneratingPolicy(true);
 
     try {
+      // Call the edge function to generate the policy
       const { data, error } = await supabase.functions.invoke('generate-policy', {
         body: {
           companyName: policyFormData.companyName,
           industry: policyFormData.industry,
           companySize: policyFormData.companySize,
           dataTypes: policyFormData.dataTypes,
-          frameworkType: frameworkId
+          frameworkType: frameworkId,
+          businessLocation: policyFormData.businessLocation,
+          infrastructureDetails: policyFormData.infrastructureDetails,
+          securityControls: policyFormData.securityControls,
+          riskAppetite: policyFormData.riskAppetite
         }
       });
 
       if (error) {
         throw error;
       }
+
+      console.log('Policy generated successfully');
 
       // Add the newly generated policy to the policies array
       const newPolicy = {
@@ -185,7 +178,8 @@ const FrameworkRequirements = () => {
         content: data.policy,
         riskAssessment: data.riskAssessment,
         implementationGuide: data.implementationGuide,
-        gapsAnalysis: data.gapsAnalysis
+        gapsAnalysis: data.gapsAnalysis,
+        aiSuggestions: data.aiSuggestions
       };
 
       setPolicies([newPolicy, ...policies]);
@@ -243,10 +237,10 @@ const FrameworkRequirements = () => {
       <Navbar />
       <div className="flex">
         <Sidebar />
-        <main className="flex-1 p-6 lg:p-10">
+        <main className="flex-1 p-6 lg:p-8 overflow-x-hidden">
           <PageTransition>
             <div className="max-w-7xl mx-auto">
-              <div className="mb-8">
+              <div className="mb-6">
                 <h1 className="text-3xl font-semibold tracking-tight mb-2">
                   {frameworkName} Requirements
                 </h1>
@@ -267,10 +261,8 @@ const FrameworkRequirements = () => {
                 </TabsList>
 
                 <TabsContent value="controls" className="mt-0">
-                  <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-                    <div className="lg:col-span-12">
-                      <FrameworkControls frameworkId={frameworkId} />
-                    </div>
+                  <div className="grid grid-cols-1 gap-6">
+                    <FrameworkControls frameworkId={frameworkId} />
                   </div>
                 </TabsContent>
 
@@ -316,7 +308,7 @@ const FrameworkRequirements = () => {
                                 <select
                                   className="w-full p-2 border border-gray-300 rounded-md"
                                   value={newRisk.likelihood}
-                                  onChange={(e) => setNewRisk({ ...newRisk, likelihood: e.target.value })}
+                                  onChange={(e) => setNewRisk({ ...newRisk, likelihood: e.target.value as any })}
                                 >
                                   <option value="low">Low</option>
                                   <option value="medium">Medium</option>
@@ -328,7 +320,7 @@ const FrameworkRequirements = () => {
                                 <select
                                   className="w-full p-2 border border-gray-300 rounded-md"
                                   value={newRisk.impact}
-                                  onChange={(e) => setNewRisk({ ...newRisk, impact: e.target.value })}
+                                  onChange={(e) => setNewRisk({ ...newRisk, impact: e.target.value as any })}
                                 >
                                   <option value="low">Low</option>
                                   <option value="medium">Medium</option>
@@ -369,7 +361,7 @@ const FrameworkRequirements = () => {
                               
                               return (
                                 <tr key={risk.id}>
-                                  <td className="px-6 py-4 whitespace-nowrap">
+                                  <td className="px-6 py-4">
                                     <div className="text-sm font-medium text-gray-900">{risk.title}</div>
                                     <div className="text-sm text-gray-500">{risk.description}</div>
                                   </td>
@@ -386,6 +378,7 @@ const FrameworkRequirements = () => {
                                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                     <Button variant="ghost" size="sm">View</Button>
                                     <Button variant="ghost" size="sm">Edit</Button>
+                                    <Button variant="ghost" size="sm" className="text-red-500">Delete</Button>
                                   </td>
                                 </tr>
                               );
@@ -595,7 +588,7 @@ const FrameworkRequirements = () => {
           <div className="grid gap-4 py-3">
             <div>
               <label className="block text-sm font-medium mb-1" htmlFor="companyName">
-                Company Name
+                Company Name <span className="text-red-500">*</span>
               </label>
               <input
                 id="companyName"
@@ -604,12 +597,13 @@ const FrameworkRequirements = () => {
                 value={policyFormData.companyName}
                 onChange={handlePolicyFormChange}
                 placeholder="e.g., Acme Corporation"
+                required
               />
             </div>
             
             <div>
               <label className="block text-sm font-medium mb-1" htmlFor="industry">
-                Industry
+                Industry <span className="text-red-500">*</span>
               </label>
               <select
                 id="industry"
@@ -617,6 +611,7 @@ const FrameworkRequirements = () => {
                 className="w-full p-2 border border-gray-300 rounded-md"
                 value={policyFormData.industry}
                 onChange={handlePolicyFormChange}
+                required
               >
                 <option value="">Select industry</option>
                 <option value="Technology">Technology</option>
@@ -632,7 +627,7 @@ const FrameworkRequirements = () => {
             
             <div>
               <label className="block text-sm font-medium mb-1" htmlFor="companySize">
-                Company Size
+                Company Size <span className="text-red-500">*</span>
               </label>
               <select
                 id="companySize"
@@ -640,6 +635,7 @@ const FrameworkRequirements = () => {
                 className="w-full p-2 border border-gray-300 rounded-md"
                 value={policyFormData.companySize}
                 onChange={handlePolicyFormChange}
+                required
               >
                 <option value="">Select company size</option>
                 <option value="1-10 employees">1-10 employees</option>
@@ -652,8 +648,22 @@ const FrameworkRequirements = () => {
             </div>
             
             <div>
+              <label className="block text-sm font-medium mb-1" htmlFor="businessLocation">
+                Primary Business Location
+              </label>
+              <input
+                id="businessLocation"
+                name="businessLocation"
+                className="w-full p-2 border border-gray-300 rounded-md"
+                value={policyFormData.businessLocation}
+                onChange={handlePolicyFormChange}
+                placeholder="e.g., United States"
+              />
+            </div>
+            
+            <div>
               <label className="block text-sm font-medium mb-1" htmlFor="dataTypes">
-                Data Types Processed
+                Data Types Processed <span className="text-red-500">*</span>
               </label>
               <textarea
                 id="dataTypes"
@@ -662,7 +672,59 @@ const FrameworkRequirements = () => {
                 value={policyFormData.dataTypes}
                 onChange={handlePolicyFormChange}
                 placeholder="e.g., Personal customer data, Financial information, Healthcare records"
+                required
               />
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium mb-1" htmlFor="infrastructureDetails">
+                Infrastructure Details
+              </label>
+              <textarea
+                id="infrastructureDetails"
+                name="infrastructureDetails"
+                className="w-full p-2 border border-gray-300 rounded-md min-h-[80px]"
+                value={policyFormData.infrastructureDetails}
+                onChange={handlePolicyFormChange}
+                placeholder="e.g., Cloud services used, on-premises infrastructure, BYOD policies"
+              />
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium mb-2">
+                Security Controls in Place
+              </label>
+              <div className="grid grid-cols-2 gap-2">
+                {['Access Control', 'Encryption', 'Firewalls', 'Anti-virus', 'Multi-factor Authentication', 'Backup Systems', 'Incident Response', 'Physical Security'].map(control => (
+                  <div key={control} className="flex items-center">
+                    <input
+                      type="checkbox"
+                      id={`control-${control}`}
+                      checked={policyFormData.securityControls.includes(control)}
+                      onChange={() => handleSecurityControlChange(control)}
+                      className="mr-2"
+                    />
+                    <label htmlFor={`control-${control}`}>{control}</label>
+                  </div>
+                ))}
+              </div>
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium mb-1" htmlFor="riskAppetite">
+                Risk Appetite
+              </label>
+              <select
+                id="riskAppetite"
+                name="riskAppetite"
+                className="w-full p-2 border border-gray-300 rounded-md"
+                value={policyFormData.riskAppetite}
+                onChange={handlePolicyFormChange}
+              >
+                <option value="Low">Low (Risk Averse)</option>
+                <option value="Moderate">Moderate</option>
+                <option value="High">High (Risk Tolerant)</option>
+              </select>
             </div>
           </div>
           
@@ -697,6 +759,7 @@ const FrameworkRequirements = () => {
                   <TabsTrigger value="risk">Risk Assessment</TabsTrigger>
                   <TabsTrigger value="implementation">Implementation Guide</TabsTrigger>
                   <TabsTrigger value="gaps">Gap Analysis</TabsTrigger>
+                  <TabsTrigger value="ai">AI Suggestions</TabsTrigger>
                 </TabsList>
                 
                 <TabsContent value="policy" className="p-4 bg-gray-50 rounded border whitespace-pre-wrap">
@@ -713,6 +776,10 @@ const FrameworkRequirements = () => {
                 
                 <TabsContent value="gaps" className="p-4 bg-gray-50 rounded border whitespace-pre-wrap">
                   {selectedPolicy.gapsAnalysis}
+                </TabsContent>
+                
+                <TabsContent value="ai" className="p-4 bg-gray-50 rounded border whitespace-pre-wrap">
+                  {selectedPolicy.aiSuggestions || "AI suggestions not available for this policy."}
                 </TabsContent>
               </Tabs>
             </div>

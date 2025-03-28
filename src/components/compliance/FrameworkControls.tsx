@@ -4,8 +4,9 @@ import { useParams } from 'react-router-dom';
 import Button from '../common/Button';
 import { Card, CardContent } from '../common/Card';
 import { FadeIn, SlideUp } from '../common/Transitions';
-import { FileText, Plus, CheckCircle, Clock, AlertCircle, Upload, Edit } from 'lucide-react';
+import { FileText, Plus, CheckCircle, Clock, AlertCircle, Upload, Edit, Save } from 'lucide-react';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 
 // ISO 27001 clauses and controls data
 const iso27001Clauses = [
@@ -151,70 +152,178 @@ const FrameworkControls: React.FC<FrameworkControlsProps> = ({ frameworkId }) =>
   const [showAddTask, setShowAddTask] = useState(false);
   const [newDocument, setNewDocument] = useState({ title: '', file: null });
   const [newTask, setNewTask] = useState({ description: '', assignedTo: '', dueDate: '' });
+  const [saving, setSaving] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   // Find the current clause and control
   const currentClause = iso27001Clauses.find(clause => clause.id === selectedClause);
   const currentControl = currentClause?.controls.find(control => control.id === selectedControl);
+
+  // Load control data when a control is selected
+  useEffect(() => {
+    if (selectedControl) {
+      loadControlData();
+    }
+  }, [selectedControl]);
 
   // Select the first clause by default
   useEffect(() => {
     if (iso27001Clauses.length > 0 && !selectedClause) {
       setSelectedClause(iso27001Clauses[0].id);
     }
+    setLoading(false);
   }, [selectedClause]);
+
+  const loadControlData = async () => {
+    if (!selectedControl) return;
+    
+    try {
+      setLoading(true);
+      
+      // In a real application, we would fetch the data from Supabase here
+      // This is a simulated API call
+      const controlData = {
+        status: 'not_implemented',
+        notes: '',
+        documents: [],
+        tasks: []
+      };
+      
+      // For demo purposes, simulate a delay
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Set the data
+      setImplementationStatus(controlData.status);
+      setNotes(controlData.notes);
+      setDocuments(controlData.documents);
+      setTasks(controlData.tasks);
+    } catch (error) {
+      console.error('Error loading control data:', error);
+      toast.error('Failed to load control data');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleControlClick = (controlId: string) => {
     setSelectedControl(controlId);
-    // In a real app, you would fetch the implementation status, documents, and tasks for this control
-    setImplementationStatus('not_implemented');
-    setDocuments([]);
-    setTasks([]);
-    setNotes('');
+    // The data will be loaded via the useEffect
   };
 
-  const handleStatusChange = (status: string) => {
-    setImplementationStatus(status);
-    toast.success(`Status updated to ${status.replace('_', ' ')}`);
+  const handleStatusChange = async (status: string) => {
+    try {
+      setSaving(true);
+      setImplementationStatus(status);
+      
+      // In a real application, we would save to Supabase here
+      // For now, simulate a delay
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      toast.success(`Status updated to ${status.replace('_', ' ')}`);
+    } catch (error) {
+      console.error('Error saving status:', error);
+      toast.error('Failed to update status');
+    } finally {
+      setSaving(false);
+    }
   };
 
-  const handleSaveNotes = () => {
-    toast.success('Notes saved successfully');
+  const handleSaveNotes = async () => {
+    try {
+      setSaving(true);
+      
+      // In a real application, we would save to Supabase here
+      // For now, simulate a delay
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      toast.success('Notes saved successfully');
+    } catch (error) {
+      console.error('Error saving notes:', error);
+      toast.error('Failed to save notes');
+    } finally {
+      setSaving(false);
+    }
   };
 
-  const handleAddDocument = () => {
-    if (newDocument.title) {
-      setDocuments([...documents, { 
+  const handleAddDocument = async () => {
+    if (!newDocument.title) {
+      toast.error('Please provide a document title');
+      return;
+    }
+
+    try {
+      setSaving(true);
+      
+      // In a real application, we would upload the file to Supabase Storage
+      // and save the metadata to the database
+      
+      const newDocumentObj = { 
         id: Date.now().toString(), 
         title: newDocument.title, 
         date: new Date().toISOString().split('T')[0],
         type: 'pdf'
-      }]);
+      };
+      
+      // Simulate a delay
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      setDocuments([...documents, newDocumentObj]);
       setNewDocument({ title: '', file: null });
       setShowAddDocument(false);
       toast.success('Document added successfully');
+    } catch (error) {
+      console.error('Error adding document:', error);
+      toast.error('Failed to add document');
+    } finally {
+      setSaving(false);
     }
   };
 
-  const handleAddTask = () => {
-    if (newTask.description) {
-      setTasks([...tasks, { 
+  const handleAddTask = async () => {
+    if (!newTask.description) {
+      toast.error('Please provide a task description');
+      return;
+    }
+
+    try {
+      setSaving(true);
+      
+      const taskObj = { 
         id: Date.now().toString(), 
         description: newTask.description, 
         assignedTo: newTask.assignedTo || 'Unassigned',
         dueDate: newTask.dueDate || 'No due date',
         status: 'open'
-      }]);
+      };
+      
+      // Simulate a delay
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      setTasks([...tasks, taskObj]);
       setNewTask({ description: '', assignedTo: '', dueDate: '' });
       setShowAddTask(false);
       toast.success('Task added successfully');
+    } catch (error) {
+      console.error('Error adding task:', error);
+      toast.error('Failed to add task');
+    } finally {
+      setSaving(false);
     }
   };
+
+  if (loading && !currentControl) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+      </div>
+    );
+  }
 
   return (
     <FadeIn className="grid grid-cols-1 md:grid-cols-12 gap-6">
       {/* Left sidebar - Clauses and Controls */}
       <div className="md:col-span-4 lg:col-span-3">
-        <Card className="h-full">
+        <Card className="h-full overflow-auto max-h-[800px]">
           <CardContent className="p-4">
             <h3 className="text-lg font-medium mb-4">Structure</h3>
             <div className="space-y-1">
@@ -271,6 +380,7 @@ const FrameworkControls: React.FC<FrameworkControlsProps> = ({ frameworkId }) =>
                       onClick={() => handleStatusChange('not_implemented')}
                       size="sm"
                       leftIcon={<AlertCircle size={16} />}
+                      isLoading={saving && implementationStatus !== 'not_implemented'}
                     >
                       Not Implemented
                     </Button>
@@ -279,6 +389,7 @@ const FrameworkControls: React.FC<FrameworkControlsProps> = ({ frameworkId }) =>
                       onClick={() => handleStatusChange('in_progress')}
                       size="sm"
                       leftIcon={<Clock size={16} />}
+                      isLoading={saving && implementationStatus !== 'in_progress'}
                     >
                       In Progress
                     </Button>
@@ -287,6 +398,7 @@ const FrameworkControls: React.FC<FrameworkControlsProps> = ({ frameworkId }) =>
                       onClick={() => handleStatusChange('implemented')}
                       size="sm"
                       leftIcon={<CheckCircle size={16} />}
+                      isLoading={saving && implementationStatus !== 'implemented'}
                     >
                       Implemented
                     </Button>
@@ -294,6 +406,7 @@ const FrameworkControls: React.FC<FrameworkControlsProps> = ({ frameworkId }) =>
                       variant={implementationStatus === 'not_applicable' ? 'default' : 'outline'} 
                       onClick={() => handleStatusChange('not_applicable')}
                       size="sm"
+                      isLoading={saving && implementationStatus !== 'not_applicable'}
                     >
                       Not Applicable
                     </Button>
@@ -313,7 +426,8 @@ const FrameworkControls: React.FC<FrameworkControlsProps> = ({ frameworkId }) =>
                     <Button
                       onClick={handleSaveNotes}
                       size="sm"
-                      leftIcon={<Edit size={16} />}
+                      leftIcon={<Save size={16} />}
+                      isLoading={saving}
                     >
                       Save Notes
                     </Button>
@@ -335,7 +449,7 @@ const FrameworkControls: React.FC<FrameworkControlsProps> = ({ frameworkId }) =>
                   </div>
                   
                   {showAddDocument && (
-                    <div className="p-4 bg-gray-50 rounded-md mb-4">
+                    <div className="p-4 bg-gray-50 rounded-md mb-4 border border-gray-200">
                       <h4 className="font-medium mb-2">Upload Document</h4>
                       <div className="space-y-3">
                         <div>
@@ -353,6 +467,10 @@ const FrameworkControls: React.FC<FrameworkControlsProps> = ({ frameworkId }) =>
                           <input 
                             type="file" 
                             className="w-full p-2 border border-gray-300 rounded-md" 
+                            onChange={(e) => setNewDocument({
+                              ...newDocument, 
+                              file: e.target.files ? e.target.files[0] : null
+                            })}
                           />
                         </div>
                         <div className="flex justify-end gap-2">
@@ -366,6 +484,7 @@ const FrameworkControls: React.FC<FrameworkControlsProps> = ({ frameworkId }) =>
                           <Button
                             size="sm"
                             onClick={handleAddDocument}
+                            isLoading={saving}
                           >
                             Upload
                           </Button>
@@ -375,11 +494,11 @@ const FrameworkControls: React.FC<FrameworkControlsProps> = ({ frameworkId }) =>
                   )}
                   
                   {documents.length === 0 ? (
-                    <p className="text-gray-500 italic">No documents attached</p>
+                    <p className="text-gray-500 italic p-4 bg-gray-50 rounded border border-gray-200">No documents attached</p>
                   ) : (
                     <div className="space-y-2">
                       {documents.map((doc) => (
-                        <div key={doc.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-md">
+                        <div key={doc.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-md border border-gray-200">
                           <div className="flex items-center">
                             <FileText size={20} className="text-blue-600 mr-2" />
                             <div>
@@ -387,7 +506,10 @@ const FrameworkControls: React.FC<FrameworkControlsProps> = ({ frameworkId }) =>
                               <p className="text-xs text-gray-500">Added on {doc.date}</p>
                             </div>
                           </div>
-                          <Button size="sm" variant="outline">View</Button>
+                          <div className="flex gap-2">
+                            <Button size="sm" variant="outline">View</Button>
+                            <Button size="sm" variant="outline" className="text-red-500">Delete</Button>
+                          </div>
                         </div>
                       ))}
                     </div>
@@ -409,7 +531,7 @@ const FrameworkControls: React.FC<FrameworkControlsProps> = ({ frameworkId }) =>
                   </div>
                   
                   {showAddTask && (
-                    <div className="p-4 bg-gray-50 rounded-md mb-4">
+                    <div className="p-4 bg-gray-50 rounded-md mb-4 border border-gray-200">
                       <h4 className="font-medium mb-2">Add Task</h4>
                       <div className="space-y-3">
                         <div>
@@ -452,6 +574,7 @@ const FrameworkControls: React.FC<FrameworkControlsProps> = ({ frameworkId }) =>
                           <Button
                             size="sm"
                             onClick={handleAddTask}
+                            isLoading={saving}
                           >
                             Add Task
                           </Button>
@@ -461,9 +584,9 @@ const FrameworkControls: React.FC<FrameworkControlsProps> = ({ frameworkId }) =>
                   )}
                   
                   {tasks.length === 0 ? (
-                    <p className="text-gray-500 italic">No tasks assigned</p>
+                    <p className="text-gray-500 italic p-4 bg-gray-50 rounded border border-gray-200">No tasks assigned</p>
                   ) : (
-                    <div className="overflow-x-auto">
+                    <div className="overflow-x-auto border border-gray-200 rounded-md">
                       <table className="min-w-full divide-y divide-gray-200">
                         <thead className="bg-gray-50">
                           <tr>
@@ -472,6 +595,7 @@ const FrameworkControls: React.FC<FrameworkControlsProps> = ({ frameworkId }) =>
                             <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Set by</th>
                             <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                             <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Due</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                           </tr>
                         </thead>
                         <tbody className="bg-white divide-y divide-gray-200">
@@ -486,6 +610,10 @@ const FrameworkControls: React.FC<FrameworkControlsProps> = ({ frameworkId }) =>
                                 </span>
                               </td>
                               <td className="px-4 py-3 whitespace-nowrap">{task.dueDate}</td>
+                              <td className="px-4 py-3 whitespace-nowrap">
+                                <Button variant="ghost" size="sm">Complete</Button>
+                                <Button variant="ghost" size="sm" className="text-red-500">Delete</Button>
+                              </td>
                             </tr>
                           ))}
                         </tbody>
