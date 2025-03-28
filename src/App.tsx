@@ -1,56 +1,49 @@
 
-import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import './App.css';
-
-// Pages
-import Dashboard from './pages/Dashboard';
-import Auth from './pages/Auth';
-import Tasks from './pages/Tasks';
-import Compliance from './pages/Compliance';
-import Policies from './pages/Policies';
-import Settings from './pages/Settings';
-import Index from './pages/Index';
-import NotFound from './pages/NotFound';
-import FrameworkRequirements from './pages/FrameworkRequirements';
-import Reports from './pages/Reports';
-import DataSources from './pages/DataSources';
-import CloudSecurity from './pages/CloudSecurity';
-import Notifications from './pages/Notifications';
-import Team from './pages/Team';
-
-// Components
-import ProtectedRoute from './components/auth/ProtectedRoute';
+import React, { Suspense } from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { Toaster } from 'sonner';
 import { AuthProvider } from './contexts/AuthContext';
+import Loading from './components/common/Loading';
+
+// Lazy loaded pages for better performance
+const Home = React.lazy(() => import('./pages/Home'));
+const Dashboard = React.lazy(() => import('./pages/Dashboard'));
+const AuthPage = React.lazy(() => import('./pages/Auth'));
+const CompliancePage = React.lazy(() => import('./pages/Compliance'));
+const FrameworkRequirements = React.lazy(() => import('./pages/FrameworkRequirements'));
+const TasksPage = React.lazy(() => import('./pages/Tasks'));
+const PoliciesPage = React.lazy(() => import('./pages/Policies'));
+const ReportsPage = React.lazy(() => import('./pages/Reports'));
+const ActivitiesPage = React.lazy(() => import('./pages/reports/Activities'));
+const AnalyticsPage = React.lazy(() => import('./pages/reports/Analytics'));
+const ExportReportPage = React.lazy(() => import('./pages/reports/Export'));
+const UpcomingDeadlinesPage = React.lazy(() => import('./pages/tasks/Upcoming'));
+const ComplianceRisksPage = React.lazy(() => import('./pages/compliance/Risks'));
 
 function App() {
   return (
-    <AuthProvider>
-      <Router>
-        <Routes>
-          {/* Public routes */}
-          <Route path="/auth" element={<Auth />} />
-          <Route path="/" element={<Index />} />
-          
-          {/* Protected routes */}
-          <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-          <Route path="/tasks" element={<ProtectedRoute><Tasks /></ProtectedRoute>} />
-          <Route path="/policies" element={<ProtectedRoute><Policies /></ProtectedRoute>} />
-          <Route path="/compliance" element={<ProtectedRoute><Compliance /></ProtectedRoute>} />
-          <Route path="/compliance/:frameworkId/requirements" element={<ProtectedRoute><FrameworkRequirements /></ProtectedRoute>} />
-          <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
-          <Route path="/reports" element={<ProtectedRoute><Reports /></ProtectedRoute>} />
-          <Route path="/data-sources" element={<ProtectedRoute><DataSources /></ProtectedRoute>} />
-          <Route path="/cloud-security" element={<ProtectedRoute><CloudSecurity /></ProtectedRoute>} />
-          <Route path="/notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
-          <Route path="/team" element={<ProtectedRoute><Team /></ProtectedRoute>} />
-          
-          {/* Fallback routes */}
-          <Route path="/404" element={<NotFound />} />
-          <Route path="*" element={<Navigate to="/404" replace />} />
-        </Routes>
-      </Router>
-    </AuthProvider>
+    <Router>
+      <AuthProvider>
+        <Suspense fallback={<Loading />}>
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/auth" element={<AuthPage />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/compliance" element={<CompliancePage />} />
+            <Route path="/compliance/:frameworkId" element={<FrameworkRequirements />} />
+            <Route path="/compliance/risks" element={<ComplianceRisksPage />} />
+            <Route path="/tasks" element={<TasksPage />} />
+            <Route path="/tasks/upcoming" element={<UpcomingDeadlinesPage />} />
+            <Route path="/policies" element={<PoliciesPage />} />
+            <Route path="/reports" element={<ReportsPage />} />
+            <Route path="/reports/activities" element={<ActivitiesPage />} />
+            <Route path="/reports/analytics" element={<AnalyticsPage />} />
+            <Route path="/reports/export" element={<ExportReportPage />} />
+          </Routes>
+        </Suspense>
+        <Toaster position="top-right" richColors />
+      </AuthProvider>
+    </Router>
   );
 }
 

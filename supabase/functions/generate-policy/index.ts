@@ -101,12 +101,12 @@ serve(async (req) => {
 
     // Get the rules for this framework type to include in the policy generation
     let frameworkRules = [];
+    let frameworkSpecificPrompt = "";
+    
     try {
       console.log(`Fetching requirements for ${frameworkType}...`);
       
       // Creating a detailed prompt based on which framework we're generating for
-      let frameworkSpecificPrompt = "";
-      
       if (frameworkType === "iso27001") {
         frameworkSpecificPrompt = `
           ISO 27001 uses a structure of Annex A controls divided into the following categories:
@@ -125,7 +125,16 @@ serve(async (req) => {
           A.17 Information Security Aspects of Business Continuity Management
           A.18 Compliance
           
-          Your policy should address all these control categories in detail, with specific measures tailored to ${companyName}.
+          For each control area, provide DETAILED implementation guidance specifically for ${companyName} as a ${industry} company.
+          Include:
+          1. Specific policy statements - at least 5-10 detailed points for each control area
+          2. Implementation procedures with step-by-step actions
+          3. Roles and responsibilities for implementing each control
+          4. Specific technologies and methods that should be employed
+          5. Monitoring and measurement criteria for each control
+          6. Documentation requirements
+          
+          The policy must be EXTREMELY DETAILED, with at least 15-20 pages worth of content, not just high-level statements.
         `;
       } else if (frameworkType === "gdpr") {
         frameworkSpecificPrompt = `
@@ -148,7 +157,17 @@ serve(async (req) => {
           - Right to object
           - Rights related to automated decision making and profiling
           
-          Include specific procedures for ${companyName} to handle data subject requests and breach notifications.
+          For each principle and right, provide DETAILED implementation guidance specifically for ${companyName} as a ${industry} company.
+          Include:
+          1. Specific policy statements - at least 5-10 detailed points for each principle and right
+          2. Implementation procedures with step-by-step actions
+          3. Technical and organizational measures to achieve compliance
+          4. Documentation and record-keeping requirements
+          5. Specific examples of how these apply to ${companyName}'s data processing activities
+          6. Training and awareness requirements
+          7. Breach notification procedures in great detail
+          
+          The policy must be EXTREMELY DETAILED, with at least 15-20 pages worth of content, not just high-level statements.
         `;
       } else if (frameworkType === "soc2") {
         frameworkSpecificPrompt = `
@@ -159,12 +178,17 @@ serve(async (req) => {
           4. Confidentiality - Information designated as confidential is protected
           5. Privacy - Personal information is collected, used, retained, and disclosed in conformity with commitments
           
-          The policy should detail how ${companyName} implements controls for each relevant criteria, with specific focus on:
-          - Infrastructure (physical and hardware components)
-          - Software (programs and operating software)
-          - People (personnel involved in operation and use)
-          - Procedures (automated and manual procedures)
-          - Data (information used and supported by the system)
+          For each criteria, provide DETAILED implementation guidance specifically for ${companyName} as a ${industry} company.
+          Include:
+          1. Specific policy statements - at least 5-10 detailed points for each criteria
+          2. Implementation procedures with step-by-step actions
+          3. Control objectives and specific control activities for each criteria
+          4. Detailed monitoring and testing procedures
+          5. Roles and responsibilities for each control area
+          6. Evidence collection and retention requirements
+          7. Specific examples of how these controls should be implemented at ${companyName}
+          
+          The policy must be EXTREMELY DETAILED, with at least 15-20 pages worth of content, not just high-level statements.
         `;
       } else if (frameworkType === "hipaa") {
         frameworkSpecificPrompt = `
@@ -177,11 +201,17 @@ serve(async (req) => {
              - Technical Safeguards (access controls, audit controls, integrity controls, transmission security)
           3. Breach Notification Rule - Procedures for reporting breaches
           
-          The policy should detail specific procedures for ${companyName} to handle PHI, including:
-          - Minimum necessary use and disclosure
-          - Business associate agreements
-          - Patient rights (access, amendment, accounting of disclosures)
-          - Administrative requirements (training, policies, complaints)
+          For each rule and safeguard, provide DETAILED implementation guidance specifically for ${companyName} as a ${industry} company.
+          Include:
+          1. Specific policy statements - at least 5-10 detailed points for each rule and safeguard
+          2. Implementation procedures with step-by-step actions
+          3. Technical controls and solutions that should be employed
+          4. Training requirements and procedures
+          5. Audit and monitoring requirements
+          6. Documentation and record-keeping requirements
+          7. Detailed breach identification, investigation, and notification procedures
+          
+          The policy must be EXTREMELY DETAILED, with at least 15-20 pages worth of content, not just high-level statements.
         `;
       } else if (frameworkType === "pci_dss") {
         frameworkSpecificPrompt = `
@@ -193,19 +223,17 @@ serve(async (req) => {
           5. Regularly monitor and test networks
           6. Maintain an information security policy
           
-          The policy should detail how ${companyName} addresses each of the 12 requirements:
-          - Install and maintain firewalls
-          - Change vendor defaults
-          - Protect stored data
-          - Encrypt transmitted data
-          - Use anti-virus
-          - Develop and maintain secure systems
-          - Restrict access to data
-          - Assign unique IDs
-          - Restrict physical access
-          - Track and monitor access
-          - Regularly test systems
-          - Maintain information security policy
+          For each control objective, provide DETAILED implementation guidance specifically for ${companyName} as a ${industry} company.
+          Include:
+          1. Specific policy statements - at least 5-10 detailed points for each control objective
+          2. Implementation procedures with step-by-step actions
+          3. Technical controls and solutions that should be employed
+          4. Testing and validation procedures
+          5. Monitoring and logging requirements
+          6. Incident response procedures
+          7. Vendor management requirements for PCI compliance
+          
+          The policy must be EXTREMELY DETAILED, with at least 15-20 pages worth of content, not just high-level statements.
         `;
       }
       
@@ -221,12 +249,12 @@ serve(async (req) => {
     console.log("Calling OpenAI API...");
     
     const openAIRequest = {
-      model: 'gpt-4o-mini',
+      model: 'gpt-4o',
       messages: [
         { 
           role: 'system', 
-          content: `You are an expert policy generator specialized in ${frameworkType.toUpperCase()} compliance. 
-          Your task is to create a comprehensive, detailed, and actionable compliance policy document tailored specifically for ${companyName}, 
+          content: `You are an expert compliance policy generator specialized in ${frameworkType.toUpperCase()} compliance. 
+          Your task is to create a COMPREHENSIVE, DETAILED, and ACTIONABLE compliance policy document tailored specifically for ${companyName}, 
           a ${industry} company with ${companySize} employees that processes ${dataTypes}.
           
           The policy should be deeply customized to the company's specific details:
@@ -239,17 +267,24 @@ serve(async (req) => {
           - Security Controls: ${securityControls.length > 0 ? securityControls.join(", ") : "Standard security controls"}
           - Risk Appetite: ${riskAppetite}
           
-          The policy document should include:
-          1. Introduction specific to ${companyName} (with company name mentioned throughout)
-          2. Scope - clearly defining what systems, processes and data are covered
-          3. Detailed policy statements for each major control area
-          4. Specific procedures tailored to ${companyName}'s actual operations
-          5. Roles and responsibilities within ${companyName}'s organizational structure
-          6. Compliance measurement and auditing procedures
-          7. References to relevant regulations and standards
+          ${frameworkSpecificPrompt}
           
-          Make the policy HIGHLY DETAILED and SPECIFIC to ${companyName}. It should read as if it was custom-written for this company, not a generic template.
-          Format the policy with clear headings and sections using markdown formatting.` 
+          The policy document MUST include:
+          1. Detailed introduction specific to ${companyName} (with company name mentioned throughout)
+          2. Clear scope defining systems, processes, and data covered
+          3. DETAILED policy statements with specific requirements for EACH control area (minimum 5-10 detailed points per area)
+          4. Specific implementation procedures tailored to ${companyName}'s operations
+          5. Specific roles and responsibilities within ${companyName}'s organizational structure
+          6. Training requirements and procedures
+          7. Detailed compliance measurement and auditing procedures
+          8. Record keeping and documentation requirements
+          9. Incident response procedures
+          10. References to relevant regulations and standards
+          
+          Make the policy EXTREMELY DETAILED and SPECIFIC to ${companyName}. It should read as if it was custom-written for this company by a subject matter expert, not a generic template. 
+          Format the policy with clear headings and sections using markdown formatting.
+          
+          THE POLICY MUST BE COMPREHENSIVE AND LENGTHY (minimum 15-20 pages worth of content) WITH SPECIFIC ACTIONABLE GUIDANCE.` 
         },
         { 
           role: 'user', 
@@ -274,7 +309,9 @@ serve(async (req) => {
           5. Implementation Requirements specific to our business
           6. Compliance Measurement & Auditing
           7. Roles & Responsibilities within our organization
-          8. References & Related Documents` 
+          8. References & Related Documents
+          
+          Remember, we need a VERY DETAILED policy that covers all aspects of ${frameworkType.toUpperCase()} compliance thoroughly, not just a high-level overview.` 
         }
       ],
       temperature: 0.7,
@@ -315,7 +352,7 @@ serve(async (req) => {
     // Generate Risk Assessment
     console.log("Generating risk assessment...");
     const riskRequest = {
-      model: 'gpt-4o-mini',
+      model: 'gpt-4o',
       messages: [
         { 
           role: 'system', 
@@ -328,15 +365,17 @@ serve(async (req) => {
           6. Risk Owner Assignments within ${companyName}'s structure
           7. Monitoring and Review Procedures
           
-          Make it highly specific to a ${industry} company of size ${companySize}, not generic.` 
+          Make it highly specific to a ${industry} company of size ${companySize}, not generic. The document should be comprehensive and detailed with specific actionable recommendations.` 
         },
         { 
           role: 'user', 
-          content: `Create a detailed risk assessment for ${companyName} related to our ${frameworkType.toUpperCase()} compliance program. We are a ${industry} company with ${companySize} employees processing ${dataTypes}.` 
+          content: `Create a detailed risk assessment for ${companyName} related to our ${frameworkType.toUpperCase()} compliance program. We are a ${industry} company with ${companySize} employees processing ${dataTypes}.
+          
+          Make the risk assessment very detailed with specific risks relevant to our industry and company size. Include at least 10-15 specific risks with detailed analysis and mitigation strategies for each.` 
         }
       ],
       temperature: 0.7,
-      max_tokens: 2000,
+      max_tokens: 3000,
     };
     
     const riskResponse = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -361,7 +400,7 @@ serve(async (req) => {
     // Generate Implementation Guide
     console.log("Generating implementation guide...");
     const implRequest = {
-      model: 'gpt-4o-mini',
+      model: 'gpt-4o',
       messages: [
         { 
           role: 'system', 
@@ -375,15 +414,17 @@ serve(async (req) => {
           7. Resource Requirements
           8. Implementation Challenges and Solutions
           
-          Make it highly specific to a ${industry} company of size ${companySize}, not generic.` 
+          Make it highly specific to a ${industry} company of size ${companySize}, not generic. The document should be comprehensive and detailed with specific actionable recommendations.` 
         },
         { 
           role: 'user', 
-          content: `Create a detailed implementation guide for our ${frameworkType.toUpperCase()} compliance program at ${companyName}. We are a ${industry} company with ${companySize} employees processing ${dataTypes}.` 
+          content: `Create a detailed implementation guide for our ${frameworkType.toUpperCase()} compliance program at ${companyName}. We are a ${industry} company with ${companySize} employees processing ${dataTypes}.
+          
+          Make the implementation guide very detailed with specific steps, timelines, and resource requirements. Include specific implementation advice for each control area and address unique challenges in our industry.` 
         }
       ],
       temperature: 0.7,
-      max_tokens: 2000,
+      max_tokens: 3000,
     };
     
     const implResponse = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -408,7 +449,7 @@ serve(async (req) => {
     // Generate Gaps Analysis
     console.log("Generating gaps analysis...");
     const gapsRequest = {
-      model: 'gpt-4o-mini',
+      model: 'gpt-4o',
       messages: [
         { 
           role: 'system', 
@@ -422,15 +463,17 @@ serve(async (req) => {
           7. Key Performance Indicators
           
           Assume they're starting their compliance journey and identify likely gaps based on their industry and size.
-          Make it highly specific to a ${industry} company of size ${companySize}, not generic.` 
+          Make it highly specific to a ${industry} company of size ${companySize}, not generic. The document should be comprehensive and detailed with specific actionable recommendations.` 
         },
         { 
           role: 'user', 
-          content: `Create a gaps analysis for our ${frameworkType.toUpperCase()} compliance program at ${companyName}. We are a ${industry} company with ${companySize} employees processing ${dataTypes}.` 
+          content: `Create a gaps analysis for our ${frameworkType.toUpperCase()} compliance program at ${companyName}. We are a ${industry} company with ${companySize} employees processing ${dataTypes}.
+          
+          Make the gaps analysis very detailed with specific gaps identified for each control area. Include detailed remediation strategies and prioritization based on risk level.` 
         }
       ],
       temperature: 0.7,
-      max_tokens: 2000,
+      max_tokens: 3000,
     };
     
     const gapsResponse = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -455,7 +498,7 @@ serve(async (req) => {
     // Generate AI Suggestions
     console.log("Generating AI suggestions...");
     const suggestionsRequest = {
-      model: 'gpt-4o-mini',
+      model: 'gpt-4o',
       messages: [
         { 
           role: 'system', 
@@ -468,15 +511,17 @@ serve(async (req) => {
           6. Strategic Compliance Roadmap
           7. Competitive Advantage Through Compliance
           
-          Make it highly specific to a ${industry} company of size ${companySize}, not generic.` 
+          Make it highly specific to a ${industry} company of size ${companySize}, not generic. The document should be comprehensive and detailed with specific actionable recommendations.` 
         },
         { 
           role: 'user', 
-          content: `Provide advanced suggestions for enhancing our ${frameworkType.toUpperCase()} compliance program at ${companyName}. We are a ${industry} company with ${companySize} employees processing ${dataTypes}.` 
+          content: `Provide advanced suggestions for enhancing our ${frameworkType.toUpperCase()} compliance program at ${companyName}. We are a ${industry} company with ${companySize} employees processing ${dataTypes}.
+          
+          Make the suggestions very detailed and specific to our industry and size. Include innovative approaches and emerging best practices that can give us a competitive edge.` 
         }
       ],
       temperature: 0.7,
-      max_tokens: 2000,
+      max_tokens: 3000,
     };
     
     const suggestionsResponse = await fetch('https://api.openai.com/v1/chat/completions', {

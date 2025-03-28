@@ -66,6 +66,12 @@ body,
   @apply text-white;
 }
 
+/* Fix for sidebar item text visibility when active */
+.bg-blue-600 .text-gray-700,
+.bg-blue-600 .text-blue-600 {
+  @apply text-white;
+}
+
 /* Glassmorphism Card Hover Effects */
 .card {
   transition: transform 0.3s ease, box-shadow 0.3s ease, background 0.3s ease;
@@ -179,4 +185,28 @@ button.primary-btn:hover::after {
 
 .tab-inactive {
   @apply border-transparent hover:border-gray-300 text-gray-500 hover:text-gray-700;
+}
+
+/* Responsive layout improvements */
+@media (min-width: 1024px) {
+  .container {
+    max-width: 1200px;
+    width: 100%;
+    margin: 0 auto;
+  }
+}
+
+.max-w-7xl {
+  max-width: 84rem;
+}
+
+.max-w-6xl {
+  max-width: 72rem;
+}
+
+/* Fix for menu item visibility when active */
+.sidebar-item.active,
+.sidebar-item:active,
+a[aria-current="page"] {
+  @apply text-white;
 }

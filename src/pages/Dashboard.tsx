@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { Link } from 'react-router-dom';
 import Navbar from '@/components/layout/Navbar';
 import Sidebar from '@/components/layout/Sidebar';
 import { PageTransition } from '@/components/common/Transitions';
@@ -87,17 +88,21 @@ const Dashboard = () => {
                     </p>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Button
-                      variant="outline"
-                      leftIcon={<FileText size={16} />}
-                    >
-                      Export Report
-                    </Button>
-                    <Button
-                      leftIcon={<BarChart size={16} />}
-                    >
-                      View Analytics
-                    </Button>
+                    <Link to="/reports/export">
+                      <Button
+                        variant="outline"
+                        leftIcon={<FileText size={16} />}
+                      >
+                        Export Report
+                      </Button>
+                    </Link>
+                    <Link to="/reports/analytics">
+                      <Button
+                        leftIcon={<BarChart size={16} />}
+                      >
+                        View Analytics
+                      </Button>
+                    </Link>
                   </div>
                 </div>
               </FadeIn>
@@ -246,13 +251,15 @@ const Dashboard = () => {
                           </div>
                         </div>
                         <div className="mt-4">
-                          <Button
-                            variant="outline" 
-                            className="w-full"
-                            size="sm"
-                          >
-                            View All Tasks
-                          </Button>
+                          <Link to="/tasks">
+                            <Button
+                              variant="outline" 
+                              className="w-full"
+                              size="sm"
+                            >
+                              View All Tasks
+                            </Button>
+                          </Link>
                         </div>
                       </CardContent>
                     </Card>
@@ -291,13 +298,15 @@ const Dashboard = () => {
                           </div>
                           
                           <div className="mt-4">
-                            <Button
-                              variant="outline" 
-                              className="w-full"
-                              size="sm"
-                            >
-                              View Risk Assessment
-                            </Button>
+                            <Link to="/compliance/risks">
+                              <Button
+                                variant="outline" 
+                                className="w-full"
+                                size="sm"
+                              >
+                                View Risk Assessment
+                              </Button>
+                            </Link>
                           </div>
                         </div>
                       </CardContent>
@@ -333,13 +342,15 @@ const Dashboard = () => {
                         ))}
                       </div>
                       <div className="mt-4">
-                        <Button
-                          variant="link" 
-                          className="p-0 h-auto"
-                          size="sm"
-                        >
-                          View all activities
-                        </Button>
+                        <Link to="/reports/activities">
+                          <Button
+                            variant="link" 
+                            className="p-0 h-auto"
+                            size="sm"
+                          >
+                            View all activities
+                          </Button>
+                        </Link>
                       </div>
                     </CardContent>
                   </Card>
@@ -375,13 +386,15 @@ const Dashboard = () => {
                         ))}
                       </div>
                       <div className="mt-4">
-                        <Button
-                          variant="outline" 
-                          className="w-full"
-                          size="sm"
-                        >
-                          View All Deadlines
-                        </Button>
+                        <Link to="/tasks/upcoming">
+                          <Button
+                            variant="outline" 
+                            className="w-full"
+                            size="sm"
+                          >
+                            View All Deadlines
+                          </Button>
+                        </Link>
                       </div>
                     </CardContent>
                   </Card>
