@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import Button from '../common/Button';
@@ -7,6 +6,7 @@ import { FadeIn, SlideUp } from '../common/Transitions';
 import { FileText, Plus, CheckCircle, Clock, AlertCircle, Upload, Edit, Save } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+import RulesDisplay from '@/components/compliance/rules/RulesDisplay';
 
 // ISO 27001 clauses and controls data
 const iso27001Clauses = [
