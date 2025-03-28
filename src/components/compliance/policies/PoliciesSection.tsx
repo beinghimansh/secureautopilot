@@ -1,12 +1,13 @@
 
-import React, { useState } from 'react';
-import { FileText, Download } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { FileText, Download, ArrowRight } from 'lucide-react';
 import { toast } from 'sonner';
 import { Dialog } from "@/components/ui/dialog";
 import { Card, CardContent } from '@/components/common/Card';
 import Button from '@/components/common/Button';
 import PolicyGeneratorForm from './PolicyGeneratorForm';
 import PolicyContentDialog from './PolicyContentDialog';
+import PolicyViewerDialog from './PolicyViewerDialog';
 import { supabase } from '@/integrations/supabase/client';
 
 interface PolicyFormData {
@@ -33,6 +34,17 @@ interface Policy {
   aiSuggestions: string;
 }
 
+interface GeneratedPolicy {
+  id: string;
+  created_at: string;
+  framework_type: string;
+  policy_content: string;
+  risk_assessment: string;
+  implementation_guide: string;
+  gaps_analysis: string;
+  ai_suggestions: string;
+}
+
 interface PoliciesSectionProps {
   frameworkId: string;
 }
@@ -53,6 +65,9 @@ const PoliciesSection: React.FC<PoliciesSectionProps> = ({ frameworkId }) => {
   const [policies, setPolicies] = useState<Policy[]>([]);
   const [showPolicyContent, setShowPolicyContent] = useState(false);
   const [selectedPolicy, setSelectedPolicy] = useState<Policy | null>(null);
+  const [showPolicyViewer, setShowPolicyViewer] = useState(false);
+  const [allPolicies, setAllPolicies] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   const frameworkName = 
     frameworkId === 'iso27001' ? 'ISO 27001' : 
@@ -60,6 +75,66 @@ const PoliciesSection: React.FC<PoliciesSectionProps> = ({ frameworkId }) => {
     frameworkId === 'gdpr' ? 'GDPR' : 
     frameworkId === 'hipaa' ? 'HIPAA' : 
     frameworkId === 'pci_dss' ? 'PCI DSS' : 'Compliance';
+
+  useEffect(() => {
+    fetchPolicies();
+  }, [frameworkId]);
+
+  const fetchPolicies = async () => {
+    setIsLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('generated_policies')
+        .select('*')
+        .eq('framework_type', frameworkId)
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        throw error;
+      }
+
+      if (data && data.length > 0) {
+        const formattedPolicies = data.map((policy: GeneratedPolicy) => ({
+          id: policy.id,
+          name: `${policy.framework_type.toUpperCase()} Policy`,
+          created_at: policy.created_at,
+          framework: policy.framework_type,
+          company: extractCompanyNameFromPolicy(policy.policy_content),
+          policy_content: policy.policy_content,
+          riskAssessment: policy.risk_assessment,
+          implementationGuide: policy.implementation_guide,
+          gapsAnalysis: policy.gaps_analysis,
+          aiSuggestions: policy.ai_suggestions
+        }));
+
+        setPolicies(formattedPolicies);
+      }
+    } catch (error) {
+      console.error('Error fetching policies:', error);
+      toast.error('Failed to fetch policies');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Helper function to extract company name from policy content
+  const extractCompanyNameFromPolicy = (content: string): string => {
+    if (!content) return 'Unknown Company';
+    
+    // Look for company name in typical policy title formats
+    const titleMatches = content.match(/Policy (Document )?for[\s:]+(.*?)(\n|$)/i);
+    if (titleMatches && titleMatches[2]) {
+      return titleMatches[2].trim();
+    }
+    
+    // Try looking for "Company:" format
+    const companyMatches = content.match(/Company:[\s]+(.*?)(\n|$)/i);
+    if (companyMatches && companyMatches[1]) {
+      return companyMatches[1].trim();
+    }
+    
+    return 'Unknown Company';
+  };
 
   const handlePolicyFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -91,13 +166,12 @@ const PoliciesSection: React.FC<PoliciesSectionProps> = ({ frameworkId }) => {
       
       const organizationId = null;
 
-      // Create a timeout promise that rejects after 30 seconds
-      const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error('Request timed out')), 30000);
+      toast.info('Generating compliance policy... This may take a moment', {
+        duration: 5000
       });
-      
+
       // Create the fetch promise
-      const fetchPromise = supabase.functions.invoke('generate-policy', {
+      const { data, error } = await supabase.functions.invoke('generate-policy', {
         body: {
           companyName: policyFormData.companyName,
           industry: policyFormData.industry,
@@ -112,14 +186,6 @@ const PoliciesSection: React.FC<PoliciesSectionProps> = ({ frameworkId }) => {
           userId
         }
       });
-      
-      // Race the two promises
-      const { data, error } = await Promise.race([
-        fetchPromise,
-        timeoutPromise.then(() => {
-          throw new Error('Request timed out. The policy generation may take longer than expected. Please try again.');
-        })
-      ]) as any;
 
       if (error) {
         throw error;
@@ -127,27 +193,8 @@ const PoliciesSection: React.FC<PoliciesSectionProps> = ({ frameworkId }) => {
 
       console.log('Policy generated successfully', data);
 
-      if (userId) {
-        const { error: insertError } = await supabase
-          .from('generated_policies')
-          .insert({
-            organization_id: organizationId,
-            framework_type: frameworkId,
-            policy_content: data.formattedPolicy,
-            risk_assessment: data.riskAssessment,
-            implementation_guide: data.implementationGuide,
-            gaps_analysis: data.gapsAnalysis,
-            ai_suggestions: data.aiSuggestions,
-            created_by: userId
-          });
-          
-        if (insertError) {
-          console.error("Error saving policy to database:", insertError);
-        }
-      }
-
       const newPolicy = {
-        id: Date.now().toString(),
+        id: data.policyId || Date.now().toString(),
         name: `${frameworkId.toUpperCase()} Policy - ${policyFormData.companyName}`,
         created_at: new Date().toISOString(),
         framework: frameworkId,
@@ -162,6 +209,14 @@ const PoliciesSection: React.FC<PoliciesSectionProps> = ({ frameworkId }) => {
       setPolicies([newPolicy, ...policies]);
       setShowPolicyGenerator(false);
       toast.success('Policy generated successfully');
+      
+      // Automatically show the newly generated policy
+      setSelectedPolicy(newPolicy);
+      setShowPolicyContent(true);
+      
+      // Refresh policies from database
+      fetchPolicies();
+      
     } catch (error) {
       console.error('Error generating policy:', error);
       toast.error('Failed to generate policy. Please try again.');
@@ -207,31 +262,61 @@ const PoliciesSection: React.FC<PoliciesSectionProps> = ({ frameworkId }) => {
     });
   };
 
+  const handleViewAllPolicies = () => {
+    if (policies.length === 0) {
+      toast.error('No policies available to view');
+      return;
+    }
+    
+    const policiesForViewer = policies.map(policy => ({
+      title: policy.name,
+      content: policy.policy_content,
+      company: policy.company
+    }));
+    
+    setAllPolicies(policiesForViewer);
+    setShowPolicyViewer(true);
+  };
+
   return (
     <>
       <div className="bg-white rounded-lg shadow p-6">
         <div className="text-center mb-8">
           <h2 className="text-2xl font-bold mb-2">{frameworkName} Policy Generator</h2>
-          <p className="text-gray-600">
+          <p className="text-gray-600 mb-6">
             Generate customized compliance policies based on your organization's profile
           </p>
-          <Button
-            className="mt-4"
-            onClick={() => setShowPolicyGenerator(true)}
-          >
-            Launch Policy Generator
-          </Button>
+          <div className="flex flex-col sm:flex-row justify-center gap-4">
+            <Button
+              onClick={() => setShowPolicyGenerator(true)}
+              leftIcon={<FileText size={16} />}
+            >
+              Generate New Policy
+            </Button>
+            <Button
+              variant="outline"
+              onClick={handleViewAllPolicies}
+              leftIcon={<FileText size={16} />}
+              disabled={policies.length === 0}
+            >
+              View All Policies
+            </Button>
+          </div>
         </div>
 
         <div className="border-t border-gray-200 pt-6">
           <h3 className="text-lg font-medium mb-4">Recent Policies</h3>
           
-          {policies.length > 0 ? (
+          {isLoading ? (
+            <div className="flex justify-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+            </div>
+          ) : policies.length > 0 ? (
             <div className="space-y-3">
               {policies.map((policy) => (
                 <div key={policy.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200">
                   <div>
-                    <h4 className="font-medium">{policy.name}</h4>
+                    <h4 className="font-medium">{policy.name} {policy.company && `- ${policy.company}`}</h4>
                     <p className="text-sm text-gray-500">Created: {new Date(policy.created_at).toLocaleDateString()}</p>
                   </div>
                   <div className="flex gap-2">
@@ -287,6 +372,12 @@ const PoliciesSection: React.FC<PoliciesSectionProps> = ({ frameworkId }) => {
         setShowPolicyContent={setShowPolicyContent}
         selectedPolicy={selectedPolicy}
         handleDownloadPolicy={handleDownloadPolicy}
+      />
+      
+      <PolicyViewerDialog
+        isOpen={showPolicyViewer}
+        onClose={() => setShowPolicyViewer(false)}
+        policies={allPolicies}
       />
     </>
   );

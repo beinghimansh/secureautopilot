@@ -3,8 +3,9 @@ import React, { useState, useEffect } from 'react';
 import Navbar from '@/components/layout/Navbar';
 import Sidebar from '@/components/layout/Sidebar';
 import { PageTransition } from '@/components/common/Transitions';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import Button from '@/components/common/Button';
 import RiskRegister from '@/components/compliance/risks/RiskRegister';
 import DocumentsSection from '@/components/compliance/documents/DocumentsSection';
 import PoliciesSection from '@/components/compliance/policies/PoliciesSection';
@@ -12,12 +13,18 @@ import RulesDisplay from '@/components/compliance/rules/RulesDisplay';
 import { useFrameworkName } from '@/components/compliance/hooks/useFrameworkName';
 import { Card, CardContent } from '@/components/common/Card';
 import { ScaleIn } from '@/components/common/Transitions';
-import { InfoIcon } from 'lucide-react';
+import { InfoIcon, ArrowLeft } from 'lucide-react';
+import { toast } from 'sonner';
 
 const FrameworkRequirements = () => {
   const { frameworkId = 'iso27001' } = useParams<{ frameworkId: string }>();
   const [selectedTab, setSelectedTab] = useState('controls');
+  const navigate = useNavigate();
   const frameworkName = useFrameworkName(frameworkId);
+
+  const handleBackClick = () => {
+    navigate('/compliance');
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -27,11 +34,20 @@ const FrameworkRequirements = () => {
         <main className="flex-1 p-6 lg:p-8 overflow-x-hidden">
           <PageTransition>
             <div className="max-w-7xl mx-auto">
-              <div className="mb-6">
-                <h1 className="text-3xl font-semibold tracking-tight mb-2">
-                  {frameworkName} Requirements
-                </h1>
-                <p className="text-gray-600">Manage your compliance controls and implementation status</p>
+              <div className="mb-6 flex justify-between items-center">
+                <div>
+                  <h1 className="text-3xl font-semibold tracking-tight mb-2">
+                    {frameworkName} Requirements
+                  </h1>
+                  <p className="text-gray-600">Manage your compliance controls and implementation status</p>
+                </div>
+                <Button
+                  variant="outline"
+                  leftIcon={<ArrowLeft size={16} />}
+                  onClick={handleBackClick}
+                >
+                  Back to Framework
+                </Button>
               </div>
               
               <ScaleIn delay={100}>
@@ -53,10 +69,10 @@ const FrameworkRequirements = () => {
               
               <Tabs defaultValue="controls" className="mb-6" onValueChange={setSelectedTab}>
                 <TabsList className="mb-4 bg-white border shadow-sm">
-                  <TabsTrigger value="controls" className="data-[state=active]:bg-primary data-[state=active]:text-white">Controls & Clauses</TabsTrigger>
-                  <TabsTrigger value="risks" className="data-[state=active]:bg-primary data-[state=active]:text-white">Risk Management</TabsTrigger>
-                  <TabsTrigger value="documents" className="data-[state=active]:bg-primary data-[state=active]:text-white">Documents</TabsTrigger>
-                  <TabsTrigger value="policies" className="data-[state=active]:bg-primary data-[state=active]:text-white">
+                  <TabsTrigger value="controls" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">Controls & Clauses</TabsTrigger>
+                  <TabsTrigger value="risks" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">Risk Management</TabsTrigger>
+                  <TabsTrigger value="documents" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">Documents</TabsTrigger>
+                  <TabsTrigger value="policies" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">
                     Policies
                     <span className="ml-2 bg-blue-100 text-blue-800 text-xs px-2 py-0.5 rounded-full">
                       New

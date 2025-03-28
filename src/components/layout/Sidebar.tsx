@@ -8,10 +8,7 @@ import {
   Users, 
   Settings,
   FileText,
-  Database,
-  Bell,
-  BarChart,
-  Cloud
+  BarChart
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
@@ -30,8 +27,8 @@ const SidebarItem = ({ icon, label, href, active }: SidebarItemProps) => {
       className={cn(
         "flex items-center gap-3 rounded-lg px-3 py-2 transition-all duration-300 group",
         active ? 
-          "bg-primary text-primary-foreground" : 
-          "text-gray-700 hover:bg-primary/10 hover:text-primary"
+          "bg-blue-600 text-white" : 
+          "text-gray-700 hover:bg-blue-100 hover:text-blue-600"
       )}
     >
       <div className="flex-shrink-0">
@@ -63,7 +60,7 @@ const Sidebar = () => {
   return (
     <aside className="hidden lg:flex h-screen sticky top-0 w-64 flex-col border-r bg-white px-3 py-4">
       <div className="mb-6 flex items-center px-2">
-        <div className="h-10 w-10 rounded-full bg-primary flex items-center justify-center mr-2">
+        <div className="h-10 w-10 rounded-full bg-blue-600 flex items-center justify-center mr-2">
           <Shield size={24} className="text-white" />
         </div>
         <div>
@@ -106,23 +103,6 @@ const Sidebar = () => {
           href="/reports" 
           active={isPathActive('/reports')} 
         />
-      </div>
-      
-      <div className="mt-auto px-3 py-2">
-        <div className="rounded-lg bg-gray-50 p-3">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium">Acme Inc.</p>
-              <p className="text-xs text-gray-500">Pro Plan</p>
-            </div>
-            <Link 
-              to="/settings"
-              className="rounded-full p-1.5 bg-white hover:bg-gray-100 transition-colors"
-            >
-              <Settings size={16} className="text-gray-600" />
-            </Link>
-          </div>
-        </div>
       </div>
     </aside>
   );

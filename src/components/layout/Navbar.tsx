@@ -59,7 +59,7 @@ const Navbar = () => {
               </div>
               <button 
                 onClick={handleSignOut}
-                className="hidden md:inline-flex px-3 py-1.5 text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 rounded transition-colors"
+                className="hidden md:inline-flex px-3 py-1.5 text-sm bg-blue-600 hover:bg-blue-700 text-white rounded transition-colors"
               >
                 Sign Out
               </button>
@@ -89,27 +89,33 @@ const Navbar = () => {
           <nav className="flex flex-col space-y-4 px-4 py-4 bg-white border-t border-gray-100">
             <Link 
               to="/dashboard" 
-              className={`text-sm font-medium transition-colors hover:text-primary ${location.pathname === '/dashboard' ? 'text-primary' : 'text-gray-600'}`}
+              className={`text-sm font-medium transition-colors hover:text-blue-600 ${location.pathname === '/dashboard' ? 'text-blue-600' : 'text-gray-600'}`}
             >
               Dashboard
             </Link>
             <Link 
               to="/compliance" 
-              className={`text-sm font-medium transition-colors hover:text-primary ${location.pathname === '/compliance' || location.pathname.includes('/compliance/') ? 'text-primary' : 'text-gray-600'}`}
+              className={`text-sm font-medium transition-colors hover:text-blue-600 ${location.pathname === '/compliance' || location.pathname.includes('/compliance/') ? 'text-blue-600' : 'text-gray-600'}`}
             >
               Compliance
             </Link>
             <Link 
               to="/tasks" 
-              className={`text-sm font-medium transition-colors hover:text-primary ${location.pathname === '/tasks' ? 'text-primary' : 'text-gray-600'}`}
+              className={`text-sm font-medium transition-colors hover:text-blue-600 ${location.pathname === '/tasks' ? 'text-blue-600' : 'text-gray-600'}`}
             >
               Tasks
             </Link>
             <Link 
               to="/policies" 
-              className={`text-sm font-medium transition-colors hover:text-primary ${location.pathname === '/policies' ? 'text-primary' : 'text-gray-600'}`}
+              className={`text-sm font-medium transition-colors hover:text-blue-600 ${location.pathname === '/policies' ? 'text-blue-600' : 'text-gray-600'}`}
             >
               Policies
+            </Link>
+            <Link 
+              to="/reports" 
+              className={`text-sm font-medium transition-colors hover:text-blue-600 ${location.pathname === '/reports' ? 'text-blue-600' : 'text-gray-600'}`}
+            >
+              Reports
             </Link>
             <button 
               onClick={handleSignOut}

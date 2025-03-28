@@ -99,6 +99,124 @@ serve(async (req) => {
       throw new Error(`Failed to store company profile: ${dbError.message}`);
     }
 
+    // Get the rules for this framework type to include in the policy generation
+    let frameworkRules = [];
+    try {
+      console.log(`Fetching requirements for ${frameworkType}...`);
+      
+      // Creating a detailed prompt based on which framework we're generating for
+      let frameworkSpecificPrompt = "";
+      
+      if (frameworkType === "iso27001") {
+        frameworkSpecificPrompt = `
+          ISO 27001 uses a structure of Annex A controls divided into the following categories:
+          A.5 Information Security Policies
+          A.6 Organization of Information Security
+          A.7 Human Resource Security
+          A.8 Asset Management
+          A.9 Access Control
+          A.10 Cryptography
+          A.11 Physical and Environmental Security
+          A.12 Operations Security
+          A.13 Communications Security
+          A.14 System Acquisition, Development and Maintenance
+          A.15 Supplier Relationships
+          A.16 Information Security Incident Management
+          A.17 Information Security Aspects of Business Continuity Management
+          A.18 Compliance
+          
+          Your policy should address all these control categories in detail, with specific measures tailored to ${companyName}.
+        `;
+      } else if (frameworkType === "gdpr") {
+        frameworkSpecificPrompt = `
+          GDPR requires organizations to address the following key principles:
+          1. Lawfulness, fairness and transparency
+          2. Purpose limitation
+          3. Data minimization
+          4. Accuracy
+          5. Storage limitation
+          6. Integrity and confidentiality
+          7. Accountability
+          
+          Additionally, the policy should cover data subject rights:
+          - Right to be informed
+          - Right of access
+          - Right to rectification
+          - Right to erasure
+          - Right to restrict processing
+          - Right to data portability
+          - Right to object
+          - Rights related to automated decision making and profiling
+          
+          Include specific procedures for ${companyName} to handle data subject requests and breach notifications.
+        `;
+      } else if (frameworkType === "soc2") {
+        frameworkSpecificPrompt = `
+          SOC 2 is based on the following Trust Services Criteria:
+          1. Security - The system is protected against unauthorized access
+          2. Availability - The system is available for operation and use
+          3. Processing Integrity - System processing is complete, accurate, timely, and authorized
+          4. Confidentiality - Information designated as confidential is protected
+          5. Privacy - Personal information is collected, used, retained, and disclosed in conformity with commitments
+          
+          The policy should detail how ${companyName} implements controls for each relevant criteria, with specific focus on:
+          - Infrastructure (physical and hardware components)
+          - Software (programs and operating software)
+          - People (personnel involved in operation and use)
+          - Procedures (automated and manual procedures)
+          - Data (information used and supported by the system)
+        `;
+      } else if (frameworkType === "hipaa") {
+        frameworkSpecificPrompt = `
+          HIPAA compliance requires addressing:
+          
+          1. Privacy Rule - Regulations for the use and disclosure of Protected Health Information (PHI)
+          2. Security Rule - Administrative, physical, and technical safeguards including:
+             - Administrative Safeguards (security management, assigned security responsibility, workforce training)
+             - Physical Safeguards (facility access, workstation security, device controls)
+             - Technical Safeguards (access controls, audit controls, integrity controls, transmission security)
+          3. Breach Notification Rule - Procedures for reporting breaches
+          
+          The policy should detail specific procedures for ${companyName} to handle PHI, including:
+          - Minimum necessary use and disclosure
+          - Business associate agreements
+          - Patient rights (access, amendment, accounting of disclosures)
+          - Administrative requirements (training, policies, complaints)
+        `;
+      } else if (frameworkType === "pci_dss") {
+        frameworkSpecificPrompt = `
+          PCI DSS is organized into six control objectives:
+          1. Build and maintain a secure network and systems
+          2. Protect cardholder data
+          3. Maintain a vulnerability management program
+          4. Implement strong access control measures
+          5. Regularly monitor and test networks
+          6. Maintain an information security policy
+          
+          The policy should detail how ${companyName} addresses each of the 12 requirements:
+          - Install and maintain firewalls
+          - Change vendor defaults
+          - Protect stored data
+          - Encrypt transmitted data
+          - Use anti-virus
+          - Develop and maintain secure systems
+          - Restrict access to data
+          - Assign unique IDs
+          - Restrict physical access
+          - Track and monitor access
+          - Regularly test systems
+          - Maintain information security policy
+        `;
+      }
+      
+      // Now we have framework-specific requirements to include in our prompt
+      console.log("Framework-specific requirements loaded");
+      
+    } catch (reqError) {
+      console.error("Error fetching framework requirements:", reqError);
+      // Continue anyway, we'll generate a more generic policy
+    }
+
     // Now proceed with OpenAI API call
     console.log("Calling OpenAI API...");
     
@@ -107,23 +225,60 @@ serve(async (req) => {
       messages: [
         { 
           role: 'system', 
-          content: `You are an expert policy generator specialized in ${frameworkType} compliance. 
-          Generate a comprehensive, actionable policy document tailored to a ${industry} company 
-          with ${companySize} employees processing ${dataTypes}.
+          content: `You are an expert policy generator specialized in ${frameworkType.toUpperCase()} compliance. 
+          Your task is to create a comprehensive, detailed, and actionable compliance policy document tailored specifically for ${companyName}, 
+          a ${industry} company with ${companySize} employees that processes ${dataTypes}.
           
-          If security controls were provided, incorporate them: ${securityControls ? securityControls.join(", ") : "No specific controls provided"}.
-          If infrastructure details were provided, consider them: ${infrastructureDetails || "No specific infrastructure details provided"}.
-          If business location was provided, ensure regional compliance: ${businessLocation || "No specific location provided"}.
-          If risk appetite was specified, align with: ${riskAppetite || "Moderate risk appetite"}.` 
+          The policy should be deeply customized to the company's specific details:
+          - Company Name: ${companyName}
+          - Industry: ${industry}
+          - Size: ${companySize}
+          - Data Types: ${dataTypes}
+          - Business Location: ${businessLocation || "Not specified"}
+          - IT Infrastructure: ${infrastructureDetails || "Standard IT infrastructure"}
+          - Security Controls: ${securityControls.length > 0 ? securityControls.join(", ") : "Standard security controls"}
+          - Risk Appetite: ${riskAppetite}
+          
+          The policy document should include:
+          1. Introduction specific to ${companyName} (with company name mentioned throughout)
+          2. Scope - clearly defining what systems, processes and data are covered
+          3. Detailed policy statements for each major control area
+          4. Specific procedures tailored to ${companyName}'s actual operations
+          5. Roles and responsibilities within ${companyName}'s organizational structure
+          6. Compliance measurement and auditing procedures
+          7. References to relevant regulations and standards
+          
+          Make the policy HIGHLY DETAILED and SPECIFIC to ${companyName}. It should read as if it was custom-written for this company, not a generic template.
+          Format the policy with clear headings and sections using markdown formatting.` 
         },
         { 
           role: 'user', 
-          content: `Please generate a detailed policy document for ${companyName} 
-          focusing on ${frameworkType} compliance requirements. The policy should include introduction, 
-          objectives, key controls, risk assessment, implementation guide, compliance gaps analysis, 
-          and best practices sections.` 
+          content: `Please generate a detailed ${frameworkType.toUpperCase()} compliance policy document for ${companyName}, 
+          a ${industry} company with ${companySize} employees processing ${dataTypes}.
+          
+          This policy should be comprehensive and practical, with specific measures that address our company's unique context. 
+          Please don't create a generic template - we need a policy document that reads as if it was written specifically for our company, 
+          mentioning our company name throughout the document.
+          
+          Additional details about our company:
+          - Location: ${businessLocation || "Multiple locations"}
+          - IT Infrastructure: ${infrastructureDetails || "Cloud and on-premises hybrid infrastructure"}
+          - Current Security Controls: ${securityControls.length > 0 ? securityControls.join(", ") : "Basic security controls"}
+          - Risk Appetite: ${riskAppetite}
+          
+          Please include the following sections:
+          1. Policy Introduction & Purpose
+          2. Scope & Applicability
+          3. Key Definitions relevant to our industry
+          4. Detailed Policy Statements for all control areas
+          5. Implementation Requirements specific to our business
+          6. Compliance Measurement & Auditing
+          7. Roles & Responsibilities within our organization
+          8. References & Related Documents` 
         }
       ],
+      temperature: 0.7,
+      max_tokens: 4000,
     };
 
     console.log("Sending request to OpenAI API...");
@@ -155,58 +310,193 @@ serve(async (req) => {
     
     const policyContent = data.choices[0].message.content;
     console.log("Policy generated successfully");
-
-    // Parse the content to divide it into different sections
-    // This is a simplified version - in practice you would need more robust parsing
-    const sections = {
-      introduction: { 
-        purpose: "This policy provides guidelines for implementing " + frameworkType.toUpperCase() + " compliance.",
-        scope: "This policy applies to all employees, systems and data within " + companyName + "."
-      },
-      objectives: [
-        "Ensure compliance with " + frameworkType.toUpperCase() + " framework",
-        "Protect sensitive information and data",
-        "Establish clear security controls and responsibilities"
-      ],
-      key_controls: [
+    
+    // Generate additional documents using the same approach
+    // Generate Risk Assessment
+    console.log("Generating risk assessment...");
+    const riskRequest = {
+      model: 'gpt-4o-mini',
+      messages: [
         { 
-          control_name: "Access Control", 
-          description: "Implement strong access control measures" 
+          role: 'system', 
+          content: `You are a risk assessment specialist for ${frameworkType.toUpperCase()} compliance. Create a detailed risk assessment document for ${companyName}, a ${industry} company. Include:
+          1. Executive Summary
+          2. Risk Assessment Methodology
+          3. Identified Risks (categorized by severity and likelihood)
+          4. Detailed Analysis of Key Risks specific to ${companyName}'s operations
+          5. Risk Mitigation Strategies tailored to ${companyName}
+          6. Risk Owner Assignments within ${companyName}'s structure
+          7. Monitoring and Review Procedures
+          
+          Make it highly specific to a ${industry} company of size ${companySize}, not generic.` 
         },
         { 
-          control_name: "Risk Management", 
-          description: "Regular risk assessments and mitigation strategies" 
+          role: 'user', 
+          content: `Create a detailed risk assessment for ${companyName} related to our ${frameworkType.toUpperCase()} compliance program. We are a ${industry} company with ${companySize} employees processing ${dataTypes}.` 
         }
       ],
-      risk_assessment: {
-        identified_risks: [
-          {
-            risk_title: "Data Breach",
-            risk_level: "High",
-            mitigation_strategy: "Implement encryption and access controls"
-          }
-        ]
-      },
-      implementation_guide: {
-        steps: [
-          {
-            step_title: "Initial Assessment",
-            description: "Evaluate current security posture",
-            timeline: "1-2 weeks"
-          }
-        ]
-      },
-      compliance_gaps: [
-        {
-          gap_area: "Documentation",
-          recommendation: "Develop comprehensive documentation for all security controls"
-        }
-      ],
-      best_practices: [
-        "Regular security awareness training for all employees",
-        "Periodic review and updates to security policies"
-      ]
+      temperature: 0.7,
+      max_tokens: 2000,
     };
+    
+    const riskResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${openAIApiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(riskRequest),
+    });
+    
+    let riskAssessment = "";
+    if (riskResponse.ok) {
+      const riskData = await riskResponse.json();
+      riskAssessment = riskData.choices[0].message.content;
+      console.log("Risk assessment generated successfully");
+    } else {
+      console.error("Failed to generate risk assessment");
+      riskAssessment = `# Risk Assessment for ${companyName}\n\nRisk assessment document could not be generated.`;
+    }
+    
+    // Generate Implementation Guide
+    console.log("Generating implementation guide...");
+    const implRequest = {
+      model: 'gpt-4o-mini',
+      messages: [
+        { 
+          role: 'system', 
+          content: `You are a ${frameworkType.toUpperCase()} implementation specialist. Create a detailed implementation guide for ${companyName}, a ${industry} company. Include:
+          1. Implementation Roadmap with Timeline
+          2. Phase 1: Initial Assessment & Planning
+          3. Phase 2: Policy Development & Documentation
+          4. Phase 3: Implementation of Controls
+          5. Phase 4: Training & Awareness
+          6. Phase 5: Monitoring & Continuous Improvement
+          7. Resource Requirements
+          8. Implementation Challenges and Solutions
+          
+          Make it highly specific to a ${industry} company of size ${companySize}, not generic.` 
+        },
+        { 
+          role: 'user', 
+          content: `Create a detailed implementation guide for our ${frameworkType.toUpperCase()} compliance program at ${companyName}. We are a ${industry} company with ${companySize} employees processing ${dataTypes}.` 
+        }
+      ],
+      temperature: 0.7,
+      max_tokens: 2000,
+    };
+    
+    const implResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${openAIApiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(implRequest),
+    });
+    
+    let implementationGuide = "";
+    if (implResponse.ok) {
+      const implData = await implResponse.json();
+      implementationGuide = implData.choices[0].message.content;
+      console.log("Implementation guide generated successfully");
+    } else {
+      console.error("Failed to generate implementation guide");
+      implementationGuide = `# Implementation Guide for ${companyName}\n\nImplementation guide could not be generated.`;
+    }
+    
+    // Generate Gaps Analysis
+    console.log("Generating gaps analysis...");
+    const gapsRequest = {
+      model: 'gpt-4o-mini',
+      messages: [
+        { 
+          role: 'system', 
+          content: `You are a ${frameworkType.toUpperCase()} compliance auditor. Create a gaps analysis document for ${companyName}, a ${industry} company. Include:
+          1. Executive Summary
+          2. Assessment Methodology
+          3. Current State Analysis
+          4. Gap Identification by Control Area
+          5. Prioritized Remediation Plan
+          6. Resources and Timeline Estimates
+          7. Key Performance Indicators
+          
+          Assume they're starting their compliance journey and identify likely gaps based on their industry and size.
+          Make it highly specific to a ${industry} company of size ${companySize}, not generic.` 
+        },
+        { 
+          role: 'user', 
+          content: `Create a gaps analysis for our ${frameworkType.toUpperCase()} compliance program at ${companyName}. We are a ${industry} company with ${companySize} employees processing ${dataTypes}.` 
+        }
+      ],
+      temperature: 0.7,
+      max_tokens: 2000,
+    };
+    
+    const gapsResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${openAIApiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(gapsRequest),
+    });
+    
+    let gapsAnalysis = "";
+    if (gapsResponse.ok) {
+      const gapsData = await gapsResponse.json();
+      gapsAnalysis = gapsData.choices[0].message.content;
+      console.log("Gaps analysis generated successfully");
+    } else {
+      console.error("Failed to generate gaps analysis");
+      gapsAnalysis = `# Gaps Analysis for ${companyName}\n\nGaps analysis could not be generated.`;
+    }
+    
+    // Generate AI Suggestions
+    console.log("Generating AI suggestions...");
+    const suggestionsRequest = {
+      model: 'gpt-4o-mini',
+      messages: [
+        { 
+          role: 'system', 
+          content: `You are an AI advisor specializing in ${frameworkType.toUpperCase()} compliance. Create a document with advanced suggestions for ${companyName}, a ${industry} company. Include:
+          1. Executive Summary
+          2. Advanced Security Measures for ${industry}
+          3. Industry-Specific Best Practices
+          4. Emerging Threats and Mitigations
+          5. Technology Recommendations
+          6. Strategic Compliance Roadmap
+          7. Competitive Advantage Through Compliance
+          
+          Make it highly specific to a ${industry} company of size ${companySize}, not generic.` 
+        },
+        { 
+          role: 'user', 
+          content: `Provide advanced suggestions for enhancing our ${frameworkType.toUpperCase()} compliance program at ${companyName}. We are a ${industry} company with ${companySize} employees processing ${dataTypes}.` 
+        }
+      ],
+      temperature: 0.7,
+      max_tokens: 2000,
+    };
+    
+    const suggestionsResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${openAIApiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(suggestionsRequest),
+    });
+    
+    let aiSuggestions = "";
+    if (suggestionsResponse.ok) {
+      const suggestionsData = await suggestionsResponse.json();
+      aiSuggestions = suggestionsData.choices[0].message.content;
+      console.log("AI suggestions generated successfully");
+    } else {
+      console.error("Failed to generate AI suggestions");
+      aiSuggestions = `# AI Suggestions for ${companyName}\n\nAI suggestions could not be generated.`;
+    }
 
     // Store policy content in the database
     let policyId = null;
@@ -214,18 +504,12 @@ serve(async (req) => {
       if (userId) {
         console.log("Storing generated policy in database...");
         
-        const formattedPolicy = formatPolicyDocument(sections, companyName, frameworkType);
-        const riskAssessment = formatRiskAssessment(sections.risk_assessment, companyName, frameworkType);
-        const implementationGuide = formatImplementationGuide(sections.implementation_guide, companyName, frameworkType);
-        const gapsAnalysis = formatGapsAnalysis(sections.compliance_gaps, companyName, frameworkType);
-        const aiSuggestions = formatAISuggestions(sections.best_practices, companyName, frameworkType);
-        
         const { data: policyData, error: policyError } = await supabase
           .from('generated_policies')
           .insert({
             organization_id: organizationId,
             framework_type: frameworkType,
-            policy_content: formattedPolicy,
+            policy_content: policyContent,
             risk_assessment: riskAssessment,
             implementation_guide: implementationGuide,
             gaps_analysis: gapsAnalysis,
@@ -249,14 +533,15 @@ serve(async (req) => {
 
     // Return the generated policy
     return new Response(JSON.stringify({
-      policyDocument: { policy_sections: sections },
-      formattedPolicy: formatPolicyDocument(sections, companyName, frameworkType),
-      riskAssessment: formatRiskAssessment(sections.risk_assessment, companyName, frameworkType),
-      implementationGuide: formatImplementationGuide(sections.implementation_guide, companyName, frameworkType),
-      gapsAnalysis: formatGapsAnalysis(sections.compliance_gaps, companyName, frameworkType),
-      aiSuggestions: formatAISuggestions(sections.best_practices, companyName, frameworkType),
+      policyContent: policyContent,
+      formattedPolicy: policyContent,
+      riskAssessment,
+      implementationGuide,
+      gapsAnalysis,
+      aiSuggestions,
       frameworkType,
-      policyId
+      policyId,
+      companyName
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
@@ -272,112 +557,3 @@ serve(async (req) => {
     });
   }
 });
-
-// Helper function to format the policy document
-function formatPolicyDocument(sections, companyName, frameworkType) {
-  const { introduction, objectives, key_controls } = sections;
-  
-  let policyText = `# ${frameworkType.toUpperCase()} POLICY DOCUMENT\n\n`;
-  policyText += `## For: ${companyName}\n\n`;
-  policyText += `### Date: ${new Date().toLocaleDateString()}\n\n`;
-  
-  // Introduction section
-  policyText += `## 1. INTRODUCTION\n\n`;
-  policyText += `### 1.1 Purpose\n${introduction.purpose}\n\n`;
-  policyText += `### 1.2 Scope\n${introduction.scope}\n\n`;
-  
-  // Objectives section
-  policyText += `## 2. OBJECTIVES\n\n`;
-  objectives.forEach((objective, i) => {
-    policyText += `### 2.${i+1} ${objective}\n\n`;
-  });
-  
-  // Key Controls section
-  policyText += `## 3. KEY CONTROLS\n\n`;
-  key_controls.forEach((control, i) => {
-    policyText += `### 3.${i+1} ${control.control_name}\n${control.description}\n\n`;
-  });
-  
-  return policyText;
-}
-
-// Helper function to format the risk assessment
-function formatRiskAssessment(riskSection, companyName, frameworkType) {
-  let riskText = `# ${frameworkType.toUpperCase()} RISK ASSESSMENT\n\n`;
-  riskText += `## For: ${companyName}\n\n`;
-  riskText += `### Date: ${new Date().toLocaleDateString()}\n\n`;
-  
-  riskText += `## IDENTIFIED RISKS\n\n`;
-  
-  if (riskSection && riskSection.identified_risks) {
-    riskSection.identified_risks.forEach((risk, i) => {
-      riskText += `### Risk ${i+1}: ${risk.risk_title}\n`;
-      riskText += `**Risk Level:** ${risk.risk_level}\n\n`;
-      riskText += `**Mitigation Strategy:** ${risk.mitigation_strategy}\n\n`;
-    });
-  } else {
-    riskText += "No specific risks have been identified.\n\n";
-  }
-  
-  return riskText;
-}
-
-// Helper function to format the implementation guide
-function formatImplementationGuide(implementationSection, companyName, frameworkType) {
-  let guideText = `# ${frameworkType.toUpperCase()} IMPLEMENTATION GUIDE\n\n`;
-  guideText += `## For: ${companyName}\n\n`;
-  guideText += `### Date: ${new Date().toLocaleDateString()}\n\n`;
-  
-  guideText += `## IMPLEMENTATION STEPS\n\n`;
-  
-  if (implementationSection && implementationSection.steps) {
-    implementationSection.steps.forEach((step, i) => {
-      guideText += `### Step ${i+1}: ${step.step_title}\n`;
-      guideText += `${step.description}\n\n`;
-      guideText += `**Timeline:** ${step.timeline}\n\n`;
-    });
-  } else {
-    guideText += "No specific implementation steps have been provided.\n\n";
-  }
-  
-  return guideText;
-}
-
-// Helper function to format the gaps analysis
-function formatGapsAnalysis(gapsSection, companyName, frameworkType) {
-  let gapsText = `# ${frameworkType.toUpperCase()} COMPLIANCE GAP ANALYSIS\n\n`;
-  gapsText += `## For: ${companyName}\n\n`;
-  gapsText += `### Date: ${new Date().toLocaleDateString()}\n\n`;
-  
-  gapsText += `## IDENTIFIED GAPS\n\n`;
-  
-  if (gapsSection && gapsSection.length > 0) {
-    gapsSection.forEach((gap, i) => {
-      gapsText += `### Gap ${i+1}: ${gap.gap_area}\n`;
-      gapsText += `**Recommendation:** ${gap.recommendation}\n\n`;
-    });
-  } else {
-    gapsText += "No specific compliance gaps have been identified.\n\n";
-  }
-  
-  return gapsText;
-}
-
-// Helper function to format AI suggestions
-function formatAISuggestions(bestPractices, companyName, frameworkType) {
-  let suggestionsText = `# AI-POWERED IMPROVEMENT SUGGESTIONS FOR ${frameworkType.toUpperCase()}\n\n`;
-  suggestionsText += `## For: ${companyName}\n\n`;
-  suggestionsText += `### Date: ${new Date().toLocaleDateString()}\n\n`;
-  
-  suggestionsText += `## RECOMMENDED BEST PRACTICES\n\n`;
-  
-  if (bestPractices && bestPractices.length > 0) {
-    bestPractices.forEach((practice, i) => {
-      suggestionsText += `### Best Practice ${i+1}:\n${practice}\n\n`;
-    });
-  } else {
-    suggestionsText += "No specific best practices have been provided.\n\n";
-  }
-  
-  return suggestionsText;
-}

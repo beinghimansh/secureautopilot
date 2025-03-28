@@ -7,6 +7,7 @@ html,
 body,
 #root {
   height: 100%;
+  width: 100%;
 }
 
 @keyframes progress {
@@ -126,4 +127,56 @@ button.primary-btn:hover::after {
     transform: scale(1);
     opacity: 1;
   }
+}
+
+/* Login Page Styling */
+.auth-container {
+  background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+}
+
+.auth-form {
+  backdrop-filter: blur(10px);
+  background-color: rgba(255, 255, 255, 0.15);
+  border-radius: 16px;
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Update sidebar and menu contrast */
+.sidebar-active {
+  @apply bg-blue-600 text-white;
+}
+
+.sidebar-item {
+  @apply text-gray-700 hover:bg-blue-100 hover:text-blue-600;
+}
+
+/* Framework Requirements Page Layout */
+.requirements-container {
+  @apply grid grid-cols-1 md:grid-cols-12 gap-6;
+}
+
+.requirements-sidebar {
+  @apply md:col-span-4 lg:col-span-3;
+}
+
+.requirements-content {
+  @apply md:col-span-8 lg:col-span-9;
+}
+
+/* Improved tabs in requirement viewer */
+.tabs-container {
+  @apply flex border-b;
+}
+
+.tab-item {
+  @apply px-4 py-2 cursor-pointer border-b-2 transition-colors;
+}
+
+.tab-active {
+  @apply border-blue-600 text-blue-600;
+}
+
+.tab-inactive {
+  @apply border-transparent hover:border-gray-300 text-gray-500 hover:text-gray-700;
 }
