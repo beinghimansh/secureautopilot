@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Button from '@/components/common/Button';
@@ -184,11 +183,13 @@ const PolicyGenerator: React.FC<PolicyGeneratorProps> = ({ frameworkId, onComple
         // Continue with policy generation even if storing company profile fails
       }
       
-      // Add a timeout to the fetch request
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+      // Create a timeout promise that rejects after 30 seconds
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('Request timed out')), 30000);
+      });
       
-      const { data, error } = await supabase.functions.invoke('generate-policy', {
+      // Create the fetch promise
+      const fetchPromise = supabase.functions.invoke('generate-policy', {
         body: {
           companyName: formValues.companyName,
           industry: formValues.industry,
@@ -201,11 +202,16 @@ const PolicyGenerator: React.FC<PolicyGeneratorProps> = ({ frameworkId, onComple
           riskAppetite: formValues.riskAppetite,
           organizationId: null, // Will be updated when organizations are implemented
           userId
-        },
-        signal: controller.signal
+        }
       });
       
-      clearTimeout(timeoutId);
+      // Race the two promises
+      const { data, error } = await Promise.race([
+        fetchPromise,
+        timeoutPromise.then(() => {
+          throw new Error('Request timed out. The policy generation may take longer than expected. Please try again.');
+        })
+      ]) as any;
       
       if (error) {
         console.error("Edge function error:", error);
@@ -261,7 +267,7 @@ const PolicyGenerator: React.FC<PolicyGeneratorProps> = ({ frameworkId, onComple
       
       let errorMessage = 'Failed to generate policy. Please try again.';
       
-      if (err.name === 'AbortError') {
+      if (err.message.includes('timed out')) {
         errorMessage = 'Request timed out. The policy generation may take longer than expected. Please try again.';
       } else if (err instanceof Error) {
         errorMessage = err.message;

@@ -15,15 +15,21 @@ const OpenAITest = () => {
     try {
       console.log("Sending test request to OpenAI edge function");
       
-      // Add a timeout to the fetch request
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
-      
-      const { data, error } = await supabase.functions.invoke('test-openai', {
-        signal: controller.signal
+      // Add a timeout with a promise that rejects after 15 seconds
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('Request timed out')), 15000);
       });
       
-      clearTimeout(timeoutId);
+      // Create the fetch promise
+      const fetchPromise = supabase.functions.invoke('test-openai');
+      
+      // Race the two promises
+      const { data, error } = await Promise.race([
+        fetchPromise,
+        timeoutPromise.then(() => {
+          throw new Error('Request timed out. The Supabase Edge Function may be cold starting, please try again.');
+        })
+      ]) as any;
       
       if (error) {
         console.error('Edge Function Error:', error);
@@ -48,7 +54,7 @@ const OpenAITest = () => {
       console.error('Error testing OpenAI:', err);
       
       let errorMessage = 'Failed to test OpenAI connection';
-      if (err.name === 'AbortError') {
+      if (err.message === 'Request timed out') {
         errorMessage = 'Request timed out. The Supabase Edge Function may be cold starting, please try again.';
       } else if (err instanceof Error) {
         errorMessage = err.message;
