@@ -30,7 +30,7 @@ const SidebarItem = ({ icon, label, href, active }: SidebarItemProps) => {
       className={cn(
         "flex items-center gap-3 rounded-lg px-3 py-2 transition-all duration-300 group",
         active ? 
-          "bg-primary/90 text-white" : 
+          "bg-primary text-white" : 
           "text-gray-700 hover:bg-primary/10 hover:text-primary"
       )}
     >
@@ -54,6 +54,11 @@ const Sidebar = () => {
     if (path !== '/dashboard' && path !== '/compliance' && pathname === path) return true;
     return false;
   };
+
+  // If we're on the root or auth page, don't show the sidebar
+  if (pathname === '/' || pathname === '/auth' || pathname.includes('/auth')) {
+    return null;
+  }
 
   return (
     <aside className="hidden lg:flex h-screen sticky top-0 w-64 flex-col border-r bg-white px-3 py-4">

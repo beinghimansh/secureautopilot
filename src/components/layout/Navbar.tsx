@@ -22,7 +22,7 @@ const Navbar = () => {
     try {
       await signOut();
       toast.success('Successfully signed out');
-      navigate('/auth');
+      navigate('/'); // Redirect to home page
     } catch (error) {
       console.error('Error signing out:', error);
       toast.error('Failed to sign out. Please try again.');
@@ -33,6 +33,11 @@ const Navbar = () => {
     // Close mobile menu when navigating to a new page
     setIsMenuOpen(false);
   }, [location.pathname]);
+  
+  // Hide the navbar on the index page
+  if (location.pathname === '/') {
+    return null;
+  }
   
   return (
     <header className="sticky top-0 z-50 w-full border-b border-gray-100 bg-white/80 backdrop-blur-lg">
@@ -46,35 +51,6 @@ const Navbar = () => {
               <span className="text-xl font-bold tracking-tight text-gray-900">ComplyFlow</span>
             </div>
           </Link>
-          
-          {user && (
-            <nav className="hidden md:flex items-center space-x-6">
-              <Link 
-                to="/dashboard" 
-                className={`text-sm font-medium transition-colors hover:text-primary ${location.pathname === '/dashboard' ? 'text-primary' : 'text-gray-600'}`}
-              >
-                Dashboard
-              </Link>
-              <Link 
-                to="/compliance" 
-                className={`text-sm font-medium transition-colors hover:text-primary ${location.pathname === '/compliance' || location.pathname.includes('/compliance/') ? 'text-primary' : 'text-gray-600'}`}
-              >
-                Compliance
-              </Link>
-              <Link 
-                to="/tasks" 
-                className={`text-sm font-medium transition-colors hover:text-primary ${location.pathname === '/tasks' ? 'text-primary' : 'text-gray-600'}`}
-              >
-                Tasks
-              </Link>
-              <Link 
-                to="/policies" 
-                className={`text-sm font-medium transition-colors hover:text-primary ${location.pathname === '/policies' ? 'text-primary' : 'text-gray-600'}`}
-              >
-                Policies
-              </Link>
-            </nav>
-          )}
         </div>
         
         <div className="flex items-center space-x-2">

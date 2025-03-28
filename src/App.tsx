@@ -13,6 +13,11 @@ import Settings from './pages/Settings';
 import Index from './pages/Index';
 import NotFound from './pages/NotFound';
 import FrameworkRequirements from './pages/FrameworkRequirements';
+import Reports from './pages/Reports';
+import DataSources from './pages/DataSources';
+import CloudSecurity from './pages/CloudSecurity';
+import Notifications from './pages/Notifications';
+import Team from './pages/Team';
 
 // Components
 import ProtectedRoute from './components/auth/ProtectedRoute';
@@ -34,6 +39,11 @@ function App() {
           <Route path="/compliance" element={<ProtectedRoute><Compliance /></ProtectedRoute>} />
           <Route path="/compliance/:frameworkId/requirements" element={<ProtectedRoute><FrameworkRequirements /></ProtectedRoute>} />
           <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+          <Route path="/reports" element={<ProtectedRoute><Reports /></ProtectedRoute>} />
+          <Route path="/data-sources" element={<ProtectedRoute><DataSources /></ProtectedRoute>} />
+          <Route path="/cloud-security" element={<ProtectedRoute><CloudSecurity /></ProtectedRoute>} />
+          <Route path="/notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
+          <Route path="/team" element={<ProtectedRoute><Team /></ProtectedRoute>} />
           
           {/* Fallback routes */}
           <Route path="/404" element={<NotFound />} />

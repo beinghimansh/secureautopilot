@@ -54,17 +54,17 @@ const AuthPage = () => {
   
   return (
     <PageTransition>
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-md w-full space-y-8">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 py-12 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-md w-full space-y-8 backdrop-blur-md bg-white/30 p-8 rounded-xl shadow-xl border border-white/20">
           <div>
-            <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+            <h2 className="mt-6 text-center text-3xl font-extrabold text-white">
               {isLogin ? 'Sign in to your account' : 'Create a new account'}
             </h2>
-            <p className="mt-2 text-center text-sm text-gray-600">
+            <p className="mt-2 text-center text-sm text-white/80">
               {isLogin ? "Don't have an account? " : "Already have an account? "}
               <button
                 type="button"
-                className="font-medium text-primary hover:text-primary/90"
+                className="font-medium text-white hover:text-white/90 underline"
                 onClick={() => setIsLogin(!isLogin)}
               >
                 {isLogin ? 'Sign up' : 'Sign in'}
@@ -77,7 +77,7 @@ const AuthPage = () => {
               {!isLogin && (
                 <>
                   <div>
-                    <label htmlFor="first-name" className="block text-sm font-medium text-gray-700">
+                    <label htmlFor="first-name" className="block text-sm font-medium text-white">
                       First Name
                     </label>
                     <input
@@ -85,13 +85,14 @@ const AuthPage = () => {
                       name="first-name"
                       type="text"
                       required
-                      className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
+                      className="mt-1 appearance-none relative block w-full px-3 py-2 border border-white/30 bg-white/20 placeholder-white/60 text-white rounded-md focus:outline-none focus:ring-primary focus:border-primary transition-all shadow-sm"
                       value={firstName}
                       onChange={(e) => setFirstName(e.target.value)}
+                      placeholder="John"
                     />
                   </div>
                   <div>
-                    <label htmlFor="last-name" className="block text-sm font-medium text-gray-700">
+                    <label htmlFor="last-name" className="block text-sm font-medium text-white">
                       Last Name
                     </label>
                     <input
@@ -99,16 +100,17 @@ const AuthPage = () => {
                       name="last-name"
                       type="text"
                       required
-                      className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
+                      className="mt-1 appearance-none relative block w-full px-3 py-2 border border-white/30 bg-white/20 placeholder-white/60 text-white rounded-md focus:outline-none focus:ring-primary focus:border-primary transition-all shadow-sm"
                       value={lastName}
                       onChange={(e) => setLastName(e.target.value)}
+                      placeholder="Doe"
                     />
                   </div>
                 </>
               )}
               
               <div>
-                <label htmlFor="email-address" className="block text-sm font-medium text-gray-700">
+                <label htmlFor="email-address" className="block text-sm font-medium text-white">
                   Email address
                 </label>
                 <input
@@ -117,14 +119,15 @@ const AuthPage = () => {
                   type="email"
                   autoComplete="email"
                   required
-                  className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
+                  className="mt-1 appearance-none relative block w-full px-3 py-2 border border-white/30 bg-white/20 placeholder-white/60 text-white rounded-md focus:outline-none focus:ring-primary focus:border-primary transition-all shadow-sm"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
+                  placeholder="email@example.com"
                 />
               </div>
               
               <div>
-                <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+                <label htmlFor="password" className="block text-sm font-medium text-white">
                   Password
                 </label>
                 <input
@@ -133,15 +136,16 @@ const AuthPage = () => {
                   type="password"
                   autoComplete={isLogin ? "current-password" : "new-password"}
                   required
-                  className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
+                  className="mt-1 appearance-none relative block w-full px-3 py-2 border border-white/30 bg-white/20 placeholder-white/60 text-white rounded-md focus:outline-none focus:ring-primary focus:border-primary transition-all shadow-sm"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••••••"
                 />
               </div>
             </div>
             
             {error && (
-              <div className="text-sm text-red-600 bg-red-50 p-3 rounded-md">
+              <div className="text-sm text-white bg-red-500/30 p-3 rounded-md backdrop-blur-sm border border-red-500/30">
                 {error}
               </div>
             )}
@@ -150,7 +154,7 @@ const AuthPage = () => {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+                className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary shadow-lg transition-all duration-200 ease-in-out transform hover:scale-[1.02] disabled:opacity-70 disabled:hover:scale-100"
               >
                 {isLoading ? (
                   <span className="absolute left-0 inset-y-0 flex items-center pl-3">
