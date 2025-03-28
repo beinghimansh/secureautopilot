@@ -6,7 +6,7 @@ import { supabase } from '@/integrations/supabase/client';
 
 const OpenAITest = () => {
   const [testing, setTesting] = useState(false);
-  const [result, setResult] = useState<null | { success: boolean; message: string; openai_response?: string; error?: string }>(null);
+  const [result, setResult] = useState<null | { success: boolean; message: string; models?: string[]; error?: string }>(null);
 
   const testOpenAI = async () => {
     setTesting(true);
@@ -14,7 +14,16 @@ const OpenAITest = () => {
     
     try {
       console.log("Sending test request to OpenAI edge function");
-      const { data, error } = await supabase.functions.invoke('test-openai');
+      
+      // Add a timeout to the fetch request
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
+      
+      const { data, error } = await supabase.functions.invoke('test-openai', {
+        signal: controller.signal
+      });
+      
+      clearTimeout(timeoutId);
       
       if (error) {
         console.error('Edge Function Error:', error);
@@ -35,12 +44,20 @@ const OpenAITest = () => {
       } else {
         toast.error('OpenAI API test failed: ' + (data.error || 'Unknown error'));
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error testing OpenAI:', err);
-      toast.error('Failed to test OpenAI connection');
+      
+      let errorMessage = 'Failed to test OpenAI connection';
+      if (err.name === 'AbortError') {
+        errorMessage = 'Request timed out. The Supabase Edge Function may be cold starting, please try again.';
+      } else if (err instanceof Error) {
+        errorMessage = err.message;
+      }
+      
+      toast.error(errorMessage);
       setResult({ 
         success: false, 
-        message: err instanceof Error ? err.message : 'Failed to send a request to the Edge Function' 
+        message: errorMessage
       });
     } finally {
       setTesting(false);
@@ -70,13 +87,22 @@ const OpenAITest = () => {
           <p className="text-sm mt-1">
             {result.success ? result.message : (result.error || result.message)}
           </p>
-          {result.openai_response && (
+          {result.models && (
             <div className="mt-2 p-2 bg-gray-50 rounded border text-sm">
-              <strong>OpenAI says:</strong> {result.openai_response}
+              <strong>Available models:</strong> {result.models.join(', ')}
             </div>
           )}
         </div>
       )}
+      
+      <div className="mt-6 pt-4 border-t border-gray-200 text-sm text-gray-500">
+        <p>If the test fails, please check:</p>
+        <ul className="list-disc pl-5 mt-2 space-y-1">
+          <li>Your OpenAI API key is correctly set in Supabase Edge Function secrets</li>
+          <li>The API key has sufficient permissions and credits</li>
+          <li>The Edge Function is properly deployed</li>
+        </ul>
+      </div>
     </div>
   );
 };

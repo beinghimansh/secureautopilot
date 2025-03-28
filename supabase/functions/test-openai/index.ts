@@ -22,21 +22,14 @@ serve(async (req) => {
     }
 
     console.log("Testing OpenAI API connection with key starting with:", openAIApiKey.substring(0, 5) + "...");
-    console.log("Request method:", req.method);
     
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
+    // Use a simpler request to test connectivity - no need for full content generation
+    const response = await fetch('https://api.openai.com/v1/models', {
+      method: 'GET',
       headers: {
         'Authorization': `Bearer ${openAIApiKey}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        model: 'gpt-4o-mini',
-        messages: [
-          { role: 'system', content: 'You are a helpful assistant.' },
-          { role: 'user', content: 'Say "OpenAI API is working correctly!"' }
-        ],
-      }),
     });
 
     console.log("OpenAI API Status:", response.status);
@@ -48,12 +41,12 @@ serve(async (req) => {
     }
 
     const data = await response.json();
-    console.log("OpenAI API Response:", data);
+    console.log("OpenAI API Response received successfully");
     
     return new Response(JSON.stringify({
       success: true,
       message: "OpenAI API is working correctly",
-      openai_response: data.choices[0].message.content
+      models: data.data.slice(0, 3).map(model => model.id) // Just return first 3 models for verification
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });

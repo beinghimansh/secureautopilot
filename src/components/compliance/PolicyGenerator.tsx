@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Button from '@/components/common/Button';
@@ -148,11 +149,44 @@ const PolicyGenerator: React.FC<PolicyGeneratorProps> = ({ frameworkId, onComple
     
     try {
       setGenerating(true);
+      setError(null);
       
       const { data: sessionData } = await supabase.auth.getSession();
       const userId = sessionData?.session?.user?.id;
       
-      const organizationId = null;
+      // First, store the company profile data directly in the component
+      // This is a backup to ensure data is saved even if the edge function fails
+      try {
+        console.log("Storing company profile data...");
+        const { error: companyError } = await supabase
+          .from('company_profiles')
+          .upsert({
+            name: formValues.companyName,
+            industry: formValues.industry,
+            company_size: formValues.companySize,
+            data_types: formValues.dataTypes,
+            business_location: formValues.businessLocation,
+            infrastructure_details: formValues.infrastructureDetails,
+            security_controls: formValues.securityControls,
+            risk_appetite: formValues.riskAppetite,
+            created_by: userId,
+            updated_at: new Date().toISOString()
+          });
+          
+        if (companyError) {
+          console.error("Error saving company profile data:", companyError);
+          // Continue with policy generation even if storing company profile fails
+        } else {
+          console.log("Company profile data saved successfully");
+        }
+      } catch (profileError) {
+        console.error("Failed to store company profile:", profileError);
+        // Continue with policy generation even if storing company profile fails
+      }
+      
+      // Add a timeout to the fetch request
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
       
       const { data, error } = await supabase.functions.invoke('generate-policy', {
         body: {
@@ -165,33 +199,53 @@ const PolicyGenerator: React.FC<PolicyGeneratorProps> = ({ frameworkId, onComple
           infrastructureDetails: formValues.infrastructureDetails,
           securityControls: formValues.securityControls,
           riskAppetite: formValues.riskAppetite,
-          organizationId,
+          organizationId: null, // Will be updated when organizations are implemented
           userId
-        }
+        },
+        signal: controller.signal
       });
       
+      clearTimeout(timeoutId);
+      
       if (error) {
+        console.error("Edge function error:", error);
         throw new Error(error.message);
+      }
+
+      if (!data) {
+        throw new Error("No data returned from policy generation");
       }
 
       console.log("Policy generation response:", data);
 
-      if (userId) {
-        const { error: insertError } = await supabase
-          .from('generated_policies')
-          .insert({
-            organization_id: organizationId,
-            framework_type: frameworkId,
-            policy_content: data.formattedPolicy,
-            risk_assessment: data.riskAssessment,
-            implementation_guide: data.implementationGuide,
-            gaps_analysis: data.gapsAnalysis,
-            ai_suggestions: data.aiSuggestions,
-            created_by: userId
-          });
-          
-        if (insertError) {
-          console.error("Error saving policy to database:", insertError);
+      if (data.error) {
+        throw new Error(data.error);
+      }
+
+      // Store the generated policy in the database if it wasn't already stored by the edge function
+      if (userId && !data.policyId) {
+        try {
+          console.log("Storing generated policy locally...");
+          const { error: insertError } = await supabase
+            .from('generated_policies')
+            .insert({
+              organization_id: null, // Will be updated when organizations are implemented
+              framework_type: frameworkId,
+              policy_content: data.formattedPolicy,
+              risk_assessment: data.riskAssessment,
+              implementation_guide: data.implementationGuide,
+              gaps_analysis: data.gapsAnalysis,
+              ai_suggestions: data.aiSuggestions,
+              created_by: userId
+            });
+            
+          if (insertError) {
+            console.error("Error saving policy to database:", insertError);
+          } else {
+            console.log("Policy saved to database successfully");
+          }
+        } catch (dbError) {
+          console.error("Database error:", dbError);
         }
       }
       
@@ -200,12 +254,21 @@ const PolicyGenerator: React.FC<PolicyGeneratorProps> = ({ frameworkId, onComple
       
       setTimeout(() => {
         onComplete();
-      }, 1000);
+      }, 1500);
       
-    } catch (err) {
+    } catch (err: any) {
       console.error('Policy generation error:', err);
-      setError('Failed to generate policy. Please try again.');
-      toast.error('Failed to generate policy');
+      
+      let errorMessage = 'Failed to generate policy. Please try again.';
+      
+      if (err.name === 'AbortError') {
+        errorMessage = 'Request timed out. The policy generation may take longer than expected. Please try again.';
+      } else if (err instanceof Error) {
+        errorMessage = err.message;
+      }
+      
+      setError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setGenerating(false);
     }
