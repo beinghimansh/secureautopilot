@@ -1,4 +1,3 @@
-
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.4';
@@ -11,92 +10,6 @@ const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
-
-// Define the function calling schema for policy generation
-const policyGenerationFunctions = [
-  {
-    name: "generate_comprehensive_policy",
-    description: "Generate a comprehensive policy document with structured sections",
-    parameters: {
-      type: "object",
-      properties: {
-        policy_sections: {
-          type: "object",
-          properties: {
-            introduction: {
-              type: "object",
-              properties: {
-                purpose: { type: "string" },
-                scope: { type: "string" }
-              }
-            },
-            objectives: {
-              type: "array",
-              items: { type: "string" }
-            },
-            key_controls: {
-              type: "array",
-              items: { 
-                type: "object",
-                properties: {
-                  control_name: { type: "string" },
-                  description: { type: "string" }
-                }
-              }
-            },
-            risk_assessment: {
-              type: "object",
-              properties: {
-                identified_risks: {
-                  type: "array",
-                  items: {
-                    type: "object",
-                    properties: {
-                      risk_title: { type: "string" },
-                      risk_level: { type: "string" },
-                      mitigation_strategy: { type: "string" }
-                    }
-                  }
-                }
-              }
-            },
-            implementation_guide: {
-              type: "object",
-              properties: {
-                steps: {
-                  type: "array",
-                  items: {
-                    type: "object",
-                    properties: {
-                      step_title: { type: "string" },
-                      description: { type: "string" },
-                      timeline: { type: "string" }
-                    }
-                  }
-                }
-              }
-            },
-            compliance_gaps: {
-              type: "array",
-              items: {
-                type: "object",
-                properties: {
-                  gap_area: { type: "string" },
-                  recommendation: { type: "string" }
-                }
-              }
-            },
-            best_practices: {
-              type: "array",
-              items: { type: "string" }
-            }
-          }
-        }
-      },
-      required: ["policy_sections"]
-    }
-  }
-];
 
 serve(async (req) => {
   // Handle CORS preflight requests
@@ -166,6 +79,7 @@ serve(async (req) => {
       
       if (companyError) {
         console.error("Error storing company details:", companyError);
+        console.error(JSON.stringify(companyError, null, 2));
         // Continue with policy generation even if storing details fails
       } else {
         console.log("Company details stored successfully:", companyData);

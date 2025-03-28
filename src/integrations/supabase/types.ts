@@ -117,6 +117,54 @@ export type Database = {
           },
         ]
       }
+      company_profiles: {
+        Row: {
+          business_location: string | null
+          company_size: string
+          created_at: string
+          created_by: string | null
+          data_types: string
+          id: string
+          industry: string
+          infrastructure_details: string | null
+          name: string
+          organization_id: string | null
+          risk_appetite: string | null
+          security_controls: string[] | null
+          updated_at: string
+        }
+        Insert: {
+          business_location?: string | null
+          company_size: string
+          created_at?: string
+          created_by?: string | null
+          data_types: string
+          id?: string
+          industry: string
+          infrastructure_details?: string | null
+          name: string
+          organization_id?: string | null
+          risk_appetite?: string | null
+          security_controls?: string[] | null
+          updated_at?: string
+        }
+        Update: {
+          business_location?: string | null
+          company_size?: string
+          created_at?: string
+          created_by?: string | null
+          data_types?: string
+          id?: string
+          industry?: string
+          infrastructure_details?: string | null
+          name?: string
+          organization_id?: string | null
+          risk_appetite?: string | null
+          security_controls?: string[] | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       compliance_frameworks: {
         Row: {
           created_at: string
