@@ -2,6 +2,7 @@
 import React from "react";
 import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
+import { Loader2 } from "lucide-react";
 
 const buttonVariants = cva(
   "inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none",
@@ -34,6 +35,9 @@ export interface ButtonProps
     VariantProps<typeof buttonVariants> {
   children: React.ReactNode;
   className?: string;
+  leftIcon?: React.ReactNode;
+  rightIcon?: React.ReactNode;
+  isLoading?: boolean;
 }
 
 const Button = ({
@@ -41,14 +45,26 @@ const Button = ({
   className,
   variant,
   size,
+  leftIcon,
+  rightIcon,
+  isLoading,
+  disabled,
   ...props
 }: ButtonProps) => {
   return (
     <button
       className={cn(buttonVariants({ variant, size }), className)}
+      disabled={isLoading || disabled}
       {...props}
     >
+      {isLoading && (
+        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+      )}
+      {!isLoading && leftIcon && (
+        <span className="mr-2">{leftIcon}</span>
+      )}
       {children}
+      {rightIcon && <span className="ml-2">{rightIcon}</span>}
     </button>
   );
 };
