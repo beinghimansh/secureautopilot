@@ -62,6 +62,8 @@ export interface Task {
   created_by?: string;
   created_at: string;
   updated_at: string;
+  control_id?: string;
+  clause_id?: string;
 }
 
 export interface Integration {
@@ -96,6 +98,60 @@ export interface AuditFinding {
   description: string;
   remediation?: string;
   status: string;
+  created_at: string;
+  updated_at: string;
+}
+
+// New interfaces for compliance controls and clauses
+export interface ComplianceClause {
+  id: string;
+  organization_id: string;
+  framework_id: string;
+  clause_number: string;
+  title: string;
+  description: string;
+  parent_id?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ComplianceControl {
+  id: string;
+  organization_id: string;
+  framework_id: string;
+  clause_id: string;
+  control_number: string;
+  title: string;
+  description: string;
+  implementation_status: 'not_implemented' | 'in_progress' | 'implemented' | 'not_applicable';
+  notes?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ComplianceDocument {
+  id: string;
+  organization_id: string;
+  framework_id: string;
+  control_id?: string;
+  clause_id?: string;
+  title: string;
+  file_url: string;
+  file_type: string;
+  version: number;
+  created_by: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ComplianceRequirement {
+  id: string;
+  control_id?: string;
+  clause_id?: string;
+  organization_id: string;
+  framework_id: string;
+  description: string;
+  status: 'open' | 'in_progress' | 'completed' | 'not_applicable';
   created_at: string;
   updated_at: string;
 }

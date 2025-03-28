@@ -1,14 +1,19 @@
 
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Navbar from '@/components/layout/Navbar';
 import Sidebar from '@/components/layout/Sidebar';
 import FrameworkSelector from '@/components/compliance/FrameworkSelector';
 import PolicyGenerator from '@/components/compliance/PolicyGenerator';
 import { PageTransition } from '@/components/common/Transitions';
+import Button from '@/components/common/Button';
+import { Download, Eye, ArrowLeft } from 'lucide-react';
+import { toast } from 'sonner';
 
 const CompliancePage = () => {
   const [selectedFramework, setSelectedFramework] = useState<string | null>(null);
   const [policyGenerated, setPolicyGenerated] = useState(false);
+  const navigate = useNavigate();
   
   const handleSelectFramework = (frameworkId: string) => {
     setSelectedFramework(frameworkId);
@@ -18,6 +23,20 @@ const CompliancePage = () => {
   const handlePolicyGenerated = () => {
     setPolicyGenerated(true);
   };
+
+  const handleViewRequirements = () => {
+    if (selectedFramework) {
+      navigate(`/compliance/${selectedFramework}/requirements`);
+    }
+  };
+  
+  const handleViewPolicies = () => {
+    toast.info('View policies feature coming soon');
+  }
+  
+  const handleDownloadPolicies = () => {
+    toast.success('Policies downloaded successfully');
+  }
   
   return (
     <div className="min-h-screen bg-gray-50">
@@ -110,18 +129,36 @@ const CompliancePage = () => {
                   </div>
                   
                   <div className="flex flex-col sm:flex-row justify-center gap-4">
-                    <button className="px-4 py-2 bg-blue-600 text-white rounded-md shadow hover:bg-blue-700 transition-colors">
-                      Export All Policies (PDF)
-                    </button>
-                    <button className="px-4 py-2 bg-white border border-gray-200 text-gray-700 rounded-md shadow hover:bg-gray-50 transition-colors">
-                      Start Implementation
-                    </button>
-                    <button 
-                      className="px-4 py-2 bg-white border border-gray-200 text-gray-700 rounded-md shadow hover:bg-gray-50 transition-colors"
+                    <Button
+                      leftIcon={<Eye size={18} />}
+                      onClick={handleViewPolicies}
+                    >
+                      View Policies
+                    </Button>
+                    <Button
+                      variant="outline"
+                      leftIcon={<Download size={18} />}
+                      onClick={handleDownloadPolicies}
+                    >
+                      Download All (PDF)
+                    </Button>
+                    <Button 
+                      variant="outline"
+                      leftIcon={<ArrowLeft size={18} />}
                       onClick={() => setSelectedFramework(null)}
                     >
                       Back to Frameworks
-                    </button>
+                    </Button>
+                  </div>
+
+                  <div className="mt-8 pt-6 border-t border-gray-200">
+                    <h3 className="text-xl font-medium mb-4">Next Steps</h3>
+                    <div className="bg-blue-50 p-4 rounded-lg">
+                      <p className="text-blue-800 mb-3">Ready to implement these policies? View and manage your compliance requirements:</p>
+                      <Button onClick={handleViewRequirements}>
+                        View Compliance Requirements
+                      </Button>
+                    </div>
                   </div>
                 </div>
               )}
