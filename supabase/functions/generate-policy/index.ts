@@ -102,6 +102,12 @@ serve(async (req) => {
   }
 
   try {
+    if (!openAIApiKey) {
+      throw new Error("OPENAI_API_KEY is not configured in the environment variables");
+    }
+
+    console.log("Starting policy generation...");
+    const requestBody = await req.json();
     const { 
       companyName, 
       industry, 
@@ -114,17 +120,13 @@ serve(async (req) => {
       riskAppetite,
       organizationId,
       userId
-    } = await req.json();
+    } = requestBody;
 
     console.log("Generating policy with parameters:", { 
       companyName, industry, companySize, dataTypes, frameworkType, businessLocation,
       securityControls: securityControls ? securityControls.join(", ") : "None specified",
       riskAppetite: riskAppetite || "Moderate"
     });
-
-    if (!openAIApiKey) {
-      throw new Error("OPENAI_API_KEY is not configured in the environment variables");
-    }
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',

@@ -6,7 +6,7 @@ import { supabase } from '@/integrations/supabase/client';
 
 const OpenAITest = () => {
   const [testing, setTesting] = useState(false);
-  const [result, setResult] = useState<null | { success: boolean; message: string; openai_response?: string }>(null);
+  const [result, setResult] = useState<null | { success: boolean; message: string; openai_response?: string; error?: string }>(null);
 
   const testOpenAI = async () => {
     setTesting(true);
@@ -16,22 +16,31 @@ const OpenAITest = () => {
       const { data, error } = await supabase.functions.invoke('test-openai');
       
       if (error) {
+        console.error('Edge Function Error:', error);
         toast.error('Error testing OpenAI: ' + error.message);
         setResult({ success: false, message: error.message });
         return;
       }
       
+      if (!data) {
+        throw new Error('No data returned from the edge function');
+      }
+      
+      console.log('OpenAI test response:', data);
       setResult(data);
       
       if (data.success) {
         toast.success('OpenAI API is working correctly!');
       } else {
-        toast.error('OpenAI API test failed: ' + data.error);
+        toast.error('OpenAI API test failed: ' + (data.error || 'Unknown error'));
       }
     } catch (err) {
       console.error('Error testing OpenAI:', err);
       toast.error('Failed to test OpenAI connection');
-      setResult({ success: false, message: String(err) });
+      setResult({ 
+        success: false, 
+        message: err instanceof Error ? err.message : 'Failed to send a request to the Edge Function' 
+      });
     } finally {
       setTesting(false);
     }
@@ -58,7 +67,7 @@ const OpenAITest = () => {
             {result.success ? 'Success!' : 'Error'}
           </h3>
           <p className="text-sm mt-1">
-            {result.message}
+            {result.success ? result.message : (result.error || result.message)}
           </p>
           {result.openai_response && (
             <div className="mt-2 p-2 bg-gray-50 rounded border text-sm">
