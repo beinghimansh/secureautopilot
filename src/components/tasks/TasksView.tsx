@@ -1,9 +1,11 @@
 
 import React, { useState } from 'react';
-import { CheckCircle, Clock, Circle, AlertCircle } from 'lucide-react';
+import { CheckCircle, Clock, Circle, AlertCircle, FileText, User, Calendar } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '../common/Card';
 import Button from '../common/Button';
 import { FadeIn } from '../common/Transitions';
+import { toast } from 'sonner';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 
 interface Task {
   id: string;
@@ -13,6 +15,7 @@ interface Task {
   status: 'completed' | 'pending' | 'overdue';
   priority: 'high' | 'medium' | 'low';
   assignee: string;
+  relatedControls?: string[];
 }
 
 const mockTasks: Task[] = [
@@ -24,6 +27,7 @@ const mockTasks: Task[] = [
     status: 'completed',
     priority: 'high',
     assignee: 'John Doe',
+    relatedControls: ['A.5.1', 'A.5.2']
   },
   {
     id: '2',
@@ -33,6 +37,7 @@ const mockTasks: Task[] = [
     status: 'pending',
     priority: 'medium',
     assignee: 'All Employees',
+    relatedControls: ['A.6.3']
   },
   {
     id: '3',
@@ -42,6 +47,7 @@ const mockTasks: Task[] = [
     status: 'overdue',
     priority: 'high',
     assignee: 'Sarah Johnson',
+    relatedControls: ['A.5.15', 'A.5.18']
   },
   {
     id: '4',
@@ -51,6 +57,7 @@ const mockTasks: Task[] = [
     status: 'pending',
     priority: 'medium',
     assignee: 'Mike Smith',
+    relatedControls: ['A.5.24', 'A.5.26']
   },
   {
     id: '5',
@@ -60,22 +67,45 @@ const mockTasks: Task[] = [
     status: 'pending',
     priority: 'high',
     assignee: 'IT Security Team',
+    relatedControls: ['A.8.8']
   },
 ];
 
 const TasksView = () => {
   const [tasks, setTasks] = useState<Task[]>(mockTasks);
   const [filter, setFilter] = useState<'all' | 'pending' | 'completed' | 'overdue'>('all');
+  const [showTaskDetails, setShowTaskDetails] = useState(false);
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+  const [loading, setLoading] = useState<string | null>(null);
   
   const filteredTasks = tasks.filter(task => {
     if (filter === 'all') return true;
     return task.status === filter;
   });
   
-  const completeTask = (taskId: string) => {
-    setTasks(tasks.map(task => 
-      task.id === taskId ? { ...task, status: 'completed' } : task
-    ));
+  const completeTask = async (taskId: string) => {
+    setLoading(taskId);
+    
+    try {
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 800));
+      
+      setTasks(tasks.map(task => 
+        task.id === taskId ? { ...task, status: 'completed' } : task
+      ));
+      
+      toast.success('Task marked as completed');
+    } catch (error) {
+      console.error('Error completing task:', error);
+      toast.error('Failed to update task status');
+    } finally {
+      setLoading(null);
+    }
+  };
+  
+  const openTaskDetails = (task: Task) => {
+    setSelectedTask(task);
+    setShowTaskDetails(true);
   };
   
   const getStatusIcon = (status: Task['status']) => {
@@ -181,6 +211,7 @@ const TasksView = () => {
                           size="sm"
                           onClick={() => completeTask(task.id)}
                           leftIcon={<CheckCircle size={14} />}
+                          isLoading={loading === task.id}
                         >
                           Complete
                         </Button>
@@ -188,6 +219,7 @@ const TasksView = () => {
                       <Button
                         variant="outline"
                         size="sm"
+                        onClick={() => openTaskDetails(task)}
                       >
                         Details
                       </Button>
@@ -199,6 +231,115 @@ const TasksView = () => {
           ))}
         </div>
       )}
+      
+      <Dialog open={showTaskDetails} onOpenChange={setShowTaskDetails}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{selectedTask?.title}</DialogTitle>
+          </DialogHeader>
+          
+          {selectedTask && (
+            <div className="space-y-4 py-2">
+              <div>
+                <h4 className="text-sm font-medium text-gray-500 mb-1">Description</h4>
+                <p>{selectedTask.description}</p>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <h4 className="text-sm font-medium text-gray-500 mb-1">Status</h4>
+                  <div className="flex items-center">
+                    {getStatusIcon(selectedTask.status)}
+                    <span className="ml-2 capitalize">{selectedTask.status}</span>
+                  </div>
+                </div>
+                
+                <div>
+                  <h4 className="text-sm font-medium text-gray-500 mb-1">Priority</h4>
+                  {getPriorityBadge(selectedTask.priority)}
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <h4 className="text-sm font-medium text-gray-500 mb-1">Assignee</h4>
+                  <div className="flex items-center">
+                    <User size={16} className="mr-2 text-gray-400" />
+                    <span>{selectedTask.assignee}</span>
+                  </div>
+                </div>
+                
+                <div>
+                  <h4 className="text-sm font-medium text-gray-500 mb-1">Due Date</h4>
+                  <div className="flex items-center">
+                    <Calendar size={16} className="mr-2 text-gray-400" />
+                    <span>{new Date(selectedTask.dueDate).toLocaleDateString()}</span>
+                  </div>
+                </div>
+              </div>
+              
+              {selectedTask.relatedControls && selectedTask.relatedControls.length > 0 && (
+                <div>
+                  <h4 className="text-sm font-medium text-gray-500 mb-1">Related Controls</h4>
+                  <div className="flex flex-wrap gap-2">
+                    {selectedTask.relatedControls.map(control => (
+                      <span 
+                        key={control} 
+                        className="px-2 py-1 bg-blue-50 text-blue-700 rounded text-xs font-medium"
+                      >
+                        {control}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+              
+              <div>
+                <h4 className="text-sm font-medium text-gray-500 mb-1">Task History</h4>
+                <div className="space-y-2">
+                  <div className="flex items-start gap-2 text-sm">
+                    <div className="w-5 h-5 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <CheckCircle size={12} className="text-green-600" />
+                    </div>
+                    <div>
+                      <p className="font-medium">Task created</p>
+                      <p className="text-gray-500 text-xs">3 days ago</p>
+                    </div>
+                  </div>
+                  {selectedTask.status === 'completed' && (
+                    <div className="flex items-start gap-2 text-sm">
+                      <div className="w-5 h-5 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <CheckCircle size={12} className="text-green-600" />
+                      </div>
+                      <div>
+                        <p className="font-medium">Task completed</p>
+                        <p className="text-gray-500 text-xs">Today</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+          
+          <DialogFooter className="gap-2">
+            {selectedTask && selectedTask.status !== 'completed' && (
+              <Button 
+                onClick={() => {
+                  completeTask(selectedTask.id);
+                  setShowTaskDetails(false);
+                }}
+                leftIcon={<CheckCircle size={16} />}
+              >
+                Mark as Complete
+              </Button>
+            )}
+            <Button variant="outline" onClick={() => setShowTaskDetails(false)}>
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

@@ -3,10 +3,11 @@ import React, { useState } from 'react';
 import { Card, CardContent } from '../common/Card';
 import { FadeIn } from '../common/Transitions';
 import Button from '../common/Button';
-import { CheckCircle, Circle, Clock, Upload, Save, Plus, Eye } from 'lucide-react';
+import { CheckCircle, Circle, Clock, Upload, Save, Plus, Eye, Download } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 
 interface Rule {
   id: number;
@@ -37,8 +38,11 @@ const RulesDisplay: React.FC<RulesDisplayProps> = ({
   const [showAddDocument, setShowAddDocument] = useState(false);
   const [showAddTask, setShowAddTask] = useState(false);
   const [newDocument, setNewDocument] = useState({ title: '', file: null });
+  const [newTask, setNewTask] = useState({ description: '', assignedTo: '', dueDate: '' });
   const [isEditingNotes, setIsEditingNotes] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [showViewDocument, setShowViewDocument] = useState(false);
+  const [selectedDocument, setSelectedDocument] = useState<any>(null);
   
   const currentRule = selectedRule 
     ? rules.find(rule => rule.number === selectedRule) || 
@@ -63,7 +67,8 @@ const RulesDisplay: React.FC<RulesDisplayProps> = ({
     setSaving(true);
     
     try {
-      await new Promise(resolve => setTimeout(resolve, 500));
+      // Simulate API call - in a real app, this would save to database
+      await new Promise(resolve => setTimeout(resolve, 800));
       setIsEditingNotes(false);
       toast.success('Notes saved successfully');
     } catch (error) {
@@ -81,27 +86,74 @@ const RulesDisplay: React.FC<RulesDisplayProps> = ({
     }
 
     try {
-      await new Promise(resolve => setTimeout(resolve, 800));
+      // Simulate upload - in a real app, this would upload to storage
+      setSaving(true);
+      await new Promise(resolve => setTimeout(resolve, 1200));
       
       setDocuments([...documents, {
         id: Date.now().toString(),
         title: newDocument.title,
         file_name: newDocument.file.name,
-        uploaded_at: new Date().toISOString()
+        uploaded_at: new Date().toISOString(),
+        url: URL.createObjectURL(newDocument.file)
       }]);
       
       setNewDocument({ title: '', file: null });
       setShowAddDocument(false);
       toast.success('Document uploaded successfully');
+      setSaving(false);
     } catch (error) {
       console.error('Error uploading document:', error);
       toast.error('Failed to upload document');
+      setSaving(false);
     }
   };
 
-  const handleAddTask = () => {
-    toast.info('Task addition would be implemented here');
-    setShowAddTask(false);
+  const handleAddTask = async () => {
+    if (!newTask.description) {
+      toast.error('Please provide a task description');
+      return;
+    }
+    
+    try {
+      setSaving(true);
+      await new Promise(resolve => setTimeout(resolve, 800));
+      
+      setTasks([...tasks, {
+        id: Date.now().toString(),
+        description: newTask.description,
+        assignedTo: newTask.assignedTo || 'Unassigned',
+        dueDate: newTask.dueDate || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        status: 'open'
+      }]);
+      
+      setNewTask({ description: '', assignedTo: '', dueDate: '' });
+      setShowAddTask(false);
+      toast.success('Task added successfully');
+      setSaving(false);
+    } catch (error) {
+      console.error('Error adding task:', error);
+      toast.error('Failed to add task');
+      setSaving(false);
+    }
+  };
+  
+  const handleViewDocument = (document: any) => {
+    setSelectedDocument(document);
+    setShowViewDocument(true);
+  };
+  
+  const handleCompleteTask = async (taskId: string) => {
+    try {
+      await new Promise(resolve => setTimeout(resolve, 500));
+      setTasks(tasks.map(task => 
+        task.id === taskId ? { ...task, status: 'completed' } : task
+      ));
+      toast.success('Task marked as completed');
+    } catch (error) {
+      console.error('Error completing task:', error);
+      toast.error('Failed to update task');
+    }
   };
 
   const renderRuleContent = () => {
@@ -259,7 +311,7 @@ const RulesDisplay: React.FC<RulesDisplayProps> = ({
                 >
                   Cancel
                 </Button>
-                <Button size="sm" onClick={handleAddDocument}>
+                <Button size="sm" onClick={handleAddDocument} isLoading={saving}>
                   Upload
                 </Button>
               </div>
@@ -297,13 +349,46 @@ const RulesDisplay: React.FC<RulesDisplayProps> = ({
                     </p>
                   </div>
                 </div>
-                <Button size="sm" variant="outline" leftIcon={<Eye size={16} />}>
-                  View
-                </Button>
+                <div className="flex gap-2">
+                  <Button
+                    size="sm" 
+                    variant="outline"
+                    leftIcon={<Eye size={16} />}
+                    onClick={() => handleViewDocument(doc)}
+                  >
+                    View
+                  </Button>
+                  <Button
+                    size="sm" 
+                    variant="outline"
+                    leftIcon={<Download size={16} />}
+                  >
+                    Download
+                  </Button>
+                </div>
               </div>
             ))}
           </div>
         )}
+        
+        <Dialog open={showViewDocument} onOpenChange={setShowViewDocument}>
+          <DialogContent className="max-w-4xl">
+            <DialogHeader>
+              <DialogTitle>{selectedDocument?.title}</DialogTitle>
+            </DialogHeader>
+            <div className="p-2">
+              {selectedDocument?.url && (
+                <iframe 
+                  src={selectedDocument.url} 
+                  className="w-full h-[500px] border rounded"
+                ></iframe>
+              )}
+            </div>
+            <DialogFooter>
+              <Button onClick={() => setShowViewDocument(false)}>Close</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     );
   };
@@ -323,6 +408,55 @@ const RulesDisplay: React.FC<RulesDisplayProps> = ({
           </Button>
         </div>
 
+        {showAddTask && (
+          <div className="p-4 bg-gray-50 rounded-md mb-4">
+            <h4 className="font-medium mb-3">Add Task</h4>
+            <div className="space-y-3">
+              <div>
+                <label className="block text-sm mb-1">Description</label>
+                <input
+                  type="text"
+                  className="w-full p-2 border border-gray-300 rounded-md"
+                  placeholder="Task description"
+                  value={newTask.description}
+                  onChange={(e) => setNewTask({ ...newTask, description: e.target.value })}
+                />
+              </div>
+              <div>
+                <label className="block text-sm mb-1">Assigned To</label>
+                <input
+                  type="text"
+                  className="w-full p-2 border border-gray-300 rounded-md"
+                  placeholder="e.g., John Doe"
+                  value={newTask.assignedTo}
+                  onChange={(e) => setNewTask({ ...newTask, assignedTo: e.target.value })}
+                />
+              </div>
+              <div>
+                <label className="block text-sm mb-1">Due Date</label>
+                <input
+                  type="date"
+                  className="w-full p-2 border border-gray-300 rounded-md"
+                  value={newTask.dueDate}
+                  onChange={(e) => setNewTask({ ...newTask, dueDate: e.target.value })}
+                />
+              </div>
+              <div className="flex justify-end gap-2">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setShowAddTask(false)}
+                >
+                  Cancel
+                </Button>
+                <Button size="sm" onClick={handleAddTask} isLoading={saving}>
+                  Add Task
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {tasks.length === 0 ? (
           <p className="text-gray-500 italic">No tasks assigned</p>
         ) : (
@@ -334,6 +468,7 @@ const RulesDisplay: React.FC<RulesDisplayProps> = ({
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Assigned to</th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Due</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
@@ -342,11 +477,29 @@ const RulesDisplay: React.FC<RulesDisplayProps> = ({
                     <td className="px-4 py-3 whitespace-nowrap">{task.description}</td>
                     <td className="px-4 py-3 whitespace-nowrap">{task.assignedTo}</td>
                     <td className="px-4 py-3 whitespace-nowrap">
-                      <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
-                        {task.status}
+                      <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                        task.status === 'completed' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
+                      }`}>
+                        {task.status === 'completed' ? 'Completed' : 'Open'}
                       </span>
                     </td>
                     <td className="px-4 py-3 whitespace-nowrap">{task.dueDate}</td>
+                    <td className="px-4 py-3 whitespace-nowrap">
+                      <div className="flex gap-2">
+                        {task.status !== 'completed' && (
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            onClick={() => handleCompleteTask(task.id)}
+                          >
+                            Complete
+                          </Button>
+                        )}
+                        <Button size="sm" variant="outline">
+                          Details
+                        </Button>
+                      </div>
+                    </td>
                   </tr>
                 ))}
               </tbody>

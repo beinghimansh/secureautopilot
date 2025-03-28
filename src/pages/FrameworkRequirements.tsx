@@ -7,10 +7,12 @@ import { useParams, useNavigate } from 'react-router-dom';
 import FrameworkControls from '@/components/compliance/FrameworkControls';
 import RulesDisplay from '@/components/compliance/RulesDisplay';
 import { Card, CardContent } from '@/components/common/Card';
-import { FileText, AlertTriangle, Plus } from 'lucide-react';
+import { FileText, AlertTriangle, Plus, Download, ArrowRight, Loader2 } from 'lucide-react';
 import Button from '@/components/common/Button';
 import { toast } from 'sonner';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
+import { supabase } from '@/integrations/supabase/client';
 
 interface Risk {
   id: string;
@@ -20,6 +22,13 @@ interface Risk {
   impact: 'low' | 'medium' | 'high';
   status: 'identified' | 'assessed' | 'mitigated' | 'accepted';
   created_at: string;
+}
+
+interface PolicyFormData {
+  companyName: string;
+  industry: string;
+  companySize: string;
+  dataTypes: string;
 }
 
 const FrameworkRequirements = () => {
@@ -34,6 +43,17 @@ const FrameworkRequirements = () => {
     likelihood: 'medium',
     impact: 'medium',
   });
+  const [showPolicyGenerator, setShowPolicyGenerator] = useState(false);
+  const [policyFormData, setPolicyFormData] = useState<PolicyFormData>({
+    companyName: '',
+    industry: '',
+    companySize: '',
+    dataTypes: '',
+  });
+  const [generatingPolicy, setGeneratingPolicy] = useState(false);
+  const [policies, setPolicies] = useState<any[]>([]);
+  const [showPolicyContent, setShowPolicyContent] = useState(false);
+  const [selectedPolicy, setSelectedPolicy] = useState<any>(null);
   
   // Fetch framework data (in a real app)
   useEffect(() => {
@@ -124,6 +144,64 @@ const FrameworkRequirements = () => {
     });
     setShowAddRisk(false);
     toast.success('Risk added successfully');
+  };
+
+  const handlePolicyFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setPolicyFormData({ ...policyFormData, [name]: value });
+  };
+
+  const handleGeneratePolicy = async () => {
+    // Validate form data
+    if (!policyFormData.companyName || !policyFormData.industry || !policyFormData.companySize || !policyFormData.dataTypes) {
+      toast.error('Please fill in all required fields');
+      return;
+    }
+
+    setGeneratingPolicy(true);
+
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-policy', {
+        body: {
+          companyName: policyFormData.companyName,
+          industry: policyFormData.industry,
+          companySize: policyFormData.companySize,
+          dataTypes: policyFormData.dataTypes,
+          frameworkType: frameworkId
+        }
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      // Add the newly generated policy to the policies array
+      const newPolicy = {
+        id: Date.now().toString(),
+        name: `${frameworkId.toUpperCase()} Policy - ${policyFormData.companyName}`,
+        created_at: new Date().toISOString(),
+        framework: frameworkId,
+        company: policyFormData.companyName,
+        content: data.policy,
+        riskAssessment: data.riskAssessment,
+        implementationGuide: data.implementationGuide,
+        gapsAnalysis: data.gapsAnalysis
+      };
+
+      setPolicies([newPolicy, ...policies]);
+      setShowPolicyGenerator(false);
+      toast.success('Policy generated successfully');
+    } catch (error) {
+      console.error('Error generating policy:', error);
+      toast.error('Failed to generate policy. Please try again.');
+    } finally {
+      setGeneratingPolicy(false);
+    }
+  };
+
+  const viewPolicy = (policy: any) => {
+    setSelectedPolicy(policy);
+    setShowPolicyContent(true);
   };
 
   const getRiskSeverity = (likelihood: string, impact: string): string => {
@@ -447,10 +525,7 @@ const FrameworkRequirements = () => {
                       </p>
                       <Button
                         className="mt-4"
-                        onClick={() => {
-                          navigate(`/compliance`);
-                          toast.info(`Redirecting to ${frameworkName} Policy Generator`);
-                        }}
+                        onClick={() => setShowPolicyGenerator(true)}
                       >
                         Launch Policy Generator
                       </Button>
@@ -459,15 +534,45 @@ const FrameworkRequirements = () => {
                     <div className="border-t border-gray-200 pt-6">
                       <h3 className="text-lg font-medium mb-4">Recent Policies</h3>
                       
-                      <div className="overflow-hidden bg-gray-50 rounded-lg border border-gray-200">
-                        <div className="px-4 py-5 sm:p-6">
-                          <div className="text-center">
-                            <p className="mt-1 text-sm text-gray-500">
-                              No policies have been generated yet. Use the policy generator to create your first policy.
-                            </p>
+                      {policies.length > 0 ? (
+                        <div className="space-y-3">
+                          {policies.map((policy) => (
+                            <div key={policy.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200">
+                              <div>
+                                <h4 className="font-medium">{policy.name}</h4>
+                                <p className="text-sm text-gray-500">Created: {new Date(policy.created_at).toLocaleDateString()}</p>
+                              </div>
+                              <div className="flex gap-2">
+                                <Button 
+                                  variant="outline" 
+                                  size="sm"
+                                  leftIcon={<FileText size={16} />}
+                                  onClick={() => viewPolicy(policy)}
+                                >
+                                  View
+                                </Button>
+                                <Button 
+                                  variant="outline" 
+                                  size="sm"
+                                  leftIcon={<Download size={16} />}
+                                >
+                                  Download
+                                </Button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="overflow-hidden bg-gray-50 rounded-lg border border-gray-200">
+                          <div className="px-4 py-5 sm:p-6">
+                            <div className="text-center">
+                              <p className="mt-1 text-sm text-gray-500">
+                                No policies have been generated yet. Use the policy generator to create your first policy.
+                              </p>
+                            </div>
                           </div>
                         </div>
-                      </div>
+                      )}
                     </div>
                   </div>
                 </TabsContent>
@@ -476,6 +581,153 @@ const FrameworkRequirements = () => {
           </PageTransition>
         </main>
       </div>
+
+      {/* Policy Generator Dialog */}
+      <Dialog open={showPolicyGenerator} onOpenChange={setShowPolicyGenerator}>
+        <DialogContent className="max-w-3xl">
+          <DialogHeader>
+            <DialogTitle>{frameworkName} Policy Generator</DialogTitle>
+            <DialogDescription>
+              Fill in the details below to generate a customized {frameworkName} policy
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="grid gap-4 py-3">
+            <div>
+              <label className="block text-sm font-medium mb-1" htmlFor="companyName">
+                Company Name
+              </label>
+              <input
+                id="companyName"
+                name="companyName"
+                className="w-full p-2 border border-gray-300 rounded-md"
+                value={policyFormData.companyName}
+                onChange={handlePolicyFormChange}
+                placeholder="e.g., Acme Corporation"
+              />
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium mb-1" htmlFor="industry">
+                Industry
+              </label>
+              <select
+                id="industry"
+                name="industry"
+                className="w-full p-2 border border-gray-300 rounded-md"
+                value={policyFormData.industry}
+                onChange={handlePolicyFormChange}
+              >
+                <option value="">Select industry</option>
+                <option value="Technology">Technology</option>
+                <option value="Healthcare">Healthcare</option>
+                <option value="Finance">Finance</option>
+                <option value="Retail">Retail</option>
+                <option value="Manufacturing">Manufacturing</option>
+                <option value="Education">Education</option>
+                <option value="Government">Government</option>
+                <option value="Professional Services">Professional Services</option>
+              </select>
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium mb-1" htmlFor="companySize">
+                Company Size
+              </label>
+              <select
+                id="companySize"
+                name="companySize"
+                className="w-full p-2 border border-gray-300 rounded-md"
+                value={policyFormData.companySize}
+                onChange={handlePolicyFormChange}
+              >
+                <option value="">Select company size</option>
+                <option value="1-10 employees">1-10 employees</option>
+                <option value="11-50 employees">11-50 employees</option>
+                <option value="51-200 employees">51-200 employees</option>
+                <option value="201-500 employees">201-500 employees</option>
+                <option value="501-1000 employees">501-1000 employees</option>
+                <option value="1000+ employees">1000+ employees</option>
+              </select>
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium mb-1" htmlFor="dataTypes">
+                Data Types Processed
+              </label>
+              <textarea
+                id="dataTypes"
+                name="dataTypes"
+                className="w-full p-2 border border-gray-300 rounded-md min-h-[80px]"
+                value={policyFormData.dataTypes}
+                onChange={handlePolicyFormChange}
+                placeholder="e.g., Personal customer data, Financial information, Healthcare records"
+              />
+            </div>
+          </div>
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowPolicyGenerator(false)}>
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleGeneratePolicy}
+              isLoading={generatingPolicy}
+              disabled={generatingPolicy}
+              leftIcon={generatingPolicy ? <Loader2 className="animate-spin" size={16} /> : <ArrowRight size={16} />}
+            >
+              {generatingPolicy ? 'Generating Policy...' : 'Generate Policy'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Policy Content Dialog */}
+      <Dialog open={showPolicyContent} onOpenChange={setShowPolicyContent}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-auto">
+          <DialogHeader>
+            <DialogTitle>{selectedPolicy?.name}</DialogTitle>
+          </DialogHeader>
+          
+          {selectedPolicy && (
+            <div className="py-3">
+              <Tabs defaultValue="policy">
+                <TabsList className="mb-4">
+                  <TabsTrigger value="policy">Policy</TabsTrigger>
+                  <TabsTrigger value="risk">Risk Assessment</TabsTrigger>
+                  <TabsTrigger value="implementation">Implementation Guide</TabsTrigger>
+                  <TabsTrigger value="gaps">Gap Analysis</TabsTrigger>
+                </TabsList>
+                
+                <TabsContent value="policy" className="p-4 bg-gray-50 rounded border whitespace-pre-wrap">
+                  {selectedPolicy.content}
+                </TabsContent>
+                
+                <TabsContent value="risk" className="p-4 bg-gray-50 rounded border whitespace-pre-wrap">
+                  {selectedPolicy.riskAssessment}
+                </TabsContent>
+                
+                <TabsContent value="implementation" className="p-4 bg-gray-50 rounded border whitespace-pre-wrap">
+                  {selectedPolicy.implementationGuide}
+                </TabsContent>
+                
+                <TabsContent value="gaps" className="p-4 bg-gray-50 rounded border whitespace-pre-wrap">
+                  {selectedPolicy.gapsAnalysis}
+                </TabsContent>
+              </Tabs>
+            </div>
+          )}
+          
+          <DialogFooter>
+            <Button variant="outline" size="sm" leftIcon={<Download size={16} />}>
+              Download PDF
+            </Button>
+            <Button onClick={() => setShowPolicyContent(false)}>
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

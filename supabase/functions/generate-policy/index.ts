@@ -30,7 +30,7 @@ serve(async (req) => {
     6. Implementation Guidelines
     7. Compliance Monitoring and Reporting
     
-    Make it detailed, professional, and aligned with ${frameworkType.toUpperCase()} requirements.`;
+    Make it detailed, professional, and aligned with ${frameworkType.toUpperCase()} requirements. Include specific controls and requirements that meet regulatory standards.`;
 
     // Call OpenAI API
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -42,11 +42,14 @@ serve(async (req) => {
       body: JSON.stringify({
         model: 'gpt-4o-mini',
         messages: [
-          { role: 'system', content: 'You are an expert compliance policy writer with deep knowledge of information security standards and regulations.' },
+          { 
+            role: 'system', 
+            content: 'You are an expert compliance policy writer with deep knowledge of information security standards and regulations. Focus on providing actionable, detailed policies that comply with the specific framework requirements. Provide comprehensive content that can be immediately adopted and implemented by organizations.' 
+          },
           { role: 'user', content: prompt }
         ],
         temperature: 0.7,
-        max_tokens: 2000,
+        max_tokens: 4000,
       }),
     });
 
@@ -57,11 +60,13 @@ serve(async (req) => {
     const riskAssessmentPrompt = `Generate a risk assessment document for a ${industry} company named ${companyName} with ${companySize} employees that processes the following types of data: ${dataTypes}. 
     This should follow ${frameworkType.toUpperCase()} risk assessment methodologies and include:
     1. Executive Summary
-    2. Risk Identification
-    3. Risk Analysis
-    4. Risk Evaluation
-    5. Risk Treatment Plans
-    6. Monitoring and Review Process`;
+    2. Risk Identification (list at least 10 specific risks)
+    3. Risk Analysis with likelihood and impact ratings
+    4. Risk Evaluation with risk scores
+    5. Risk Treatment Plans with specific controls
+    6. Monitoring and Review Process with KPIs
+    
+    Make it practical and implementation-ready.`;
 
     const riskResponse = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -72,11 +77,14 @@ serve(async (req) => {
       body: JSON.stringify({
         model: 'gpt-4o-mini',
         messages: [
-          { role: 'system', content: 'You are an expert risk assessor specializing in information security and compliance frameworks.' },
+          { 
+            role: 'system', 
+            content: 'You are an expert risk assessor specializing in information security and compliance frameworks. Provide detailed, actionable risk assessments.' 
+          },
           { role: 'user', content: riskAssessmentPrompt }
         ],
         temperature: 0.7,
-        max_tokens: 1500,
+        max_tokens: 3000,
       }),
     });
 
@@ -84,12 +92,13 @@ serve(async (req) => {
     const riskAssessment = riskData.choices[0].message.content;
 
     // Generate an implementation guide
-    const implementationPrompt = `Create an implementation guide for ${frameworkType.toUpperCase()} for a ${industry} company named ${companyName}. Include:
-    1. Step-by-step implementation process
+    const implementationPrompt = `Create a detailed implementation guide for ${frameworkType.toUpperCase()} for a ${industry} company named ${companyName}. Include:
+    1. Step-by-step implementation process with timeline
     2. Key controls and measures to implement
-    3. Documentation requirements
-    4. Training recommendations
-    5. Ongoing compliance maintenance`;
+    3. Detailed documentation requirements with templates
+    4. Training recommendations and awareness program outline
+    5. Ongoing compliance maintenance checklist
+    6. Common implementation challenges and solutions`;
 
     const implResponse = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -100,21 +109,29 @@ serve(async (req) => {
       body: JSON.stringify({
         model: 'gpt-4o-mini',
         messages: [
-          { role: 'system', content: 'You are an implementation specialist for compliance frameworks.' },
+          { 
+            role: 'system', 
+            content: 'You are an implementation specialist for compliance frameworks. Provide practical, step-by-step guidance.' 
+          },
           { role: 'user', content: implementationPrompt }
         ],
         temperature: 0.7,
-        max_tokens: 1500,
+        max_tokens: 3000,
       }),
     });
 
     const implData = await implResponse.json();
     const implementationGuide = implData.choices[0].message.content;
 
-    // Generate a compliance checklist
-    const checklistPrompt = `Create a comprehensive ${frameworkType.toUpperCase()} compliance checklist for a ${industry} company. Structure it by control domains and make it actionable.`;
+    // Generate a compliance gaps analysis
+    const gapsPrompt = `Perform a compliance gap analysis for a ${industry} company named ${companyName} implementing ${frameworkType.toUpperCase()}. Include:
+    1. Common gaps found in ${industry} companies
+    2. Recommendations to address each gap
+    3. Implementation difficulty rating for each recommendation
+    4. Prioritization of gap remediation
+    5. AI-powered suggestions for efficient compliance achievement`;
 
-    const checklistResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+    const gapsResponse = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${openAIApiKey}`,
@@ -123,23 +140,26 @@ serve(async (req) => {
       body: JSON.stringify({
         model: 'gpt-4o-mini',
         messages: [
-          { role: 'system', content: 'You are a compliance auditor specializing in creating thorough compliance checklists.' },
-          { role: 'user', content: checklistPrompt }
+          { 
+            role: 'system', 
+            content: 'You are a compliance gap analysis expert. Provide insightful analysis of common compliance gaps and practical recommendations.' 
+          },
+          { role: 'user', content: gapsPrompt }
         ],
         temperature: 0.7,
-        max_tokens: 1500,
+        max_tokens: 2000,
       }),
     });
 
-    const checklistData = await checklistResponse.json();
-    const complianceChecklist = checklistData.choices[0].message.content;
+    const gapsData = await gapsResponse.json();
+    const gapsAnalysis = gapsData.choices[0].message.content;
 
     return new Response(
       JSON.stringify({
         policy: generatedPolicy,
         riskAssessment: riskAssessment,
         implementationGuide: implementationGuide,
-        complianceChecklist: complianceChecklist
+        gapsAnalysis: gapsAnalysis
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
