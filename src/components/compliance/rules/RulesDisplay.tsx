@@ -6,6 +6,7 @@ import IsoControlsTree from '@/components/compliance/rules/IsoControlsTree';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { ComplianceRule } from '@/components/compliance/types/complianceTypes';
+import { Rule } from '@/components/compliance/rules/RulesData';
 
 interface RulesDisplayProps {
   frameworkId: string;
@@ -14,7 +15,7 @@ interface RulesDisplayProps {
 const RulesDisplay: React.FC<RulesDisplayProps> = ({ frameworkId }) => {
   const [selectedRule, setSelectedRule] = useState<ComplianceRule | null>(null);
   const [implementationNotes, setImplementationNotes] = useState<string>('');
-  const [rules, setRules] = useState<ComplianceRule[]>([]);
+  const [rules, setRules] = useState<Rule[]>([]);
   const [isTreeView, setIsTreeView] = useState<boolean>(
     frameworkId === 'iso27001' || frameworkId === 'soc2'
   );
@@ -33,7 +34,7 @@ const RulesDisplay: React.FC<RulesDisplayProps> = ({ frameworkId }) => {
           
           if (data && data.length > 0) {
             const formattedRules = data.map(item => ({
-              id: item.id,
+              id: Number(item.id), // Convert to number to match Rule type
               number: item.control_number,
               content: item.title,
               description: item.description,
@@ -139,8 +140,17 @@ const RulesDisplay: React.FC<RulesDisplayProps> = ({ frameworkId }) => {
     }
   };
 
-  const handleRuleClick = (rule: ComplianceRule) => {
-    setSelectedRule(rule);
+  const handleRuleClick = (rule: Rule) => {
+    // Convert Rule to ComplianceRule
+    const complianceRule: ComplianceRule = {
+      id: rule.id,
+      number: rule.number,
+      content: rule.content,
+      status: rule.status,
+      description: rule.description,
+      requirement: rule.requirement
+    };
+    setSelectedRule(complianceRule);
   };
 
   const handleNotesChange = (content: string) => {
@@ -148,11 +158,14 @@ const RulesDisplay: React.FC<RulesDisplayProps> = ({ frameworkId }) => {
   };
 
   const handleControlSelect = (control: any) => {
-    const ruleId = typeof control.id === 'string' ? control.id : parseInt(control.id);
+    // Ensure ID is properly converted
+    const ruleId = typeof control.id === 'string' && !isNaN(Number(control.id)) 
+      ? Number(control.id) 
+      : control.id;
     
     const rule: ComplianceRule = {
       id: ruleId,
-      number: control.number || control.id,
+      number: control.number || control.id.toString(),
       content: control.title,
       status: control.status === 'implemented' ? 'compliant' : 
               control.status === 'in_progress' ? 'in_progress' : 
@@ -170,13 +183,17 @@ const RulesDisplay: React.FC<RulesDisplayProps> = ({ frameworkId }) => {
         {isTreeView ? (
           <IsoControlsTree 
             onSelectControl={handleControlSelect}
-            selectedRuleId={selectedRule?.id ? Number(selectedRule.id) : null}
+            selectedRuleId={selectedRule?.id ? 
+              (typeof selectedRule.id === 'string' ? Number(selectedRule.id) : selectedRule.id) 
+              : null}
             frameworkId={frameworkId}
           />
         ) : (
           <RulesList 
             rules={rules} 
-            selectedRuleId={selectedRule?.id ? Number(selectedRule.id) : null} 
+            selectedRuleId={selectedRule?.id ? 
+              (typeof selectedRule.id === 'string' ? Number(selectedRule.id) : selectedRule.id) 
+              : null} 
             onRuleClick={handleRuleClick} 
           />
         )}

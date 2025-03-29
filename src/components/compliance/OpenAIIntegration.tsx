@@ -109,7 +109,7 @@ const OpenAIIntegration: React.FC<OpenAIIntegrationProps> = ({
           <div className="mb-5 bg-gray-50 rounded-lg border border-gray-200 p-4">
             <ScrollArea className="h-[300px] pr-4">
               <div className="prose prose-sm max-w-none">
-                <ReactMarkdown className="markdown-content">
+                <ReactMarkdown>
                   {response}
                 </ReactMarkdown>
               </div>
