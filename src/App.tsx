@@ -1,51 +1,192 @@
 
-import React, { Suspense } from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import ProtectedRoute from '@/components/auth/ProtectedRoute';
+import { AuthProvider } from '@/contexts/AuthContext';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'sonner';
-import { AuthProvider } from './contexts/AuthContext';
-import Loading from './components/common/Loading';
-import NotFound from './pages/NotFound';
 
-// Lazy loaded pages for better performance
-const Home = React.lazy(() => import('./pages/Home'));
-const Dashboard = React.lazy(() => import('./pages/Dashboard'));
-const AuthPage = React.lazy(() => import('./pages/Auth'));
-const CompliancePage = React.lazy(() => import('./pages/Compliance'));
-const FrameworkRequirements = React.lazy(() => import('./pages/FrameworkRequirements'));
-const TasksPage = React.lazy(() => import('./pages/Tasks'));
-const PoliciesPage = React.lazy(() => import('./pages/Policies'));
-const ReportsPage = React.lazy(() => import('./pages/Reports'));
-const ActivitiesPage = React.lazy(() => import('./pages/reports/Activities'));
-const AnalyticsPage = React.lazy(() => import('./pages/reports/Analytics'));
-const ExportReportPage = React.lazy(() => import('./pages/reports/Export'));
-const UpcomingDeadlinesPage = React.lazy(() => import('./pages/tasks/Upcoming'));
-const ComplianceRisksPage = React.lazy(() => import('./pages/compliance/Risks'));
+// Pages
+import Home from '@/pages/Home';
+import Auth from '@/pages/Auth';
+import Dashboard from '@/pages/Dashboard';
+import Tasks from '@/pages/Tasks';
+import Reports from '@/pages/Reports';
+import Settings from '@/pages/Settings';
+import NotFound from '@/pages/NotFound';
+import Compliance from '@/pages/Compliance';
+import FrameworkRequirements from '@/pages/FrameworkRequirements';
+import Policies from '@/pages/Policies';
+import Activities from '@/pages/reports/Activities';
+import Analytics from '@/pages/reports/Analytics';
+import Export from '@/pages/reports/Export';
+import Upcoming from '@/pages/tasks/Upcoming';
+import Team from '@/pages/Team';
+import Risks from '@/pages/compliance/Risks';
+import SuperAdminSetup from '@/pages/SuperAdminSetup';
+import CloudSecurity from '@/pages/CloudSecurity';
+import DataSources from '@/pages/DataSources';
+import Notifications from '@/pages/Notifications';
+
+// Create a client
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 1000 * 60 * 5, // 5 minutes
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
 function App() {
   return (
-    <Router>
+    <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <Suspense fallback={<Loading />}>
+        <BrowserRouter>
+          <Toaster position="top-right" />
           <Routes>
             <Route path="/" element={<Home />} />
-            <Route path="/auth" element={<AuthPage />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/compliance" element={<CompliancePage />} />
-            <Route path="/compliance/:frameworkId" element={<FrameworkRequirements />} />
-            <Route path="/compliance/risks" element={<ComplianceRisksPage />} />
-            <Route path="/tasks" element={<TasksPage />} />
-            <Route path="/tasks/upcoming" element={<UpcomingDeadlinesPage />} />
-            <Route path="/policies" element={<PoliciesPage />} />
-            <Route path="/reports" element={<ReportsPage />} />
-            <Route path="/reports/activities" element={<ActivitiesPage />} />
-            <Route path="/reports/analytics" element={<AnalyticsPage />} />
-            <Route path="/reports/export" element={<ExportReportPage />} />
+            <Route path="/auth" element={<Auth />} />
+            <Route 
+              path="/dashboard" 
+              element={
+                <ProtectedRoute>
+                  <Dashboard />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/tasks" 
+              element={
+                <ProtectedRoute>
+                  <Tasks />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/tasks/upcoming" 
+              element={
+                <ProtectedRoute>
+                  <Upcoming />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/reports" 
+              element={
+                <ProtectedRoute>
+                  <Reports />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/reports/activities" 
+              element={
+                <ProtectedRoute>
+                  <Activities />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/reports/analytics" 
+              element={
+                <ProtectedRoute>
+                  <Analytics />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/reports/export" 
+              element={
+                <ProtectedRoute>
+                  <Export />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/settings" 
+              element={
+                <ProtectedRoute>
+                  <Settings />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/compliance" 
+              element={
+                <ProtectedRoute>
+                  <Compliance />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/compliance/frameworks/:frameworkId" 
+              element={
+                <ProtectedRoute>
+                  <FrameworkRequirements />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/policies" 
+              element={
+                <ProtectedRoute>
+                  <Policies />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/team" 
+              element={
+                <ProtectedRoute>
+                  <Team />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/compliance/risks" 
+              element={
+                <ProtectedRoute>
+                  <Risks />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/admin/setup" 
+              element={
+                <ProtectedRoute>
+                  <SuperAdminSetup />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/cloud-security" 
+              element={
+                <ProtectedRoute>
+                  <CloudSecurity />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/data-sources" 
+              element={
+                <ProtectedRoute>
+                  <DataSources />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/notifications" 
+              element={
+                <ProtectedRoute>
+                  <Notifications />
+                </ProtectedRoute>
+              } 
+            />
             <Route path="*" element={<NotFound />} />
           </Routes>
-        </Suspense>
-        <Toaster position="top-right" richColors />
+        </BrowserRouter>
       </AuthProvider>
-    </Router>
+    </QueryClientProvider>
   );
 }
 

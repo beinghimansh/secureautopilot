@@ -8,6 +8,11 @@ interface ControlItem {
   children?: ControlItem[];
 }
 
+interface IsoControlsTreeProps {
+  onSelectControl: (control: ControlItem) => void;
+  selectedRuleId: number | null;
+}
+
 const isoControlsData: ControlItem[] = [
   {
     id: "A.5",
@@ -230,11 +235,6 @@ const TreeNode: React.FC<TreeNodeProps> = ({ item, level, onSelect }) => {
     </div>
   );
 };
-
-interface IsoControlsTreeProps {
-  onSelectControl: (control: ControlItem) => void;
-  selectedRuleId: number | null;
-}
 
 const IsoControlsTree: React.FC<IsoControlsTreeProps> = ({ onSelectControl, selectedRuleId }) => {
   return (
