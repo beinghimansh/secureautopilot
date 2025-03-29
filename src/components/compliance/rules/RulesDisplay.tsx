@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import RulesList from '@/components/compliance/rules/RulesList';
@@ -25,10 +24,8 @@ const RulesDisplay: React.FC<RulesDisplayProps> = ({ frameworkId }) => {
   const [isTreeView, setIsTreeView] = useState<boolean>(frameworkId === 'iso27001');
   
   useEffect(() => {
-    // Fetch rules data based on frameworkId
     const fetchRules = async () => {
       try {
-        // This could come from an API or static data
         const rulesData = require('@/components/compliance/rules/RulesData').getFrameworkRules(frameworkId);
         setRules(rulesData);
       } catch (error) {
@@ -42,19 +39,17 @@ const RulesDisplay: React.FC<RulesDisplayProps> = ({ frameworkId }) => {
     setIsTreeView(frameworkId === 'iso27001');
   }, [frameworkId]);
 
-  // Fetch implementation notes for the selected rule from database
   useEffect(() => {
     if (selectedRule?.id) {
       const fetchNotes = async () => {
         try {
-          // Check if notes exist for the control
           const { data, error } = await supabase
             .from('control_implementation_notes')
             .select('*')
             .eq('control_id', selectedRule.id.toString())
             .maybeSingle();
 
-          if (error && error.code !== 'PGRST116') { // PGRST116 is "No rows returned" error
+          if (error && error.code !== 'PGRST116') {
             console.error('Error fetching notes:', error);
             toast.error("Failed to load implementation notes");
           }
@@ -111,9 +106,8 @@ const RulesDisplay: React.FC<RulesDisplayProps> = ({ frameworkId }) => {
   };
 
   const handleControlSelect = (control: any) => {
-    // Convert the tree control item to a rule format
     const rule: Rule = {
-      id: parseInt(control.id.replace(/\D/g, '')) || Math.floor(Math.random() * 1000), // Extract numbers or use random
+      id: parseInt(control.id.replace(/\D/g, '')) || Math.floor(Math.random() * 1000),
       number: control.id,
       content: control.title,
       status: control.status === 'implemented' ? 'compliant' : 
@@ -130,6 +124,7 @@ const RulesDisplay: React.FC<RulesDisplayProps> = ({ frameworkId }) => {
         {isTreeView ? (
           <IsoControlsTree 
             onSelectControl={handleControlSelect}
+            selectedRuleId={selectedRule?.id || null}
           />
         ) : (
           <RulesList 
