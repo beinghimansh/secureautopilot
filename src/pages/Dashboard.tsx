@@ -6,10 +6,10 @@ import Sidebar from '@/components/layout/Sidebar';
 import { PageTransition } from '@/components/common/Transitions';
 import { useAuth } from '@/contexts/AuthContext';
 import RoleBasedContent from '@/components/auth/RoleBasedContent';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/common/Card';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { FadeIn, ScaleIn } from '@/components/common/Transitions';
 import { Shield, CheckSquare, AlertCircle, FileText, BarChart, Clock } from 'lucide-react';
-import Button from '@/components/common/Button';
+import { Button } from '@/components/ui/button';
 
 interface ComplianceScoreProps {
   score: number;
@@ -91,15 +91,17 @@ const Dashboard = () => {
                     <Link to="/reports/export">
                       <Button
                         variant="outline"
-                        leftIcon={<FileText size={16} />}
+                        className="flex items-center gap-2"
                       >
+                        <FileText size={16} />
                         Export Report
                       </Button>
                     </Link>
                     <Link to="/reports/analytics">
                       <Button
-                        leftIcon={<BarChart size={16} />}
+                        className="flex items-center gap-2"
                       >
+                        <BarChart size={16} />
                         View Analytics
                       </Button>
                     </Link>
@@ -111,7 +113,7 @@ const Dashboard = () => {
               <RoleBasedContent allowedRoles={['super_admin']}>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   <ScaleIn delay={100}>
-                    <Card className="hover:shadow-premium-md transition-all duration-300">
+                    <Card className="hover:shadow-md transition-all duration-300">
                       <CardHeader className="pb-2">
                         <CardTitle className="text-lg">Platform Stats</CardTitle>
                         <CardDescription>System overview</CardDescription>
@@ -136,7 +138,7 @@ const Dashboard = () => {
                   </ScaleIn>
                   
                   <ScaleIn delay={150}>
-                    <Card className="hover:shadow-premium-md transition-all duration-300">
+                    <Card className="hover:shadow-md transition-all duration-300">
                       <CardHeader className="pb-2">
                         <CardTitle className="text-lg">Recent Organizations</CardTitle>
                         <CardDescription>Latest platforms onboarded</CardDescription>
@@ -162,7 +164,7 @@ const Dashboard = () => {
                   </ScaleIn>
                   
                   <ScaleIn delay={200}>
-                    <Card className="hover:shadow-premium-md transition-all duration-300">
+                    <Card className="hover:shadow-md transition-all duration-300">
                       <CardHeader className="pb-2">
                         <CardTitle className="text-lg">System Health</CardTitle>
                         <CardDescription>Platform performance</CardDescription>
@@ -209,7 +211,7 @@ const Dashboard = () => {
               <RoleBasedContent allowedRoles={['company_admin', 'compliance_officer', 'employee', 'auditor']}>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   <ScaleIn delay={100}>
-                    <Card className="hover:shadow-premium-md transition-all duration-300">
+                    <Card className="hover:shadow-md transition-all duration-300">
                       <CardHeader className="pb-2">
                         <CardTitle className="text-lg">Overall Compliance</CardTitle>
                         <CardDescription>ISO 27001 Framework</CardDescription>
@@ -221,7 +223,7 @@ const Dashboard = () => {
                   </ScaleIn>
                   
                   <ScaleIn delay={150}>
-                    <Card className="hover:shadow-premium-md transition-all duration-300">
+                    <Card className="hover:shadow-md transition-all duration-300">
                       <CardHeader className="pb-2">
                         <CardTitle className="text-lg">Tasks Status</CardTitle>
                         <CardDescription>Compliance activities</CardDescription>
@@ -266,7 +268,7 @@ const Dashboard = () => {
                   </ScaleIn>
                   
                   <ScaleIn delay={200}>
-                    <Card className="hover:shadow-premium-md transition-all duration-300">
+                    <Card className="hover:shadow-md transition-all duration-300">
                       <CardHeader className="pb-2">
                         <CardTitle className="text-lg">Risk Overview</CardTitle>
                         <CardDescription>Identified security risks</CardDescription>
@@ -318,7 +320,7 @@ const Dashboard = () => {
               {/* Lower section - common for all users */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <ScaleIn delay={250}>
-                  <Card className="hover:shadow-premium-md transition-all duration-300">
+                  <Card className="hover:shadow-md transition-all duration-300">
                     <CardHeader>
                       <CardTitle className="text-lg">Recent Activities</CardTitle>
                       <CardDescription>Latest compliance updates</CardDescription>
@@ -357,7 +359,7 @@ const Dashboard = () => {
                 </ScaleIn>
                 
                 <ScaleIn delay={300}>
-                  <Card className="hover:shadow-premium-md transition-all duration-300">
+                  <Card className="hover:shadow-md transition-all duration-300">
                     <CardHeader>
                       <CardTitle className="text-lg">Upcoming Deadlines</CardTitle>
                       <CardDescription>Tasks due soon</CardDescription>

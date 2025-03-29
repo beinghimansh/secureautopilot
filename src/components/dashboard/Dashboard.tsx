@@ -1,9 +1,10 @@
 
 import React from 'react';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '../common/Card';
-import Button from '../common/Button';
-import { FadeIn, ScaleIn } from '../common/Transitions';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { FadeIn, ScaleIn } from '@/components/common/Transitions';
 import { Shield, CheckSquare, AlertCircle, FileText, BarChart, Clock } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 interface ComplianceScoreProps {
   score: number;
@@ -66,24 +67,30 @@ const Dashboard = () => {
             <p className="text-gray-500">Your compliance overview and current status</p>
           </div>
           <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              leftIcon={<FileText size={16} />}
-            >
-              Export Report
-            </Button>
-            <Button
-              leftIcon={<BarChart size={16} />}
-            >
-              View Analytics
-            </Button>
+            <Link to="/reports/export">
+              <Button
+                variant="outline"
+                className="flex items-center gap-2"
+              >
+                <FileText size={16} />
+                Export Report
+              </Button>
+            </Link>
+            <Link to="/reports/analytics">
+              <Button
+                className="flex items-center gap-2"
+              >
+                <BarChart size={16} />
+                View Analytics
+              </Button>
+            </Link>
           </div>
         </div>
       </FadeIn>
       
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <ScaleIn delay={100}>
-          <Card className="hover:shadow-premium-md transition-all duration-300">
+          <Card className="hover:shadow-md transition-all duration-300">
             <CardHeader className="pb-2">
               <CardTitle className="text-lg">Overall Compliance</CardTitle>
               <CardDescription>ISO 27001 Framework</CardDescription>
@@ -95,7 +102,7 @@ const Dashboard = () => {
         </ScaleIn>
         
         <ScaleIn delay={150}>
-          <Card className="hover:shadow-premium-md transition-all duration-300">
+          <Card className="hover:shadow-md transition-all duration-300">
             <CardHeader className="pb-2">
               <CardTitle className="text-lg">Tasks Status</CardTitle>
               <CardDescription>Compliance activities</CardDescription>
@@ -125,20 +132,22 @@ const Dashboard = () => {
                 </div>
               </div>
               <div className="mt-4">
-                <Button
-                  variant="outline" 
-                  className="w-full"
-                  size="sm"
-                >
-                  View All Tasks
-                </Button>
+                <Link to="/tasks">
+                  <Button
+                    variant="outline" 
+                    className="w-full"
+                    size="sm"
+                  >
+                    View All Tasks
+                  </Button>
+                </Link>
               </div>
             </CardContent>
           </Card>
         </ScaleIn>
         
         <ScaleIn delay={200}>
-          <Card className="hover:shadow-premium-md transition-all duration-300">
+          <Card className="hover:shadow-md transition-all duration-300">
             <CardHeader className="pb-2">
               <CardTitle className="text-lg">Risk Overview</CardTitle>
               <CardDescription>Identified security risks</CardDescription>
@@ -170,13 +179,15 @@ const Dashboard = () => {
                 </div>
                 
                 <div className="mt-4">
-                  <Button
-                    variant="outline" 
-                    className="w-full"
-                    size="sm"
-                  >
-                    View Risk Assessment
-                  </Button>
+                  <Link to="/compliance/risks">
+                    <Button
+                      variant="outline" 
+                      className="w-full"
+                      size="sm"
+                    >
+                      View Risk Assessment
+                    </Button>
+                  </Link>
                 </div>
               </div>
             </CardContent>
@@ -186,7 +197,7 @@ const Dashboard = () => {
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <ScaleIn delay={250}>
-          <Card className="hover:shadow-premium-md transition-all duration-300">
+          <Card className="hover:shadow-md transition-all duration-300">
             <CardHeader>
               <CardTitle className="text-lg">Recent Activities</CardTitle>
               <CardDescription>Latest compliance updates</CardDescription>
@@ -210,20 +221,22 @@ const Dashboard = () => {
                 ))}
               </div>
               <div className="mt-4">
-                <Button
-                  variant="link" 
-                  className="p-0 h-auto"
-                  size="sm"
-                >
-                  View all activities
-                </Button>
+                <Link to="/reports/activities">
+                  <Button
+                    variant="link" 
+                    className="p-0 h-auto"
+                    size="sm"
+                  >
+                    View all activities
+                  </Button>
+                </Link>
               </div>
             </CardContent>
           </Card>
         </ScaleIn>
         
         <ScaleIn delay={300}>
-          <Card className="hover:shadow-premium-md transition-all duration-300">
+          <Card className="hover:shadow-md transition-all duration-300">
             <CardHeader>
               <CardTitle className="text-lg">Upcoming Deadlines</CardTitle>
               <CardDescription>Tasks due soon</CardDescription>
@@ -252,13 +265,15 @@ const Dashboard = () => {
                 ))}
               </div>
               <div className="mt-4">
-                <Button
-                  variant="outline" 
-                  className="w-full"
-                  size="sm"
-                >
-                  View All Deadlines
-                </Button>
+                <Link to="/tasks/upcoming">
+                  <Button
+                    variant="outline" 
+                    className="w-full"
+                    size="sm"
+                  >
+                    View All Deadlines
+                  </Button>
+                </Link>
               </div>
             </CardContent>
           </Card>
