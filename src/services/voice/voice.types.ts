@@ -34,9 +34,10 @@ export interface VoiceTrainingSession {
 export interface UserVoicePreference {
   id: string;
   user_id: string;
-  preferred_voice_id: string;
+  voice_id: string;
   playback_speed: number;
   auto_play: boolean;
+  language: string;
   created_at: string;
   updated_at: string;
 }
