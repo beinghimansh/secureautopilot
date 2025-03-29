@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -50,7 +49,6 @@ export interface ElevenLabsVoice {
   category?: string;
 }
 
-// Available ElevenLabs voices
 export const availableVoices: ElevenLabsVoice[] = [
   { voice_id: "9BWtsMINqrJLrRacOk9x", name: "Aria", category: "Professional" },
   { voice_id: "CwhRBWXzGAHq8TQ4Fs17", name: "Roger", category: "Professional" },
@@ -64,9 +62,7 @@ export const availableVoices: ElevenLabsVoice[] = [
   { voice_id: "XB0fDUnXU5powFXDhCwa", name: "Charlotte", category: "Professional" }
 ];
 
-// Voice API service
 const voiceService = {
-  // Get user voice preferences
   async getUserVoicePreference(): Promise<UserVoicePreference | null> {
     try {
       const { data, error } = await supabase
@@ -87,10 +83,15 @@ const voiceService = {
     }
   },
 
-  // Save user voice preferences
   async saveUserVoicePreference(preferences: Partial<UserVoicePreference>): Promise<UserVoicePreference | null> {
     try {
-      // Check if user already has preferences
+      const preferenceData = {
+        preferred_voice_id: availableVoices[0].voice_id,
+        playback_speed: 1.0,
+        auto_play: false,
+        ...preferences
+      };
+
       const { data: existingPrefs } = await supabase
         .from('user_voice_preferences')
         .select('id')
@@ -100,18 +101,16 @@ const voiceService = {
       let result;
       
       if (existingPrefs) {
-        // Update existing preferences
         result = await supabase
           .from('user_voice_preferences')
-          .update(preferences)
+          .update(preferenceData)
           .eq('id', existingPrefs.id)
           .select()
           .single();
       } else {
-        // Create new preferences
         result = await supabase
           .from('user_voice_preferences')
-          .insert(preferences)
+          .insert(preferenceData)
           .select()
           .single();
       }
@@ -131,7 +130,6 @@ const voiceService = {
     }
   },
 
-  // Fetch voice summaries
   async getVoiceSummaries(policyId?: string, frameworkId?: string): Promise<VoiceSummary[]> {
     try {
       let query = supabase
@@ -163,21 +161,28 @@ const voiceService = {
     }
   },
 
-  // Create voice summary
   async createVoiceSummary(summary: Partial<VoiceSummary>): Promise<VoiceSummary | null> {
     try {
-      // Generate the speech from the summary text
-      const audioResult = await this.generateSpeech(summary.summary_text || '', summary.voice_id || '');
+      const summaryData = {
+        title: '',
+        summary_text: '',
+        voice_id: availableVoices[0].voice_id,
+        ...summary
+      };
+
+      const audioResult = await this.generateSpeech(
+        summaryData.summary_text, 
+        summaryData.voice_id
+      );
       
       if (!audioResult.success) {
         throw new Error('Failed to generate speech');
       }
 
-      // Store the audio data in Supabase Storage
       const fileName = `${Date.now()}_summary.mp3`;
       const { data: storageData, error: storageError } = await supabase.storage
         .from('voice-summaries')
-        .upload(fileName, audioResult.audioBlob, {
+        .upload(fileName, audioResult.audioBlob!, {
           contentType: 'audio/mpeg',
           cacheControl: '3600'
         });
@@ -187,16 +192,14 @@ const voiceService = {
         throw new Error('Failed to store audio file');
       }
 
-      // Get the public URL
       const { data: publicUrl } = supabase.storage
         .from('voice-summaries')
         .getPublicUrl(fileName);
 
-      // Save the summary with the audio URL
       const { data, error } = await supabase
         .from('voice_summaries')
         .insert({
-          ...summary,
+          ...summaryData,
           audio_url: publicUrl.publicUrl,
           duration: audioResult.duration || 0
         })
@@ -218,7 +221,6 @@ const voiceService = {
     }
   },
 
-  // Fetch training sessions
   async getTrainingSessions(category?: string): Promise<VoiceTrainingSession[]> {
     try {
       let query = supabase
@@ -246,21 +248,29 @@ const voiceService = {
     }
   },
 
-  // Create training session
   async createTrainingSession(session: Partial<VoiceTrainingSession>): Promise<VoiceTrainingSession | null> {
     try {
-      // Generate the speech from the content
-      const audioResult = await this.generateSpeech(session.content || '', session.voice_id || '');
+      const sessionData = {
+        title: '',
+        content: '',
+        category: 'general',
+        voice_id: availableVoices[0].voice_id,
+        ...session
+      };
+
+      const audioResult = await this.generateSpeech(
+        sessionData.content, 
+        sessionData.voice_id
+      );
       
       if (!audioResult.success) {
         throw new Error('Failed to generate speech');
       }
 
-      // Store the audio data in Supabase Storage
       const fileName = `${Date.now()}_training.mp3`;
       const { data: storageData, error: storageError } = await supabase.storage
         .from('voice-training')
-        .upload(fileName, audioResult.audioBlob, {
+        .upload(fileName, audioResult.audioBlob!, {
           contentType: 'audio/mpeg',
           cacheControl: '3600'
         });
@@ -270,16 +280,14 @@ const voiceService = {
         throw new Error('Failed to store audio file');
       }
 
-      // Get the public URL
       const { data: publicUrl } = supabase.storage
         .from('voice-training')
         .getPublicUrl(fileName);
 
-      // Save the session with the audio URL
       const { data, error } = await supabase
         .from('voice_training_sessions')
         .insert({
-          ...session,
+          ...sessionData,
           audio_url: publicUrl.publicUrl,
           duration: audioResult.duration || 0
         })
@@ -301,7 +309,6 @@ const voiceService = {
     }
   },
 
-  // Generate speech from text using ElevenLabs
   async generateSpeech(text: string, voiceId: string, model?: string): Promise<{
     success: boolean;
     audioUrl?: string;
@@ -334,7 +341,6 @@ const voiceService = {
         throw new Error(data.error || 'Failed to generate speech');
       }
 
-      // Convert base64 to blob
       const binaryString = atob(data.audioContent);
       const bytes = new Uint8Array(binaryString.length);
       for (let i = 0; i < binaryString.length; i++) {
@@ -342,12 +348,8 @@ const voiceService = {
       }
       const audioBlob = new Blob([bytes], { type: 'audio/mpeg' });
 
-      // Create a temporary URL for the blob
       const audioUrl = URL.createObjectURL(audioBlob);
 
-      // Calculate approximate duration (rough estimate)
-      // Average speaking rate is about 150 words per minute
-      // Average word length is 5 characters
       const wordCount = text.split(/\s+/).length;
       const estimatedDuration = Math.round(wordCount * 60 / 150);
 
@@ -367,12 +369,10 @@ const voiceService = {
     }
   },
 
-  // Get voice by ID
   getVoiceById(voiceId: string): ElevenLabsVoice | undefined {
     return availableVoices.find(voice => voice.voice_id === voiceId);
   },
 
-  // Get voice name by ID
   getVoiceNameById(voiceId: string): string {
     const voice = this.getVoiceById(voiceId);
     return voice ? voice.name : 'Unknown Voice';
