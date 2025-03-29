@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import Button from '@/components/common/Button';
-import { ArrowRight, Shield, Lock, CheckCircle, FileText, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ArrowRight, Shield, Lock, CheckCircle, FileText } from 'lucide-react';
 
 const HeroSection = () => {
   const navigate = useNavigate();
@@ -39,21 +39,9 @@ const HeroSection = () => {
     return () => clearInterval(interval);
   }, [complianceFrameworks.length]);
 
-  const nextFramework = () => {
-    setActiveFrameworkIndex((prevIndex) => 
-      prevIndex === complianceFrameworks.length - 1 ? 0 : prevIndex + 1
-    );
-  };
-
-  const prevFramework = () => {
-    setActiveFrameworkIndex((prevIndex) => 
-      prevIndex === 0 ? complianceFrameworks.length - 1 : prevIndex - 1
-    );
-  };
-
   // Calculate visible frameworks for the carousel
   const getVisibleFrameworks = () => {
-    // Display all 9 frameworks in a 3x3 grid
+    // Display all 9 frameworks in a 3x3 grid or fewer based on screen size
     return complianceFrameworks;
   };
 
@@ -149,7 +137,7 @@ const HeroSection = () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.4, delay: 0.5 + (index * 0.1) }}
-                className="bg-gradient-to-br from-gray-900 to-gray-800 p-6 rounded-xl border border-gray-700 hover:border-blue-500/50 hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-300"
+                className={`bg-gradient-to-br from-gray-900 to-gray-800 p-6 rounded-xl border border-gray-700 hover:border-blue-500/50 hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-300 h-full flex flex-col`}
                 onClick={() => navigate('/compliance')}
               >
                 <div className="flex items-center gap-4 mb-4">
@@ -158,8 +146,8 @@ const HeroSection = () => {
                   </div>
                   <h3 className="text-xl font-semibold text-white">{framework.name}</h3>
                 </div>
-                <p className="text-gray-400 mb-3">{framework.description}</p>
-                <a className="text-blue-400 text-sm flex items-center hover:text-blue-300 transition-colors">
+                <p className="text-gray-400 mb-3 flex-grow">{framework.description}</p>
+                <a className="text-blue-400 text-sm flex items-center hover:text-blue-300 transition-colors mt-auto">
                   Explore requirements
                   <ArrowRight className="ml-1 h-3 w-3" />
                 </a>
