@@ -1,14 +1,11 @@
 
-import React, { useEffect, lazy, Suspense } from 'react';
+import React, { useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import Loading from '@/components/common/Loading';
-
-// Lazy loaded components to improve performance
-const Header = lazy(() => import('./Header'));
-const HeroSection = lazy(() => import('./HeroSection'));
-const FeatureHighlights = lazy(() => import('./FeatureHighlights'));
-const CTASection = lazy(() => import('./CTASection'));
-const Footer = lazy(() => import('./Footer'));
+import Header from './Header';
+import HeroSection from './HeroSection';
+import FeatureHighlights from './FeatureHighlights';
+import CTASection from './CTASection';
+import Footer from './Footer';
 
 const Home = () => {
   const { user } = useAuth();
@@ -29,15 +26,13 @@ const Home = () => {
   // Performance optimization - show the same layout for all users
   return (
     <div className="min-h-screen overflow-x-hidden bg-[#111]">
-      <Suspense fallback={<Loading />}>
-        <Header />
-        <main className="pt-20">
-          <HeroSection />
-          <FeatureHighlights />
-          <CTASection />
-        </main>
-        <Footer />
-      </Suspense>
+      <Header />
+      <main className="pt-20">
+        <HeroSection />
+        <FeatureHighlights />
+        <CTASection />
+      </main>
+      <Footer />
     </div>
   );
 };

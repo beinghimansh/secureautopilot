@@ -22,7 +22,10 @@ const HeroSection = () => {
     { name: "GDPR", description: "Data Protection Regulation" },
     { name: "HIPAA", description: "Health Information Privacy" },
     { name: "PCI DSS", description: "Payment Card Security" },
-    { name: "ISO 42001", description: "Artificial Intelligence Management" }
+    { name: "ISO 42001", description: "Artificial Intelligence Management" },
+    { name: "NIST CSF", description: "Cybersecurity Framework" },
+    { name: "CCPA", description: "Consumer Privacy Act" },
+    { name: "ISO 9001", description: "Quality Management System" }
   ];
 
   // Auto-rotate carousel
@@ -50,21 +53,8 @@ const HeroSection = () => {
 
   // Calculate visible frameworks for the carousel
   const getVisibleFrameworks = () => {
-    // For mobile, just show the active one
-    if (typeof window !== 'undefined' && window.innerWidth < 768) {
-      return [complianceFrameworks[activeFrameworkIndex]];
-    }
-    
-    // For desktop, show 3 frameworks centered around the active one
-    const visibleCount = Math.min(3, complianceFrameworks.length);
-    const frameworks = [];
-    
-    for (let i = 0; i < visibleCount; i++) {
-      const index = (activeFrameworkIndex + i) % complianceFrameworks.length;
-      frameworks.push(complianceFrameworks[index]);
-    }
-    
-    return frameworks;
+    // Display all 9 frameworks in a 3x3 grid
+    return complianceFrameworks;
   };
 
   return (
@@ -140,7 +130,7 @@ const HeroSection = () => {
         </div>
         
         {/* Framework cards carousel */}
-        <div className="relative max-w-5xl mx-auto">
+        <div className="relative max-w-6xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 40 }}
             animate={{ opacity: 1, y: 0 }}
@@ -152,49 +142,29 @@ const HeroSection = () => {
             </h2>
           </motion.div>
           
-          <div className="relative">
-            <div className="hidden md:flex absolute inset-y-0 left-0 items-center">
-              <button 
-                onClick={prevFramework}
-                className="bg-gray-900/50 hover:bg-gray-900/80 rounded-full p-2 text-white focus:outline-none transform -translate-x-1/2"
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {getVisibleFrameworks().map((framework, index) => (
+              <motion.div
+                key={`${framework.name}-${index}`}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, delay: 0.5 + (index * 0.1) }}
+                className="bg-gradient-to-br from-gray-900 to-gray-800 p-6 rounded-xl border border-gray-700 hover:border-blue-500/50 hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-300"
+                onClick={() => navigate('/compliance')}
               >
-                <ChevronLeft className="w-6 h-6" />
-              </button>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {getVisibleFrameworks().map((framework, index) => (
-                <motion.div
-                  key={`${framework.name}-${index}`}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.4, delay: 0.5 + (index * 0.1) }}
-                  className="bg-gradient-to-br from-gray-900 to-gray-800 p-6 rounded-xl border border-gray-700 hover:border-blue-500/50 hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-300"
-                  onClick={() => navigate('/compliance')}
-                >
-                  <div className="flex items-center gap-4 mb-4">
-                    <div className="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center">
-                      <Shield className="h-5 w-5 text-blue-400" />
-                    </div>
-                    <h3 className="text-xl font-semibold text-white">{framework.name}</h3>
+                <div className="flex items-center gap-4 mb-4">
+                  <div className="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center">
+                    <Shield className="h-5 w-5 text-blue-400" />
                   </div>
-                  <p className="text-gray-400 mb-3">{framework.description}</p>
-                  <a className="text-blue-400 text-sm flex items-center hover:text-blue-300 transition-colors">
-                    Explore requirements
-                    <ArrowRight className="ml-1 h-3 w-3" />
-                  </a>
-                </motion.div>
-              ))}
-            </div>
-            
-            <div className="hidden md:flex absolute inset-y-0 right-0 items-center">
-              <button 
-                onClick={nextFramework}
-                className="bg-gray-900/50 hover:bg-gray-900/80 rounded-full p-2 text-white focus:outline-none transform translate-x-1/2"
-              >
-                <ChevronRight className="w-6 h-6" />
-              </button>
-            </div>
+                  <h3 className="text-xl font-semibold text-white">{framework.name}</h3>
+                </div>
+                <p className="text-gray-400 mb-3">{framework.description}</p>
+                <a className="text-blue-400 text-sm flex items-center hover:text-blue-300 transition-colors">
+                  Explore requirements
+                  <ArrowRight className="ml-1 h-3 w-3" />
+                </a>
+              </motion.div>
+            ))}
           </div>
           
           {/* Mobile Carousel Indicators */}
