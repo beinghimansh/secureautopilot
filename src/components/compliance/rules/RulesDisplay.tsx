@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import RulesList from '@/components/compliance/rules/RulesList';
 import RuleDetails from '@/components/compliance/rules/RuleDetails';
+import IsoControlsTree from '@/components/compliance/rules/IsoControlsTree';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -21,12 +22,24 @@ const RulesDisplay: React.FC<RulesDisplayProps> = ({ frameworkId }) => {
   const [selectedRule, setSelectedRule] = useState<Rule | null>(null);
   const [implementationNotes, setImplementationNotes] = useState<string>('');
   const [rules, setRules] = useState<Rule[]>([]);
+  const [isTreeView, setIsTreeView] = useState<boolean>(frameworkId === 'iso27001');
   
   useEffect(() => {
     // Fetch rules data based on frameworkId
-    // This could come from an API or static data
-    const rulesData = require('@/components/compliance/rules/RulesData').getFrameworkRules(frameworkId);
-    setRules(rulesData);
+    const fetchRules = async () => {
+      try {
+        // This could come from an API or static data
+        const rulesData = require('@/components/compliance/rules/RulesData').getFrameworkRules(frameworkId);
+        setRules(rulesData);
+      } catch (error) {
+        console.error("Error loading rules data:", error);
+        toast.error("Failed to load requirements data");
+        setRules([]);
+      }
+    };
+    
+    fetchRules();
+    setIsTreeView(frameworkId === 'iso27001');
   }, [frameworkId]);
 
   // Fetch implementation notes for the selected rule from database
@@ -39,14 +52,11 @@ const RulesDisplay: React.FC<RulesDisplayProps> = ({ frameworkId }) => {
             .from('control_implementation_notes')
             .select('*')
             .eq('control_id', selectedRule.id.toString())
-            .single();
+            .maybeSingle();
 
-          if (error) {
-            if (error.code !== 'PGRST116') { // PGRST116 is "No rows returned" error
-              console.error('Error fetching notes:', error);
-            }
-            setImplementationNotes('');
-            return;
+          if (error && error.code !== 'PGRST116') { // PGRST116 is "No rows returned" error
+            console.error('Error fetching notes:', error);
+            toast.error("Failed to load implementation notes");
           }
 
           if (data) {
@@ -56,6 +66,7 @@ const RulesDisplay: React.FC<RulesDisplayProps> = ({ frameworkId }) => {
           }
         } catch (err) {
           console.error('Error fetching implementation notes:', err);
+          toast.error("An error occurred while loading notes");
         }
       };
 
@@ -101,12 +112,19 @@ const RulesDisplay: React.FC<RulesDisplayProps> = ({ frameworkId }) => {
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
-      <div className="md:col-span-1">
-        <RulesList 
-          rules={rules} 
-          selectedRuleId={selectedRule?.id || null} 
-          onRuleClick={handleRuleClick} 
-        />
+      <div className="md:col-span-1 overflow-auto">
+        {isTreeView ? (
+          <IsoControlsTree 
+            selectedRuleId={selectedRule?.id || null}
+            onSelectRule={handleRuleClick}
+          />
+        ) : (
+          <RulesList 
+            rules={rules} 
+            selectedRuleId={selectedRule?.id || null} 
+            onRuleClick={handleRuleClick} 
+          />
+        )}
       </div>
       <div className="md:col-span-2">
         {selectedRule ? (
@@ -118,7 +136,7 @@ const RulesDisplay: React.FC<RulesDisplayProps> = ({ frameworkId }) => {
           />
         ) : (
           <div className="bg-white p-6 rounded-lg shadow border border-gray-100 h-full flex items-center justify-center">
-            <p className="text-gray-500 text-center">Select a requirement to view details and manage implementation</p>
+            <p className="text-gray-500 text-center">Select a requirement from the {isTreeView ? 'tree' : 'list'} to view details and manage implementation</p>
           </div>
         )}
       </div>

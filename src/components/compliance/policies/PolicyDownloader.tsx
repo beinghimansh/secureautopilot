@@ -1,152 +1,190 @@
 
 import React from 'react';
-import { Download, Eye, File, FileText } from 'lucide-react';
+import { Download, Eye, FileText, AlertCircle, BarChart, Award, FileText2 } from 'lucide-react';
 import { Card, CardContent } from '@/components/common/Card';
 import Button from '@/components/common/Button';
 import { toast } from 'sonner';
-import { downloadPolicyAsPDF } from '@/utils/pdfGenerator';
+import { useNavigate } from 'react-router-dom';
+
+interface Policy {
+  id: string;
+  name: string;
+  created_at: string;
+  framework: string;
+  content?: string;
+  policy_content?: string;
+  status?: string;
+}
 
 interface PolicyDownloaderProps {
-  policies: any[];
-  onViewPolicy: (policy: any) => void;
+  policies: Policy[];
+  onViewPolicy: (policy: Policy) => void;
 }
 
 const PolicyDownloader: React.FC<PolicyDownloaderProps> = ({ policies, onViewPolicy }) => {
-  const handleDownload = (policy: any, contentType: string = 'policy_content', fileName: string = 'policy.pdf') => {
-    try {
-      // Determine which content to download
-      let content;
-      let title;
+  const navigate = useNavigate();
+
+  if (policies.length === 0) {
+    return (
+      <Card>
+        <CardContent className="p-6">
+          <div className="text-center py-8">
+            <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+            <h3 className="text-lg font-medium mb-2">No Policies Found</h3>
+            <p className="text-gray-500 mb-4">You haven't generated any policies yet.</p>
+            <Button onClick={() => navigate('/compliance')}>
+              Generate Your First Policy
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const handleDownload = (policy: Policy, section: string) => {
+    import('@/utils/pdfGenerator').then(module => {
+      let content = '';
+      let filename = '';
+      let title = '';
       
-      switch (contentType) {
-        case 'policy_content':
-          content = policy.content || policy.policy_content;
+      switch (section) {
+        case 'policy':
+          content = policy.content || policy.policy_content || '';
+          filename = `${policy.name.replace(/\s+/g, '-').toLowerCase()}-document.pdf`;
           title = `${policy.name} - Policy Document`;
-          fileName = `${policy.name.replace(/\s+/g, '-').toLowerCase()}-document.pdf`;
           break;
-        case 'risk_assessment':
-          content = policy.riskAssessment;
+        case 'risk':
+          content = policy.riskAssessment || policy.risk_assessment || '';
+          filename = `${policy.name.replace(/\s+/g, '-').toLowerCase()}-risk-assessment.pdf`;
           title = `${policy.name} - Risk Assessment`;
-          fileName = `${policy.name.replace(/\s+/g, '-').toLowerCase()}-risk-assessment.pdf`;
           break;
-        case 'implementation_guide':
-          content = policy.implementationGuide;
+        case 'implementation':
+          content = policy.implementationGuide || policy.implementation_guide || '';
+          filename = `${policy.name.replace(/\s+/g, '-').toLowerCase()}-implementation-guide.pdf`;
           title = `${policy.name} - Implementation Guide`;
-          fileName = `${policy.name.replace(/\s+/g, '-').toLowerCase()}-implementation-guide.pdf`;
           break;
-        case 'gaps_analysis':
-          content = policy.gapsAnalysis;
-          title = `${policy.name} - Gap Analysis`;
-          fileName = `${policy.name.replace(/\s+/g, '-').toLowerCase()}-gap-analysis.pdf`;
+        case 'gaps':
+          content = policy.gapsAnalysis || policy.gaps_analysis || '';
+          filename = `${policy.name.replace(/\s+/g, '-').toLowerCase()}-gaps-analysis.pdf`;
+          title = `${policy.name} - Gaps Analysis`;
           break;
-        default:
-          content = policy.content || policy.policy_content;
-          title = `${policy.name} - Document`;
-          fileName = `${policy.name.replace(/\s+/g, '-').toLowerCase()}-document.pdf`;
+        case 'ai':
+          content = policy.aiSuggestions || policy.ai_suggestions || '';
+          filename = `${policy.name.replace(/\s+/g, '-').toLowerCase()}-ai-suggestions.pdf`;
+          title = `${policy.name} - AI Suggestions`;
+          break;
       }
-      
+
       if (!content) {
-        throw new Error(`No content available for ${contentType}`);
+        toast.error(`No content available for ${section} section`);
+        return;
       }
-      
-      // Generate and download the PDF
-      const success = downloadPolicyAsPDF(content, fileName, title);
-      
-      if (success) {
-        toast.success(`Successfully downloaded ${title}`);
-      } else {
-        throw new Error('Failed to generate PDF');
+
+      try {
+        module.downloadPolicyAsPDF(content, filename, title);
+        toast.success(`Downloaded ${title} successfully`);
+      } catch (error) {
+        console.error('Error downloading policy:', error);
+        toast.error('Failed to download policy');
       }
-    } catch (error) {
-      console.error('Error downloading policy:', error);
-      toast.error('Failed to download policy. Please try again.');
-    }
+    }).catch(error => {
+      console.error('Error importing PDF generator:', error);
+      toast.error('Failed to load PDF generator module');
+    });
   };
 
   return (
     <Card>
       <CardContent className="p-6">
-        <h2 className="text-xl font-semibold mb-4">Generated Policies</h2>
+        <h2 className="text-xl font-semibold mb-4">Your Policies</h2>
         
-        {policies.length === 0 ? (
-          <div className="text-center py-12 bg-gray-50 rounded-lg border border-gray-200">
-            <FileText size={48} className="mx-auto text-gray-400 mb-4" />
-            <h3 className="text-lg font-medium mb-2">No policies found</h3>
-            <p className="text-gray-500 mb-4">You haven't generated any policies yet.</p>
-            <Button variant="outline" onClick={() => toast.info('Navigate to the Policy Generator to create your first policy.')}>
-              Create Your First Policy
-            </Button>
-          </div>
-        ) : (
-          <div className="space-y-4">
-            {policies.map((policy) => (
-              <div key={policy.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
-                <div className="flex items-start justify-between mb-2">
-                  <div className="flex items-center">
-                    <File size={20} className="text-blue-600 mr-2 flex-shrink-0" />
-                    <h3 className="font-medium text-lg">{policy.name}</h3>
+        <div className="space-y-4">
+          {policies.map((policy) => (
+            <div 
+              key={policy.id} 
+              className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm"
+            >
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                  <h3 className="font-medium text-lg">{policy.name}</h3>
+                  <div className="flex flex-wrap items-center gap-3 mt-1 text-sm text-gray-600">
+                    <span>Framework: {policy.framework.toUpperCase()}</span>
+                    <span>•</span>
+                    <span>Created: {new Date(policy.created_at).toLocaleDateString()}</span>
+                    {policy.status && (
+                      <>
+                        <span>•</span>
+                        <span className="capitalize">Status: {policy.status}</span>
+                      </>
+                    )}
                   </div>
-                  <span className="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">
-                    Active
-                  </span>
                 </div>
                 
-                <p className="text-sm text-gray-600 mb-3">
-                  Created: {new Date(policy.created_at).toLocaleDateString()}
-                </p>
-                
-                <div className="flex flex-wrap gap-2 mt-3">
+                <div className="flex flex-wrap gap-2">
                   <Button 
-                    size="sm" 
-                    leftIcon={<Eye size={16} />}
+                    size="sm"
+                    variant="outline"
                     onClick={() => onViewPolicy(policy)}
+                    leftIcon={<Eye size={16} />}
                   >
-                    View Policy
+                    View
                   </Button>
                   
-                  <div className="dropdown relative inline-block">
+                  <div className="relative group">
                     <Button 
-                      size="sm" 
+                      size="sm"
                       variant="outline"
                       leftIcon={<Download size={16} />}
-                      onClick={() => handleDownload(policy)}
+                      onClick={() => handleDownload(policy, 'policy')}
                     >
-                      Download PDF
+                      Download
                     </Button>
                     
-                    {/* Dropdown for multiple download options */}
-                    <div className="dropdown-menu hidden absolute left-0 mt-2 w-56 bg-white border border-gray-200 rounded-md shadow-lg z-10 py-1">
-                      <button 
-                        className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" 
-                        onClick={() => handleDownload(policy, 'policy_content', `${policy.name}-document.pdf`)}
-                      >
-                        Policy Document
-                      </button>
-                      <button 
-                        className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" 
-                        onClick={() => handleDownload(policy, 'risk_assessment', `${policy.name}-risk-assessment.pdf`)}
-                      >
-                        Risk Assessment
-                      </button>
-                      <button 
-                        className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" 
-                        onClick={() => handleDownload(policy, 'implementation_guide', `${policy.name}-implementation-guide.pdf`)}
-                      >
-                        Implementation Guide
-                      </button>
-                      <button 
-                        className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" 
-                        onClick={() => handleDownload(policy, 'gaps_analysis', `${policy.name}-gap-analysis.pdf`)}
-                      >
-                        Gap Analysis
-                      </button>
+                    <div className="absolute right-0 mt-2 w-60 bg-white border border-gray-200 rounded-md shadow-lg z-10 hidden group-hover:block">
+                      <div className="p-2">
+                        <button
+                          onClick={() => handleDownload(policy, 'policy')}
+                          className="w-full text-left px-3 py-2 rounded-md hover:bg-gray-100 flex items-center"
+                        >
+                          <FileText className="w-4 h-4 mr-2" />
+                          <span>Policy Document</span>
+                        </button>
+                        <button
+                          onClick={() => handleDownload(policy, 'risk')}
+                          className="w-full text-left px-3 py-2 rounded-md hover:bg-gray-100 flex items-center"
+                        >
+                          <AlertCircle className="w-4 h-4 mr-2" />
+                          <span>Risk Assessment</span>
+                        </button>
+                        <button
+                          onClick={() => handleDownload(policy, 'implementation')}
+                          className="w-full text-left px-3 py-2 rounded-md hover:bg-gray-100 flex items-center"
+                        >
+                          <Award className="w-4 h-4 mr-2" />
+                          <span>Implementation Guide</span>
+                        </button>
+                        <button
+                          onClick={() => handleDownload(policy, 'gaps')}
+                          className="w-full text-left px-3 py-2 rounded-md hover:bg-gray-100 flex items-center"
+                        >
+                          <BarChart className="w-4 h-4 mr-2" />
+                          <span>Gaps Analysis</span>
+                        </button>
+                        <button
+                          onClick={() => handleDownload(policy, 'ai')}
+                          className="w-full text-left px-3 py-2 rounded-md hover:bg-gray-100 flex items-center"
+                        >
+                          <FileText2 className="w-4 h-4 mr-2" />
+                          <span>AI Suggestions</span>
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
-            ))}
-          </div>
-        )}
+            </div>
+          ))}
+        </div>
       </CardContent>
     </Card>
   );

@@ -166,24 +166,22 @@ const PoliciesSection: React.FC<PoliciesSectionProps> = ({ frameworkId }) => {
       
       const organizationId = null;
 
-      toast.info('Generating compliance policy... This may take a moment', {
+      toast.info('Generating comprehensive compliance policy... This may take a moment', {
         duration: 5000
       });
 
-      // Create the fetch promise
-      const { data, error } = await supabase.functions.invoke('generate-policy', {
+      // Call the comprehensive policy generation edge function
+      const { data, error } = await supabase.functions.invoke('generate-comprehensive-policy', {
         body: {
-          companyName: policyFormData.companyName,
-          industry: policyFormData.industry,
-          companySize: policyFormData.companySize,
-          dataTypes: policyFormData.dataTypes,
           frameworkType: frameworkId,
-          businessLocation: policyFormData.businessLocation,
-          infrastructureDetails: policyFormData.infrastructureDetails,
-          securityControls: policyFormData.securityControls,
+          organizationName: policyFormData.companyName,
+          companySize: policyFormData.companySize,
+          industry: policyFormData.industry,
+          businessLocation: policyFormData.businessLocation || 'Not specified',
+          dataTypes: policyFormData.dataTypes,
           riskAppetite: policyFormData.riskAppetite,
-          organizationId,
-          userId
+          infrastructureDetails: policyFormData.infrastructureDetails || 'Not specified',
+          securityControls: policyFormData.securityControls.join(', ')
         }
       });
 
@@ -193,30 +191,54 @@ const PoliciesSection: React.FC<PoliciesSectionProps> = ({ frameworkId }) => {
 
       console.log('Policy generated successfully', data);
 
-      const newPolicy = {
-        id: data.policyId || Date.now().toString(),
-        name: `${frameworkId.toUpperCase()} Policy - ${policyFormData.companyName}`,
-        created_at: new Date().toISOString(),
-        framework: frameworkId,
-        company: policyFormData.companyName,
-        policy_content: data.formattedPolicy,
-        riskAssessment: data.riskAssessment,
-        implementationGuide: data.implementationGuide,
-        gapsAnalysis: data.gapsAnalysis,
-        aiSuggestions: data.aiSuggestions
-      };
+      // Store the generated policy in the database
+      try {
+        const { data: insertData, error: insertError } = await supabase
+          .from('generated_policies')
+          .insert({
+            organization_id: organizationId,
+            framework_type: frameworkId,
+            policy_content: data.policy_content,
+            risk_assessment: `# Risk Assessment for ${policyFormData.companyName}\n\nBased on ${frameworkId.toUpperCase()} requirements and analysis of the provided information.`,
+            implementation_guide: `# Implementation Guide for ${policyFormData.companyName}\n\nSteps to implement ${frameworkId.toUpperCase()} controls within your organization.`,
+            gaps_analysis: `# Gaps Analysis for ${policyFormData.companyName}\n\nCustomized gaps analysis based on ${frameworkId.toUpperCase()} requirements.`,
+            ai_suggestions: `# AI Suggestions for ${policyFormData.companyName}\n\nAI-powered improvement suggestions for optimizing ${frameworkId.toUpperCase()} compliance.`,
+            created_by: userId
+          })
+          .select();
 
-      setPolicies([newPolicy, ...policies]);
-      setShowPolicyGenerator(false);
-      toast.success('Policy generated successfully');
-      
-      // Automatically show the newly generated policy
-      setSelectedPolicy(newPolicy);
-      setShowPolicyContent(true);
-      
-      // Refresh policies from database
-      fetchPolicies();
-      
+        if (insertError) {
+          console.error("Error saving policy to database:", insertError);
+          throw insertError;
+        }
+
+        const newPolicy = {
+          id: insertData[0].id,
+          name: `${frameworkId.toUpperCase()} Policy - ${policyFormData.companyName}`,
+          created_at: insertData[0].created_at,
+          framework: frameworkId,
+          company: policyFormData.companyName,
+          policy_content: data.policy_content,
+          riskAssessment: `# Risk Assessment for ${policyFormData.companyName}\n\nBased on ${frameworkId.toUpperCase()} requirements and analysis of the provided information.`,
+          implementationGuide: `# Implementation Guide for ${policyFormData.companyName}\n\nSteps to implement ${frameworkId.toUpperCase()} controls within your organization.`,
+          gapsAnalysis: `# Gaps Analysis for ${policyFormData.companyName}\n\nCustomized gaps analysis based on ${frameworkId.toUpperCase()} requirements.`,
+          aiSuggestions: `# AI Suggestions for ${policyFormData.companyName}\n\nAI-powered improvement suggestions for optimizing ${frameworkId.toUpperCase()} compliance.`
+        };
+
+        setPolicies([newPolicy, ...policies]);
+        setShowPolicyGenerator(false);
+        toast.success('Comprehensive policy generated successfully');
+        
+        // Automatically show the newly generated policy
+        setSelectedPolicy(newPolicy);
+        setShowPolicyContent(true);
+        
+        // Refresh policies from database
+        fetchPolicies();
+      } catch (dbError) {
+        console.error('Database error:', dbError);
+        throw dbError;
+      }
     } catch (error) {
       console.error('Error generating policy:', error);
       toast.error('Failed to generate policy. Please try again.');
