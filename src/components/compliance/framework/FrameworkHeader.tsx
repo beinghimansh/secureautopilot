@@ -3,7 +3,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { ChevronLeft, InfoIcon } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import Button from '@/components/common/Button';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/common/Card';
 import { ScaleIn } from '@/components/common/Transitions';
 
@@ -26,13 +26,13 @@ const FrameworkHeader: React.FC<FrameworkHeaderProps> = ({ frameworkId, framewor
             <Button
               variant="outline"
               size="sm"
-              onClick={() => {}}
               className="mr-3 flex items-center"
-              as={Link}
-              to="/compliance"
+              asChild
             >
-              <ChevronLeft size={16} className="mr-1" />
-              Back to Frameworks
+              <Link to="/compliance">
+                <ChevronLeft size={16} className="mr-1" />
+                Back to Frameworks
+              </Link>
             </Button>
           </div>
           <h1 className="text-3xl font-semibold tracking-tight mb-2">
