@@ -12,6 +12,8 @@ const Home = () => {
   // Scroll to top on component mount for better UX
   useEffect(() => {
     window.scrollTo(0, 0);
+    // Add console log to debug rendering
+    console.log('Home page rendered');
   }, []);
 
   return (

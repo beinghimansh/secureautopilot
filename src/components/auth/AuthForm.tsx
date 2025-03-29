@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -41,8 +42,11 @@ export default function AuthForm({ initialMode = 'login' }: AuthFormProps) {
         await signUp(email, password, {
           first_name: firstName,
           last_name: lastName,
-          email,
-          company_name: companyName // Include company_name in the metadata object directly
+          email
+        }, {
+          data: {
+            company_name: companyName
+          }
         });
         toast.success("Account created successfully!");
       } else {

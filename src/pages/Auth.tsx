@@ -17,9 +17,13 @@ const AuthPage = () => {
   // Get the return URL from location state or default to dashboard
   const from = location.state?.from?.pathname || '/dashboard';
   
-  // Redirect if already authenticated
+  // Add console log to debug rendering
   useEffect(() => {
+    console.log('Auth page rendered', { user, from });
+    
+    // Redirect if already authenticated
     if (user) {
+      console.log('User already authenticated, redirecting to:', from);
       navigate(from, { replace: true });
     }
   }, [user, navigate, from]);

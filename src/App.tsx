@@ -1,5 +1,6 @@
+
 import { lazy, Suspense } from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useParams } from 'react-router-dom';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -33,6 +34,12 @@ const SuperAdminSetup = lazy(() => import('@/pages/SuperAdminSetup'));
 const CloudSecurity = lazy(() => import('@/pages/CloudSecurity'));
 const DataSources = lazy(() => import('@/pages/DataSources'));
 const Notifications = lazy(() => import('@/pages/Notifications'));
+
+// Redirect component for legacy URLs
+const RedirectToFramework = () => {
+  const { frameworkId } = useParams();
+  return <Navigate to={`/compliance/frameworks/${frameworkId}`} replace />;
+};
 
 // Create a client with improved caching
 const queryClient = new QueryClient({
@@ -140,7 +147,7 @@ function App() {
                 path="/compliance/:frameworkId/requirements" 
                 element={
                   <ProtectedRoute>
-                    <Navigate to={`/compliance/frameworks/:frameworkId`} replace />
+                    <RedirectToFramework />
                   </ProtectedRoute>
                 } 
               />
