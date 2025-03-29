@@ -3,7 +3,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { ArrowLeft } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import Button from '@/components/common/Button';
+import { Button } from "@/components/ui/button";
 import OpenAIAssistant from '../OpenAIAssistant';
 
 interface FrameworkSidebarProps {
@@ -40,11 +40,12 @@ const FrameworkSidebar: React.FC<FrameworkSidebarProps> = ({
           variant="outline" 
           size="sm" 
           className="w-full justify-start text-left"
-          as={Link}
-          to="/compliance"
+          asChild
         >
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Back to all frameworks
+          <Link to="/compliance">
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back to all frameworks
+          </Link>
         </Button>
         
         <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
