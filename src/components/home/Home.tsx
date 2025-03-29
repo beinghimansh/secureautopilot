@@ -13,15 +13,15 @@ import MessageCarousel from './MessageCarousel';
 const Home = () => {
   const { user } = useAuth();
 
-  // Simplified component without unnecessary effects and transitions for faster rendering
+  // Reorganized component order as per requirements
   return (
     <div className="min-h-screen overflow-x-hidden bg-[#111]">
       <Header />
       <main>
         <HeroSection />
+        <ComplianceFrameworks />
         <TrustedBySection />
         <FeatureHighlights />
-        <ComplianceFrameworks />
         <MessageCarousel />
         <CTASection />
       </main>

@@ -5,16 +5,14 @@ import { motion } from 'framer-motion';
 const TrustedBySection = () => {
   const scrollRef = useRef<HTMLDivElement>(null);
   
-  // Companies with their logos
+  // Updated companies with their logos
   const companies = [
-    { name: "MixMove", logo: "/lovable-uploads/529f422f-a807-4ca3-ace2-724504a1dd7f.png" },
-    { name: "Visor AI", logo: "/lovable-uploads/529f422f-a807-4ca3-ace2-724504a1dd7f.png" },
-    { name: "Kranus Health", logo: "/lovable-uploads/529f422f-a807-4ca3-ace2-724504a1dd7f.png" },
-    { name: "WorkMotion", logo: "/lovable-uploads/529f422f-a807-4ca3-ace2-724504a1dd7f.png" },
-    { name: "Velaris", logo: "/lovable-uploads/529f422f-a807-4ca3-ace2-724504a1dd7f.png" },
-    { name: "GolfManager", logo: "/lovable-uploads/529f422f-a807-4ca3-ace2-724504a1dd7f.png" },
-    { name: "TechFlow", logo: "/lovable-uploads/529f422f-a807-4ca3-ace2-724504a1dd7f.png" },
-    { name: "DataSphere", logo: "/lovable-uploads/529f422f-a807-4ca3-ace2-724504a1dd7f.png" },
+    { name: "Lovable", logo: "/lovable-uploads/cbef0aa7-95c6-496d-abea-c166b9b5d671.png" },
+    { name: "Anthropic", logo: "/lovable-uploads/b82d4ddd-fd36-4351-8525-73a13622172e.png" },
+    { name: "Supabase", logo: "/lovable-uploads/a7d3c7b1-1a44-4be2-a9cd-6293dd730b01.png" },
+    { name: "Sentry", logo: "/lovable-uploads/529f422f-a807-4ca3-ace2-724504a1dd7f.png" },
+    { name: "ElevenLabs", logo: "/lovable-uploads/529f422f-a807-4ca3-ace2-724504a1dd7f.png" },
+    { name: "EQT Ventures", logo: "/lovable-uploads/529f422f-a807-4ca3-ace2-724504a1dd7f.png" },
   ];
   
   // Automatic scrolling effect
@@ -77,14 +75,17 @@ const TrustedBySection = () => {
             {[...companies, ...companies].map((company, index) => (
               <div 
                 key={`${company.name}-${index}`} 
-                className="flex-shrink-0 flex items-center justify-center h-12 w-36 grayscale hover:grayscale-0 transition-all duration-300"
+                className="flex-shrink-0 flex flex-col items-center justify-center h-20 w-44 grayscale hover:grayscale-0 transition-all duration-300"
               >
                 {company.logo ? (
-                  <img 
-                    src={company.logo} 
-                    alt={`${company.name} logo`} 
-                    className="h-full object-contain"
-                  />
+                  <>
+                    <img 
+                      src={company.logo} 
+                      alt={`${company.name} logo`} 
+                      className="h-12 object-contain mb-2"
+                    />
+                    <p className="text-gray-400 text-sm font-medium">{company.name}</p>
+                  </>
                 ) : (
                   <div className="text-xl font-bold text-gray-300">{company.name}</div>
                 )}
