@@ -27,7 +27,7 @@ const isoControlsData: Record<string, TreeItemData> = {
   },
   section5: {
     title: 'Section 5: Information Security Policies',
-    children: ['control5.1']
+    children: ['control5_1']
   },
   control5_1: {
     title: 'Control 5.1: Management direction for information security',
@@ -112,9 +112,12 @@ const IsoControlsTree = () => {
   
   // Create tree items from our data
   const treeItems = createTreeItemsFromData(isoControlsData);
-  const dataProvider = new StaticTreeDataProvider(treeItems, {
-    getItemTitle: (item) => item.data.title,
-  });
+  
+  // Create data provider with correct configuration
+  const dataProvider = new StaticTreeDataProvider(
+    treeItems, 
+    (item, newName) => ({ ...item, data: { ...item.data, title: newName } })
+  );
   
   return (
     <div className="mb-6 border rounded-md overflow-auto">

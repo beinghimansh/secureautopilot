@@ -12,9 +12,10 @@ type AuthMode = 'login' | 'register';
 
 interface AuthFormProps {
   initialMode?: AuthMode;
+  onSubmitStateChange?: (status: boolean) => void;
 }
 
-export default function AuthForm({ initialMode = 'login' }: AuthFormProps) {
+export default function AuthForm({ initialMode = 'login', onSubmitStateChange }: AuthFormProps) {
   const [mode, setMode] = useState<AuthMode>(initialMode);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -32,6 +33,10 @@ export default function AuthForm({ initialMode = 'login' }: AuthFormProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    // Notify parent component about loading state
+    if (onSubmitStateChange) {
+      onSubmitStateChange(true);
+    }
     
     try {
       if (mode === 'register') {
@@ -60,6 +65,10 @@ export default function AuthForm({ initialMode = 'login' }: AuthFormProps) {
       toast.error(error.message || "Authentication failed. Please try again.");
     } finally {
       setIsLoading(false);
+      // Notify parent component about loading state finished
+      if (onSubmitStateChange) {
+        onSubmitStateChange(false);
+      }
     }
   };
 
