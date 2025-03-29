@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { UserVoicePreference, availableVoices } from "./voice.types";
@@ -23,6 +24,7 @@ const voicePreferencesService = {
         id: data.id,
         user_id: data.user_id,
         voice_id: data.preferred_voice_id,
+        preferred_voice_id: data.preferred_voice_id,
         playback_speed: data.playback_speed,
         auto_play: data.auto_play,
         language: data.language || 'en',
@@ -37,13 +39,16 @@ const voicePreferencesService = {
 
   async saveUserVoicePreference(preferences: Partial<UserVoicePreference>): Promise<UserVoicePreference | null> {
     try {
+      // Handle both voice_id and preferred_voice_id
+      const voiceId = preferences.voice_id || preferences.preferred_voice_id;
+      
       const dbPreferenceData = {
-        preferred_voice_id: preferences.voice_id || availableVoices[0].voice_id,
+        preferred_voice_id: voiceId || availableVoices[0].voice_id,
         playback_speed: preferences.playback_speed || 1.0,
         auto_play: preferences.auto_play ?? false,
         language: preferences.language || 'en',
         ...Object.entries(preferences)
-          .filter(([key]) => !['voice_id'].includes(key))
+          .filter(([key]) => !['voice_id', 'preferred_voice_id'].includes(key))
           .reduce((acc, [key, value]) => ({ ...acc, [key]: value }), {})
       };
 
@@ -81,6 +86,7 @@ const voicePreferencesService = {
         id: savedData.id,
         user_id: savedData.user_id,
         voice_id: savedData.preferred_voice_id,
+        preferred_voice_id: savedData.preferred_voice_id,
         playback_speed: savedData.playback_speed,
         auto_play: savedData.auto_play,
         language: savedData.language || 'en',

@@ -4,6 +4,10 @@
 
 import voiceService, { 
   availableVoices,
+} from './voice';
+
+// Use 'export type' for type exports when isolatedModules is enabled
+export type { 
   VoiceSummary,
   VoiceTrainingSession,
   UserVoicePreference,
@@ -12,10 +16,6 @@ import voiceService, {
 
 export { 
   availableVoices,
-  VoiceSummary,
-  VoiceTrainingSession,
-  UserVoicePreference,
-  ElevenLabsVoice
 };
 
 export default voiceService;

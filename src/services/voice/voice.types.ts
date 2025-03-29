@@ -35,6 +35,7 @@ export interface UserVoicePreference {
   id: string;
   user_id: string;
   voice_id: string;
+  preferred_voice_id?: string; // Add this for backward compatibility
   playback_speed: number;
   auto_play: boolean;
   language: string;

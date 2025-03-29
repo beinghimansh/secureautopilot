@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
@@ -14,7 +15,7 @@ interface VoiceSettingsProps {
 
 const VoiceSettings: React.FC<VoiceSettingsProps> = ({ onSettingsChange }) => {
   const [preferences, setPreferences] = useState<Partial<UserVoicePreference>>({
-    preferred_voice_id: availableVoices[0].voice_id,
+    voice_id: availableVoices[0].voice_id,
     playback_speed: 1.0,
     auto_play: false
   });
@@ -29,7 +30,7 @@ const VoiceSettings: React.FC<VoiceSettingsProps> = ({ onSettingsChange }) => {
       if (userPrefs) {
         setPreferences({
           ...userPrefs,
-          preferred_voice_id: userPrefs.preferred_voice_id,
+          voice_id: userPrefs.voice_id || userPrefs.preferred_voice_id,
           playback_speed: userPrefs.playback_speed,
           auto_play: userPrefs.auto_play
         });
@@ -42,7 +43,7 @@ const VoiceSettings: React.FC<VoiceSettingsProps> = ({ onSettingsChange }) => {
   }, []);
 
   const handleVoiceChange = (voiceId: string) => {
-    setPreferences(prev => ({ ...prev, preferred_voice_id: voiceId }));
+    setPreferences(prev => ({ ...prev, voice_id: voiceId }));
   };
 
   const handleSpeedChange = (speed: string) => {
@@ -71,16 +72,16 @@ const VoiceSettings: React.FC<VoiceSettingsProps> = ({ onSettingsChange }) => {
   };
 
   const handleTestVoice = async () => {
-    if (!preferences.preferred_voice_id) {
+    if (!preferences.voice_id) {
       toast.error('Please select a voice first');
       return;
     }
     
-    const voiceName = voiceService.getVoiceNameById(preferences.preferred_voice_id);
+    const voiceName = voiceService.getVoiceNameById(preferences.voice_id);
     const testText = `This is a test of the ${voiceName} voice. Your current playback speed is set to ${preferences.playback_speed}x.`;
     
     try {
-      const result = await voiceService.generateSpeech(testText, preferences.preferred_voice_id);
+      const result = await voiceService.generateSpeech(testText, preferences.voice_id);
       
       if (result.success && result.audioUrl) {
         const audio = new Audio(result.audioUrl);
@@ -125,7 +126,7 @@ const VoiceSettings: React.FC<VoiceSettingsProps> = ({ onSettingsChange }) => {
         <div className="space-y-2">
           <Label htmlFor="voice-select">Preferred Voice</Label>
           <Select 
-            value={preferences.preferred_voice_id} 
+            value={preferences.voice_id} 
             onValueChange={handleVoiceChange}
           >
             <SelectTrigger id="voice-select">
