@@ -1,193 +1,220 @@
 
-import React, { useState, useEffect, useMemo } from 'react';
-import { Tree, StaticTreeDataProvider, TreeItemIndex, TreeItem } from 'react-complex-tree';
+import React, { useState } from 'react';
+import { ChevronDown, ChevronRight, AlertCircle, CheckCircle, Clock } from 'lucide-react';
+import { Tree, TreeItemIndex, StaticTreeDataProvider } from 'react-complex-tree';
 import 'react-complex-tree/lib/style-modern.css';
-import { Progress } from '@/components/ui/progress';
-import { Badge } from '@/components/ui/badge';
-import { ChevronRight, ChevronDown } from 'lucide-react';
+import StatusBadge from './components/StatusBadge';
 
-// Define interface for the tree item data
+// Define the structure for our tree item data
 interface TreeItemData {
-  index: string;
-  data: {
-    title: string;
-    status?: 'compliant' | 'non_compliant' | 'in_progress' | 'not_applicable';
-    progress?: number;
-  };
-  children: string[];
-  canMove?: boolean;
-  isFolder?: boolean;
+  title: string;
+  status?: 'compliant' | 'non_compliant' | 'in_progress' | 'not_applicable';
+  progress?: number;
+  children?: TreeItemIndex[];
 }
 
-interface IsoControlsTreeProps {
-  frameworkData: any;
-  selectedControl: string | null;
-  onSelectControl: (controlId: string) => void;
-}
-
-const IsoControlsTree: React.FC<IsoControlsTreeProps> = ({
-  frameworkData,
-  selectedControl,
-  onSelectControl
-}) => {
-  const [focusedItem, setFocusedItem] = useState<TreeItemIndex | null>(null);
-  const [expandedItems, setExpandedItems] = useState<TreeItemIndex[]>([]);
-  const [selectedItems, setSelectedItems] = useState<TreeItemIndex[]>([]);
-
-  // Build tree items from framework data
-  const treeItems = useMemo(() => {
-    if (!frameworkData || !frameworkData.controls) {
-      return {};
-    }
-
-    const items: Record<string, TreeItemData> = {
-      root: {
-        index: 'root',
-        data: {
-          title: frameworkData.name || 'Framework Controls',
-        },
-        children: [],
-        isFolder: true,
-      },
-    };
-
-    // Group controls by domain if applicable
-    const domains: Record<string, any> = {};
-    
-    frameworkData.controls.forEach((control: any) => {
-      const domainId = control.domain || 'uncategorized';
-      
-      if (!domains[domainId]) {
-        domains[domainId] = {
-          id: domainId,
-          name: control.domainName || domainId,
-          controls: []
-        };
-      }
-      
-      domains[domainId].controls.push(control);
-    });
-
-    // Add domains as first-level items
-    Object.keys(domains).forEach((domainId) => {
-      const domain = domains[domainId];
-      const domainItemId = `domain-${domainId}`;
-      
-      items[domainItemId] = {
-        index: domainItemId,
-        data: {
-          title: domain.name,
-        },
-        children: [],
-        isFolder: true,
-      };
-      
-      items.root.children.push(domainItemId);
-      
-      // Add controls within each domain
-      domain.controls.forEach((control: any) => {
-        const controlId = control.id;
-        
-        items[controlId] = {
-          index: controlId,
-          data: {
-            title: `${control.id}: ${control.title}`,
-            status: control.status,
-            progress: control.progress || 0
-          },
-          children: [],
-        };
-        
-        items[domainItemId].children.push(controlId);
-      });
-    });
-
-    return items;
-  }, [frameworkData]);
-
-  const dataProvider = useMemo(() => 
-    new StaticTreeDataProvider(treeItems, (item, data) => ({ ...item, data })),
-  [treeItems]);
-
-  useEffect(() => {
-    // Expand root item by default
-    setExpandedItems(['root']);
-    
-    // Set selected control if provided
-    if (selectedControl) {
-      setSelectedItems([selectedControl]);
-    }
-  }, [selectedControl]);
-
-  const handleItemSelect = (items: TreeItemIndex[]) => {
-    if (items.length > 0) {
-      const selectedId = items[0].toString();
-      
-      // Only select items that are actual controls (not folders)
-      if (selectedId !== 'root' && !selectedId.startsWith('domain-')) {
-        setSelectedItems(items);
-        onSelectControl(selectedId);
-      }
-    }
-  };
-
-  if (!frameworkData || !treeItems.root) {
-    return <div>Loading controls...</div>;
+// Sample data structure for ISO 27001 controls
+const isoControls: Record<string, TreeItemData> = {
+  root: {
+    title: 'ISO 27001 Controls',
+    children: ['a5', 'a6', 'a7', 'a8', 'a9', 'a10', 'a11', 'a12', 'a13', 'a14', 'a15', 'a16', 'a17', 'a18'],
+  },
+  a5: {
+    title: 'A.5 Information security policies',
+    children: ['a5.1'],
+    status: 'compliant',
+    progress: 100
+  },
+  'a5.1': {
+    title: 'A.5.1 Management direction for information security',
+    children: ['a5.1.1', 'a5.1.2'],
+    status: 'compliant',
+    progress: 100
+  },
+  'a5.1.1': {
+    title: 'A.5.1.1 Policies for information security',
+    status: 'compliant',
+    progress: 100
+  },
+  'a5.1.2': {
+    title: 'A.5.1.2 Review of the policies for information security',
+    status: 'compliant',
+    progress: 100
+  },
+  a6: {
+    title: 'A.6 Organization of information security',
+    children: ['a6.1', 'a6.2'],
+    status: 'in_progress',
+    progress: 75
+  },
+  'a6.1': {
+    title: 'A.6.1 Internal organization',
+    children: ['a6.1.1', 'a6.1.2', 'a6.1.3', 'a6.1.4', 'a6.1.5'],
+    status: 'in_progress',
+    progress: 80
+  },
+  'a6.1.1': {
+    title: 'A.6.1.1 Information security roles and responsibilities',
+    status: 'compliant',
+    progress: 100
+  },
+  'a6.1.2': {
+    title: 'A.6.1.2 Segregation of duties',
+    status: 'in_progress',
+    progress: 60
+  },
+  'a6.1.3': {
+    title: 'A.6.1.3 Contact with authorities',
+    status: 'in_progress',
+    progress: 70
+  },
+  'a6.1.4': {
+    title: 'A.6.1.4 Contact with special interest groups',
+    status: 'compliant',
+    progress: 100
+  },
+  'a6.1.5': {
+    title: 'A.6.1.5 Information security in project management',
+    status: 'in_progress',
+    progress: 40
+  },
+  'a6.2': {
+    title: 'A.6.2 Mobile devices and teleworking',
+    children: ['a6.2.1', 'a6.2.2'],
+    status: 'non_compliant',
+    progress: 30
+  },
+  'a6.2.1': {
+    title: 'A.6.2.1 Mobile device policy',
+    status: 'non_compliant',
+    progress: 20
+  },
+  'a6.2.2': {
+    title: 'A.6.2.2 Teleworking',
+    status: 'in_progress',
+    progress: 40
+  },
+  // Fix for the error: Use object for a7 instead of string
+  a7: {
+    title: 'A.7 Human resource security',
+    children: [],
+    status: 'not_applicable',
+    progress: 0
+  },
+  a8: {
+    title: 'A.8 Asset management',
+    children: [],
+    status: 'not_applicable',
+    progress: 0
+  },
+  a9: {
+    title: 'A.9 Access control',
+    children: [],
+    status: 'not_applicable',
+    progress: 0
+  },
+  a10: {
+    title: 'A.10 Cryptography',
+    children: [],
+    status: 'not_applicable',
+    progress: 0
+  },
+  a11: {
+    title: 'A.11 Physical and environmental security',
+    children: [],
+    status: 'not_applicable',
+    progress: 0
+  },
+  a12: {
+    title: 'A.12 Operations security',
+    children: [],
+    status: 'not_applicable',
+    progress: 0
+  },
+  a13: {
+    title: 'A.13 Communications security',
+    children: [],
+    status: 'not_applicable',
+    progress: 0
+  },
+  a14: {
+    title: 'A.14 System acquisition, development and maintenance',
+    children: [],
+    status: 'not_applicable',
+    progress: 0
+  },
+  a15: {
+    title: 'A.15 Supplier relationships',
+    children: [],
+    status: 'not_applicable',
+    progress: 0
+  },
+  a16: {
+    title: 'A.16 Information security incident management',
+    children: [],
+    status: 'not_applicable',
+    progress: 0
+  },
+  a17: {
+    title: 'A.17 Information security aspects of business continuity management',
+    children: [],
+    status: 'not_applicable',
+    progress: 0
+  },
+  a18: {
+    title: 'A.18 Compliance',
+    children: [],
+    status: 'not_applicable',
+    progress: 0
   }
+};
+
+const IsoControlsTree = () => {
+  const [expandedItems, setExpandedItems] = useState<TreeItemIndex[]>(['root']);
+  const [selectedItems, setSelectedItems] = useState<TreeItemIndex[]>([]);
+  
+  // Create a data provider with our controls
+  const dataProvider = new StaticTreeDataProvider(
+    isoControls,
+    (item, data) => data.children || []
+  );
+
+  // Render a custom tree item with status indicators
+  const renderItemTitle = ({ title, status }: TreeItemData) => {
+    return (
+      <div className="flex items-center gap-2">
+        <span>{title}</span>
+        {status && <StatusBadge status={status} />}
+      </div>
+    );
+  };
+
+  // Render the arrow icon based on expanded state
+  const renderItemArrow = ({ item, context }: { item: TreeItemIndex, context: any }) => {
+    return context.isExpanded ? (
+      <ChevronDown className="h-4 w-4 text-gray-500" />
+    ) : (
+      <ChevronRight className="h-4 w-4 text-gray-500" />
+    );
+  };
 
   return (
-    <div className="border rounded-md overflow-hidden bg-white">
+    <div className="border rounded-md p-4 bg-white">
+      <h3 className="text-lg font-medium mb-4">ISO 27001 Controls</h3>
       <Tree
-        treeId="iso-controls"
+        treeId="iso-controls-tree"
         rootItem="root"
-        treeItems={treeItems}
+        items={isoControls}
         dataProvider={dataProvider}
-        selectedItems={selectedItems}
-        focusedItem={focusedItem}
         expandedItems={expandedItems}
-        onFocusItem={setFocusedItem}
+        selectedItems={selectedItems}
         onExpandItem={(item) => setExpandedItems([...expandedItems, item])}
-        onCollapseItem={(item) => 
-          setExpandedItems(expandedItems.filter(expandedItem => expandedItem !== item))
+        onCollapseItem={(item) =>
+          setExpandedItems(expandedItems.filter((expandedItem) => expandedItem !== item))
         }
-        onSelectItems={handleItemSelect}
-        renderItemTitle={({ title, item }) => {
-          const treeItem = treeItems[item.index as string];
-          const status = treeItem?.data?.status;
-          const progress = treeItem?.data?.progress;
-
-          return (
-            <div className="flex items-center gap-2">
-              <span>{title}</span>
-              
-              {status && (
-                <Badge className={`ml-2 ${
-                  status === 'compliant' ? 'bg-green-100 text-green-800' :
-                  status === 'non_compliant' ? 'bg-red-100 text-red-800' :
-                  status === 'in_progress' ? 'bg-yellow-100 text-yellow-800' :
-                  'bg-gray-100 text-gray-800'
-                }`}>
-                  {status.replace('_', ' ')}
-                </Badge>
-              )}
-              
-              {progress !== undefined && progress > 0 && (
-                <div className="w-16 ml-auto mr-2">
-                  <Progress value={progress} className="h-2" />
-                </div>
-              )}
-            </div>
-          );
-        }}
-        renderItemArrow={({ item, context }) => {
-          return item.isFolder ? (
-            context.isExpanded ? (
-              <ChevronDown size={16} />
-            ) : (
-              <ChevronRight size={16} />
-            )
-          ) : null;
-        }}
+        onSelectItems={(items) => setSelectedItems(items)}
+        renderItemTitle={renderItemTitle}
+        renderItemArrow={renderItemArrow}
       />
     </div>
   );

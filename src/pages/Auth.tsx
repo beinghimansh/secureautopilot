@@ -14,10 +14,21 @@ const Auth = () => {
   const mode = searchParams.get('mode') === 'register' ? 'register' : 'login';
 
   useEffect(() => {
+    // Apply dark theme to auth pages to match landing page
+    document.body.classList.add('dark-theme');
+    
     // If the user is already logged in, redirect to dashboard
     if (user && !isLoading) {
+      document.body.classList.remove('dark-theme'); // Remove dark theme before redirecting to dashboard
       navigate('/dashboard');
     }
+    
+    return () => {
+      // Only remove dark theme if we're navigating to a protected route
+      if (user) {
+        document.body.classList.remove('dark-theme');
+      }
+    };
   }, [user, isLoading, navigate]);
 
   // Show loading while checking auth state

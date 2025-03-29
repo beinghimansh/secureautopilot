@@ -3,9 +3,10 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import Button from '../common/Button';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '../common/Card';
 import { FadeIn } from '../common/Transitions';
 import { useAuth } from '@/contexts/AuthContext';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 
 type AuthMode = 'login' | 'register';
 
@@ -63,103 +64,90 @@ export default function AuthForm({ initialMode = 'login' }: AuthFormProps) {
   };
 
   return (
-    <FadeIn className="w-full max-w-md mx-auto">
-      <Card className="shadow-premium-lg">
-        <CardHeader>
-          <CardTitle className="text-2xl text-center">
-            {mode === 'login' ? 'Sign In' : 'Create Account'}
-          </CardTitle>
-          <CardDescription className="text-center">
-            {mode === 'login'
-              ? 'Enter your credentials to access your account'
-              : 'Register to start managing compliance easily'}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {mode === 'register' && (
-              <>
-                <div className="space-y-2">
-                  <label htmlFor="name" className="text-sm font-medium">
-                    Full Name
-                  </label>
-                  <input
-                    id="name"
-                    type="text"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-primary transition-all"
-                    placeholder="John Doe"
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label htmlFor="company" className="text-sm font-medium">
-                    Company Name
-                  </label>
-                  <input
-                    id="company"
-                    type="text"
-                    value={companyName}
-                    onChange={(e) => setCompanyName(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-primary transition-all"
-                    placeholder="Acme Inc"
-                    required
-                  />
-                </div>
-              </>
-            )}
+    <FadeIn className="w-full">
+      <form onSubmit={handleSubmit} className="space-y-5">
+        {mode === 'register' && (
+          <>
             <div className="space-y-2">
-              <label htmlFor="email" className="text-sm font-medium">
-                Email
-              </label>
-              <input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-primary transition-all"
-                placeholder="email@example.com"
+              <Label htmlFor="name" className="text-gray-300">
+                Full Name
+              </Label>
+              <Input
+                id="name"
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className="bg-[#1e1e1e]/80 border-gray-800 text-white focus:border-blue-500 focus:ring-blue-500/20"
+                placeholder="John Doe"
                 required
               />
             </div>
             <div className="space-y-2">
-              <label htmlFor="password" className="text-sm font-medium">
-                Password
-              </label>
-              <input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-primary transition-all"
-                placeholder="••••••••••••"
+              <Label htmlFor="company" className="text-gray-300">
+                Company Name
+              </Label>
+              <Input
+                id="company"
+                type="text"
+                value={companyName}
+                onChange={(e) => setCompanyName(e.target.value)}
+                className="bg-[#1e1e1e]/80 border-gray-800 text-white focus:border-blue-500 focus:ring-blue-500/20"
+                placeholder="Acme Inc"
                 required
               />
             </div>
-            <Button
-              type="submit"
-              className="w-full"
-              size="lg"
-              isLoading={isLoading}
-            >
-              {mode === 'login' ? 'Sign In' : 'Create Account'}
-            </Button>
-          </form>
-        </CardContent>
-        <CardFooter className="flex justify-center border-t">
-          <p className="text-sm text-gray-600">
+          </>
+        )}
+        <div className="space-y-2">
+          <Label htmlFor="email" className="text-gray-300">
+            Email
+          </Label>
+          <Input
+            id="email"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="bg-[#1e1e1e]/80 border-gray-800 text-white focus:border-blue-500 focus:ring-blue-500/20"
+            placeholder="email@example.com"
+            required
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="password" className="text-gray-300">
+            Password
+          </Label>
+          <Input
+            id="password"
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="bg-[#1e1e1e]/80 border-gray-800 text-white focus:border-blue-500 focus:ring-blue-500/20"
+            placeholder="••••••••••••"
+            required
+          />
+        </div>
+        <Button
+          type="submit"
+          className="w-full mt-6 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white border-none"
+          size="lg"
+          isLoading={isLoading}
+        >
+          {mode === 'login' ? 'Sign In' : 'Create Account'}
+        </Button>
+        
+        <div className="text-center mt-4">
+          <p className="text-sm text-gray-400">
             {mode === 'login' ? "Don't have an account?" : "Already have an account?"}
             <button
               onClick={toggleMode}
-              className="ml-1 text-primary font-medium hover:underline focus:outline-none"
+              className="ml-1 text-blue-400 hover:text-blue-300 font-medium focus:outline-none"
               type="button"
             >
               {mode === 'login' ? 'Sign Up' : 'Sign In'}
             </button>
           </p>
-        </CardFooter>
-      </Card>
+        </div>
+      </form>
     </FadeIn>
   );
 }
