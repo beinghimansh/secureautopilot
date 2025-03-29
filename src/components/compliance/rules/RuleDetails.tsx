@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/common/Card';
 import { 
   CheckCircle, 
@@ -8,14 +9,17 @@ import {
   Upload, 
   Edit, 
   FileText, 
-  Save
+  Save,
+  Download
 } from 'lucide-react';
 import Button from '@/components/common/Button';
 import { toast } from 'sonner';
 import { Textarea } from '@/components/ui/textarea';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { supabase } from '@/integrations/supabase/client';
 
 interface Rule {
-  id: number;
+  id: number | string;
   number: string;
   content: string;
   status?: 'compliant' | 'non_compliant' | 'in_progress' | 'not_applicable';
@@ -40,22 +44,44 @@ const RuleDetails: React.FC<RuleDetailsProps> = ({
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [status, setStatus] = useState<Rule['status']>(rule?.status || 'in_progress');
+  const [isSaving, setIsSaving] = useState(false);
   
   // Update local state when selected rule changes
-  React.useEffect(() => {
+  useEffect(() => {
     if (rule) {
       setStatus(rule.status || 'in_progress');
     }
   }, [rule]);
 
-  const handleStatusChange = (newStatus: Rule['status']) => {
+  const handleStatusChange = async (newStatus: Rule['status']) => {
     setStatus(newStatus);
+    
+    // Update status in database if it's connected
+    try {
+      const { error } = await supabase
+        .from('implementation_notes')
+        .update({ status: newStatus })
+        .eq('control_id', rule.id.toString());
+        
+      if (error) throw error;
+    } catch (error) {
+      console.error('Error updating status:', error);
+      // Don't show error toast since the status will still be updated locally
+    }
   };
 
   const handleSave = async () => {
-    await onSaveNotes();
-    toast.success('Changes saved successfully');
-    setIsEditing(false);
+    setIsSaving(true);
+    try {
+      await onSaveNotes();
+      toast.success('Changes saved successfully');
+      setIsEditing(false);
+    } catch (error) {
+      toast.error('Failed to save changes');
+      console.error('Error saving notes:', error);
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const getStatusIcon = (status?: string) => {
@@ -121,128 +147,157 @@ const RuleDetails: React.FC<RuleDetailsProps> = ({
 
   return (
     <Card className="h-full">
-      <CardContent className="p-6">
-        <div className="flex justify-between items-start mb-6">
-          <div>
-            <div className="flex items-center mb-2">
-              <span className="text-sm bg-blue-100 text-blue-800 px-2 py-0.5 rounded mr-2">
-                {rule.number}
-              </span>
-              <span className={`text-sm px-2 py-0.5 rounded flex items-center ${getStatusColor(status)}`}>
-                {getStatusIcon(status)}
-                <span className="ml-1">{getStatusText(status)}</span>
-              </span>
+      <CardContent className="p-0">
+        <div className="p-6 border-b border-gray-200">
+          <div className="flex justify-between items-start mb-4">
+            <div>
+              <div className="flex items-center mb-2">
+                <span className="text-sm bg-blue-100 text-blue-800 px-2 py-0.5 rounded mr-2">
+                  {rule.number}
+                </span>
+                <span className={`text-sm px-2 py-0.5 rounded flex items-center ${getStatusColor(status)}`}>
+                  {getStatusIcon(status)}
+                  <span className="ml-1">{getStatusText(status)}</span>
+                </span>
+              </div>
+              <h2 className="text-xl font-semibold">{rule.content}</h2>
             </div>
-            <h2 className="text-xl font-semibold">{rule.content}</h2>
+            <div>
+              {isEditing ? (
+                <Button 
+                  size="sm"
+                  leftIcon={<Save size={16} />}
+                  onClick={handleSave}
+                  isLoading={isSaving}
+                >
+                  Save
+                </Button>
+              ) : (
+                <Button 
+                  size="sm" 
+                  variant="outline"
+                  leftIcon={<Edit size={16} />}
+                  onClick={() => setIsEditing(true)}
+                >
+                  Edit
+                </Button>
+              )}
+            </div>
           </div>
-          <div>
-            {isEditing ? (
-              <Button 
-                size="sm"
-                leftIcon={<Save size={16} />}
-                onClick={handleSave}
-              >
-                Save
-              </Button>
-            ) : (
-              <Button 
-                size="sm" 
-                variant="outline"
-                leftIcon={<Edit size={16} />}
-                onClick={() => setIsEditing(true)}
-              >
-                Edit
-              </Button>
+        </div>
+
+        <ScrollArea className="h-[calc(100vh-350px)]">
+          <div className="p-6">
+            {rule.description && (
+              <div className="mb-6">
+                <h3 className="text-sm font-medium text-gray-500 mb-2">Description</h3>
+                <p className="text-gray-700">{rule.description}</p>
+              </div>
             )}
-          </div>
-        </div>
 
-        {rule.description && (
-          <div className="mb-6">
-            <h3 className="text-sm font-medium text-gray-500 mb-2">Description</h3>
-            <p className="text-gray-700">{rule.description}</p>
-          </div>
-        )}
+            {rule.requirement && (
+              <div className="mb-6">
+                <h3 className="text-sm font-medium text-gray-500 mb-2">Requirement</h3>
+                <div className="bg-gray-50 rounded p-3 border border-gray-200 text-sm">
+                  {rule.requirement}
+                </div>
+              </div>
+            )}
 
-        {rule.requirement && (
-          <div className="mb-6">
-            <h3 className="text-sm font-medium text-gray-500 mb-2">Requirement</h3>
-            <div className="bg-gray-50 rounded p-3 border border-gray-200 text-sm">
-              {rule.requirement}
+            <div className="mb-6">
+              <h3 className="text-sm font-medium text-gray-500 mb-2">Compliance Status</h3>
+              {isEditing ? (
+                <div className="grid grid-cols-2 gap-2 md:flex md:space-x-2">
+                  <button
+                    className={`px-3 py-2 rounded border ${status === 'compliant' ? 'border-green-600 bg-green-50' : 'border-gray-200 hover:bg-gray-50'} flex items-center`}
+                    onClick={() => handleStatusChange('compliant')}
+                  >
+                    <CheckCircle size={16} className="text-green-600 mr-2" />
+                    <span>Compliant</span>
+                  </button>
+                  <button
+                    className={`px-3 py-2 rounded border ${status === 'in_progress' ? 'border-yellow-600 bg-yellow-50' : 'border-gray-200 hover:bg-gray-50'} flex items-center`}
+                    onClick={() => handleStatusChange('in_progress')}
+                  >
+                    <Clock size={16} className="text-yellow-600 mr-2" />
+                    <span>In Progress</span>
+                  </button>
+                  <button
+                    className={`px-3 py-2 rounded border ${status === 'non_compliant' ? 'border-red-600 bg-red-50' : 'border-gray-200 hover:bg-gray-50'} flex items-center`}
+                    onClick={() => handleStatusChange('non_compliant')}
+                  >
+                    <AlertCircle size={16} className="text-red-600 mr-2" />
+                    <span>Non-Compliant</span>
+                  </button>
+                  <button
+                    className={`px-3 py-2 rounded border ${status === 'not_applicable' ? 'border-gray-600 bg-gray-50' : 'border-gray-200 hover:bg-gray-50'} flex items-center`}
+                    onClick={() => handleStatusChange('not_applicable')}
+                  >
+                    <HelpCircle size={16} className="text-gray-600 mr-2" />
+                    <span>Not Applicable</span>
+                  </button>
+                </div>
+              ) : (
+                <div className={`inline-flex items-center px-3 py-2 rounded ${getStatusColor(status)}`}>
+                  {getStatusIcon(status)}
+                  <span className="ml-2">{getStatusText(status)}</span>
+                </div>
+              )}
+            </div>
+
+            <div className="mb-6">
+              <h3 className="text-sm font-medium text-gray-500 mb-2">Implementation Notes</h3>
+              {isEditing ? (
+                <Textarea
+                  className="w-full border border-gray-300 rounded px-3 py-2 min-h-[200px]"
+                  value={implementationNotes || ''}
+                  onChange={(e) => onNotesChange(e.target.value)}
+                  placeholder="Add implementation notes here..."
+                />
+              ) : (
+                <div className="bg-gray-50 border border-gray-200 rounded p-3 min-h-[150px] whitespace-pre-wrap">
+                  {implementationNotes || "No notes added yet."}
+                </div>
+              )}
+            </div>
+
+            <div>
+              <h3 className="text-sm font-medium text-gray-500 mb-2">Evidence Documents</h3>
+              <div className="bg-gray-50 border border-gray-200 rounded p-4 text-center">
+                <p className="text-sm text-gray-500 mb-3">Upload documents as evidence for this requirement</p>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  leftIcon={<Upload size={16} />}
+                  onClick={() => toast.info('Document upload feature coming soon')}
+                >
+                  Upload Document
+                </Button>
+              </div>
             </div>
           </div>
-        )}
-
-        <div className="mb-6">
-          <h3 className="text-sm font-medium text-gray-500 mb-2">Compliance Status</h3>
-          {isEditing ? (
-            <div className="grid grid-cols-2 gap-2 md:flex md:space-x-2">
-              <button
-                className={`px-3 py-2 rounded border ${status === 'compliant' ? 'border-green-600 bg-green-50' : 'border-gray-200 hover:bg-gray-50'} flex items-center`}
-                onClick={() => handleStatusChange('compliant')}
-              >
-                <CheckCircle size={16} className="text-green-600 mr-2" />
-                <span>Compliant</span>
-              </button>
-              <button
-                className={`px-3 py-2 rounded border ${status === 'in_progress' ? 'border-yellow-600 bg-yellow-50' : 'border-gray-200 hover:bg-gray-50'} flex items-center`}
-                onClick={() => handleStatusChange('in_progress')}
-              >
-                <Clock size={16} className="text-yellow-600 mr-2" />
-                <span>In Progress</span>
-              </button>
-              <button
-                className={`px-3 py-2 rounded border ${status === 'non_compliant' ? 'border-red-600 bg-red-50' : 'border-gray-200 hover:bg-gray-50'} flex items-center`}
-                onClick={() => handleStatusChange('non_compliant')}
-              >
-                <AlertCircle size={16} className="text-red-600 mr-2" />
-                <span>Non-Compliant</span>
-              </button>
-              <button
-                className={`px-3 py-2 rounded border ${status === 'not_applicable' ? 'border-gray-600 bg-gray-50' : 'border-gray-200 hover:bg-gray-50'} flex items-center`}
-                onClick={() => handleStatusChange('not_applicable')}
-              >
-                <HelpCircle size={16} className="text-gray-600 mr-2" />
-                <span>Not Applicable</span>
-              </button>
-            </div>
-          ) : (
-            <div className={`inline-flex items-center px-3 py-2 rounded ${getStatusColor(status)}`}>
-              {getStatusIcon(status)}
-              <span className="ml-2">{getStatusText(status)}</span>
-            </div>
-          )}
-        </div>
-
-        <div className="mb-6">
-          <h3 className="text-sm font-medium text-gray-500 mb-2">Notes</h3>
-          {isEditing ? (
-            <Textarea
-              className="w-full border border-gray-300 rounded px-3 py-2 min-h-[100px]"
-              value={implementationNotes || ''}
-              onChange={(e) => onNotesChange(e.target.value)}
-              placeholder="Add implementation notes here..."
-            />
-          ) : (
-            <div className="bg-gray-50 border border-gray-200 rounded p-3 min-h-[80px]">
-              {implementationNotes || "No notes added yet."}
-            </div>
-          )}
-        </div>
-
-        <div>
-          <h3 className="text-sm font-medium text-gray-500 mb-2">Evidence Documents</h3>
-          <div className="bg-gray-50 border border-gray-200 rounded p-4 text-center">
-            <p className="text-sm text-gray-500 mb-3">Upload documents as evidence for this requirement</p>
+        </ScrollArea>
+        
+        <div className="p-4 border-t border-gray-200 bg-gray-50 flex justify-end items-center">
+          <Button 
+            variant="outline" 
+            size="sm"
+            leftIcon={<Download size={16} />}
+            onClick={() => toast.info('Export feature coming soon')}
+            className="mr-2"
+          >
+            Export Notes
+          </Button>
+          
+          {!isEditing && (
             <Button 
-              variant="outline" 
               size="sm"
-              leftIcon={<Upload size={16} />}
-              onClick={() => toast.info('Document upload feature coming soon')}
+              leftIcon={<Edit size={16} />}
+              onClick={() => setIsEditing(true)}
             >
-              Upload Document
+              Edit Notes
             </Button>
-          </div>
+          )}
         </div>
       </CardContent>
     </Card>

@@ -8,10 +8,13 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
 interface Rule {
-  id: number;
+  id: number | string;
   number: string;
   content: string;
   status?: 'compliant' | 'non_compliant' | 'in_progress' | 'not_applicable';
+  notes?: string;
+  description?: string;
+  requirement?: string;
 }
 
 interface RulesDisplayProps {
@@ -22,11 +25,38 @@ const RulesDisplay: React.FC<RulesDisplayProps> = ({ frameworkId }) => {
   const [selectedRule, setSelectedRule] = useState<Rule | null>(null);
   const [implementationNotes, setImplementationNotes] = useState<string>('');
   const [rules, setRules] = useState<Rule[]>([]);
-  const [isTreeView, setIsTreeView] = useState<boolean>(frameworkId === 'iso27001');
+  const [isTreeView, setIsTreeView] = useState<boolean>(
+    frameworkId === 'iso27001' || frameworkId === 'soc2'
+  );
   
   useEffect(() => {
     const fetchRules = async () => {
       try {
+        // If SOC2, try to get data from the database first
+        if (frameworkId === 'soc2') {
+          const { data, error } = await supabase
+            .from('soc2_requirements')
+            .select('*')
+            .order('control_number');
+            
+          if (error) throw error;
+          
+          if (data && data.length > 0) {
+            const formattedRules = data.map(item => ({
+              id: item.id,
+              number: item.control_number,
+              content: item.title,
+              description: item.description,
+              requirement: item.requirement,
+              status: 'in_progress' as const
+            }));
+            
+            setRules(formattedRules);
+            return;
+          }
+        }
+        
+        // Fallback to hardcoded data if needed
         const rulesData = require('@/components/compliance/rules/RulesData').getFrameworkRules(frameworkId);
         setRules(rulesData);
       } catch (error) {
@@ -37,7 +67,7 @@ const RulesDisplay: React.FC<RulesDisplayProps> = ({ frameworkId }) => {
     };
     
     fetchRules();
-    setIsTreeView(frameworkId === 'iso27001');
+    setIsTreeView(frameworkId === 'iso27001' || frameworkId === 'soc2');
   }, [frameworkId]);
 
   useEffect(() => {
@@ -45,9 +75,9 @@ const RulesDisplay: React.FC<RulesDisplayProps> = ({ frameworkId }) => {
       const fetchNotes = async () => {
         try {
           const { data, error } = await supabase
-            .from('control_implementation_notes')
+            .from('implementation_notes')
             .select('*')
-            .eq('control_id', selectedRule.id.toString())
+            .eq('requirement_id', selectedRule.id.toString())
             .maybeSingle();
 
           if (error && error.code !== 'PGRST116') {
@@ -57,8 +87,27 @@ const RulesDisplay: React.FC<RulesDisplayProps> = ({ frameworkId }) => {
 
           if (data) {
             setImplementationNotes(data.content || '');
+            
+            // Update status if available
+            if (data.status && selectedRule) {
+              setSelectedRule(prev => {
+                if (!prev) return prev;
+                return { ...prev, status: data.status as any };
+              });
+            }
           } else {
-            setImplementationNotes('');
+            // Try fallback to old control_id field for backward compatibility
+            const { data: oldData, error: oldError } = await supabase
+              .from('control_implementation_notes')
+              .select('*')
+              .eq('control_id', selectedRule.id.toString())
+              .maybeSingle();
+              
+            if (!oldError && oldData) {
+              setImplementationNotes(oldData.content || '');
+            } else {
+              setImplementationNotes('');
+            }
           }
         } catch (err) {
           console.error('Error fetching implementation notes:', err);
@@ -74,15 +123,17 @@ const RulesDisplay: React.FC<RulesDisplayProps> = ({ frameworkId }) => {
     if (!selectedRule) return;
 
     try {
+      // First try updating
       const { data, error } = await supabase
-        .from('control_implementation_notes')
+        .from('implementation_notes')
         .upsert(
           { 
-            control_id: selectedRule.id.toString(),
+            requirement_id: selectedRule.id.toString(),
             content: implementationNotes,
+            status: selectedRule.status || 'in_progress',
             updated_at: new Date().toISOString()
           },
-          { onConflict: 'control_id' }
+          { onConflict: 'requirement_id' }
         );
 
       if (error) {
@@ -107,30 +158,35 @@ const RulesDisplay: React.FC<RulesDisplayProps> = ({ frameworkId }) => {
   };
 
   const handleControlSelect = (control: any) => {
+    const ruleId = typeof control.id === 'string' ? control.id : parseInt(control.id);
+    
     const rule: Rule = {
-      id: parseInt(control.id.replace(/\D/g, '')) || Math.floor(Math.random() * 1000),
-      number: control.id,
+      id: ruleId,
+      number: control.number || control.id,
       content: control.title,
       status: control.status === 'implemented' ? 'compliant' : 
               control.status === 'in_progress' ? 'in_progress' : 
-              control.status === 'not_implemented' ? 'non_compliant' : 'not_applicable'
+              control.status === 'not_implemented' ? 'non_compliant' : 'not_applicable',
+      description: control.description,
+      requirement: control.requirement
     };
     
     setSelectedRule(rule);
   };
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
       <div className="md:col-span-1 overflow-auto">
         {isTreeView ? (
           <IsoControlsTree 
             onSelectControl={handleControlSelect}
-            selectedRuleId={selectedRule?.id || null}
+            selectedRuleId={selectedRule?.id ? Number(selectedRule.id) : null}
+            frameworkId={frameworkId}
           />
         ) : (
           <RulesList 
             rules={rules} 
-            selectedRuleId={selectedRule?.id || null} 
+            selectedRuleId={selectedRule?.id ? Number(selectedRule.id) : null} 
             onRuleClick={handleRuleClick} 
           />
         )}
