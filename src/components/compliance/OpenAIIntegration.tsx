@@ -35,37 +35,40 @@ const OpenAIIntegration: React.FC<OpenAIIntegrationProps> = ({
   };
 
   return (
-    <div className="bg-blue-50 p-4 rounded-lg border border-blue-100 mb-6">
-      <div className="flex items-center mb-3">
+    <div className="bg-blue-50 p-5 rounded-lg border border-blue-100 mb-6 shadow-sm">
+      <div className="flex items-center mb-4">
         <Bot className="text-blue-600 mr-2 h-5 w-5" />
         <h3 className="font-medium text-blue-700">{headingText}</h3>
       </div>
       
-      <form onSubmit={handleSubmit} className="flex gap-2">
-        <input
-          type="text"
+      <form onSubmit={handleSubmit} className="space-y-3">
+        <textarea
           value={prompt}
           onChange={(e) => setPrompt(e.target.value)}
           placeholder={placeholder}
-          className="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          className="w-full px-4 py-3 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 min-h-[120px] resize-y"
           disabled={isLoading}
         />
-        <Button 
-          type="submit" 
-          disabled={isLoading || !prompt.trim()}
-          variant="default"
-          size="sm"
-        >
-          {isLoading ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Generating...
-            </>
-          ) : 'Generate'}
-        </Button>
+        
+        <div className="flex justify-end">
+          <Button 
+            type="submit" 
+            disabled={isLoading || !prompt.trim()}
+            variant="default"
+            size="sm"
+            className="w-full md:w-auto"
+          >
+            {isLoading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Generating...
+              </>
+            ) : 'Generate'}
+          </Button>
+        </div>
       </form>
       
-      <div className="mt-3 flex flex-wrap gap-2">
+      <div className="mt-4 flex flex-wrap gap-2">
         <AIGuidanceButton text="How do I implement this control?" onClick={(text) => setPrompt(text)} />
         <AIGuidanceButton text="What evidence is required?" onClick={(text) => setPrompt(text)} />
         <AIGuidanceButton text="Generate implementation guidelines" onClick={(text) => setPrompt(text)} />

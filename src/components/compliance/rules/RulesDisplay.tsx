@@ -7,7 +7,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Loader2 } from 'lucide-react';
+import { Loader2, Save } from 'lucide-react';
+import { Card, CardContent, CardFooter } from '@/components/ui/card';
 
 interface RulesDisplayProps {
   ruleId?: string | null;
@@ -150,51 +151,72 @@ const RulesDisplay: React.FC<RulesDisplayProps> = ({
   }
 
   return (
-    <div className="p-4 space-y-4">
-      <div>
-        <h3 className="text-lg font-semibold">
-          {selectedRule.control_id} - {selectedRule.title}
-        </h3>
-        <p className="text-gray-600">{selectedRule.description}</p>
-      </div>
+    <Card className="shadow-sm">
+      <CardContent className="p-6 space-y-6">
+        <div>
+          <div className="flex justify-between items-start">
+            <div>
+              <span className="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded mb-2">
+                {selectedRule.control_id}
+              </span>
+              <h3 className="text-xl font-semibold">
+                {selectedRule.title}
+              </h3>
+            </div>
+            <span className="inline-block px-3 py-1 rounded-full text-xs text-white bg-blue-500">
+              {selectedRule.status}
+            </span>
+          </div>
+          <p className="text-gray-600 mt-2">{selectedRule.description}</p>
+        </div>
 
-      <div>
-        <Label htmlFor="implementation-notes">Implementation Notes</Label>
-        <Textarea
-          id="implementation-notes"
-          placeholder="Enter implementation notes..."
-          value={implementationNotes || ''}
-          onChange={handleNotesChange}
-          className="mt-2"
-        />
-      </div>
+        <div>
+          <Label htmlFor="status" className="block mb-2">Status</Label>
+          <Select value={selectedRule.status} onValueChange={handleStatusChange}>
+            <SelectTrigger className="w-full md:w-[200px]">
+              <SelectValue placeholder="Select a status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="Not Started">Not Started</SelectItem>
+              <SelectItem value="In Progress">In Progress</SelectItem>
+              <SelectItem value="Completed">Completed</SelectItem>
+              <SelectItem value="Not Applicable">Not Applicable</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
 
-      <div>
-        <Label>Status</Label>
-        <Select value={selectedRule.status} onValueChange={handleStatusChange}>
-          <SelectTrigger className="mt-2 w-[180px]">
-            <SelectValue placeholder="Select a status" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="Not Started">Not Started</SelectItem>
-            <SelectItem value="In Progress">In Progress</SelectItem>
-            <SelectItem value="Completed">Completed</SelectItem>
-            <SelectItem value="Not Applicable">Not Applicable</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-
-      <Button onClick={saveImplementationNotes} disabled={saving}>
-        {saving ? (
-          <>
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            Saving...
-          </>
-        ) : (
-          'Save Notes'
-        )}
-      </Button>
-    </div>
+        <div>
+          <Label htmlFor="implementation-notes" className="block mb-2">Implementation Notes</Label>
+          <Textarea
+            id="implementation-notes"
+            placeholder="Enter implementation notes..."
+            value={implementationNotes || ''}
+            onChange={handleNotesChange}
+            className="min-h-[200px] resize-y"
+          />
+        </div>
+      </CardContent>
+      
+      <CardFooter className="px-6 py-4 bg-gray-50 border-t flex justify-end">
+        <Button 
+          onClick={saveImplementationNotes} 
+          disabled={saving}
+          className="w-full md:w-auto"
+        >
+          {saving ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Saving...
+            </>
+          ) : (
+            <>
+              <Save className="mr-2 h-4 w-4" />
+              Save Notes
+            </>
+          )}
+        </Button>
+      </CardFooter>
+    </Card>
   );
 };
 

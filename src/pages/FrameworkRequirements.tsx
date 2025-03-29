@@ -78,7 +78,7 @@ const FrameworkRequirements = () => {
       <Navbar />
       <div className="flex">
         <Sidebar />
-        <main className="flex-1 p-6 lg:p-8 overflow-x-hidden">
+        <main className="flex-1 p-6 lg:p-8 overflow-x-hidden overflow-y-auto">
           <PageTransition>
             <div className="max-w-7xl mx-auto">
               <motion.div 
@@ -119,8 +119,8 @@ const FrameworkRequirements = () => {
                 </Card>
               </ScaleIn>
               
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                <div className="col-span-2">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+                <div className="lg:col-span-2">
                   <Tabs defaultValue={selectedTab} className="mb-6" onValueChange={setSelectedTab}>
                     <TabsList className="mb-4 bg-white border shadow-sm">
                       <TabsTrigger value="controls" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">Controls & Clauses</TabsTrigger>
@@ -162,11 +162,12 @@ const FrameworkRequirements = () => {
                   </Tabs>
                 </div>
                 
-                <div className="col-span-1">
+                <div className="lg:col-span-1">
                   <motion.div
                     initial={{ opacity: 0, x: 20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ duration: 0.4, delay: 0.2 }}
+                    className="sticky top-6"
                   >
                     <OpenAIIntegration 
                       onGenerateContent={handleGenerateWithAI}
