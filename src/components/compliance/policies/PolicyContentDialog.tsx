@@ -1,18 +1,17 @@
 
 import React, { useState } from 'react';
-import { Download, X, FileText, AlertCircle, BarChart, Award } from 'lucide-react';
-import { Dialog, DialogTitle, DialogContent, DialogDescription } from "@/components/ui/dialog";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import Button from '@/components/common/Button';
-import { toast } from 'sonner';
+import { X, Download, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import ReactMarkdown from 'react-markdown';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { toast } from 'sonner';
 
 interface PolicyContentDialogProps {
   showPolicyContent: boolean;
-  setShowPolicyContent: React.Dispatch<React.SetStateAction<boolean>>;
+  setShowPolicyContent: (show: boolean) => void;
   selectedPolicy: any;
-  handleDownloadPolicy: (policy: any, section: string) => void;
+  handleDownloadPolicy: (policy: any, type: string) => void;
 }
 
 const PolicyContentDialog: React.FC<PolicyContentDialogProps> = ({
@@ -23,112 +22,167 @@ const PolicyContentDialog: React.FC<PolicyContentDialogProps> = ({
 }) => {
   const [activeTab, setActiveTab] = useState('policy');
 
-  const handleClose = () => {
-    setShowPolicyContent(false);
-  };
-
   if (!selectedPolicy) {
     return null;
   }
 
-  const PolicyContent = ({ content }: { content: string }) => {
-    if (!content) {
-      return (
-        <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-md">
-          <div className="flex items-start">
-            <AlertCircle className="w-5 h-5 text-yellow-600 mr-2 mt-0.5" />
-            <p className="text-yellow-700">This content section is not available for this policy.</p>
-          </div>
-        </div>
-      );
-    }
+  const policyContent = selectedPolicy.content || selectedPolicy.policy_content || '';
+  const riskAssessment = selectedPolicy.riskAssessment || '';
+  const implementationGuide = selectedPolicy.implementationGuide || '';
+  const gapsAnalysis = selectedPolicy.gapsAnalysis || '';
+  const aiSuggestions = selectedPolicy.aiSuggestions || '';
 
-    return (
-      <div className="prose prose-sm max-w-none markdown-content">
-        <ReactMarkdown>{content}</ReactMarkdown>
-      </div>
-    );
+  const getPolicyTabClass = (tabName: string) => {
+    return `px-4 py-2 ${activeTab === tabName ? 'bg-blue-100 text-blue-800' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'} rounded-md transition-colors`;
   };
+
+  const getWordCount = (text: string) => {
+    if (!text) return 0;
+    return text.split(/\s+/).filter(word => word.length > 0).length;
+  };
+
+  const policyWordCount = getWordCount(policyContent);
 
   return (
     <Dialog open={showPolicyContent} onOpenChange={setShowPolicyContent}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
-        <div className="flex justify-between items-center mb-4">
-          <DialogTitle className="text-xl">{selectedPolicy.name}</DialogTitle>
-          <button
-            onClick={handleClose}
-            className="text-gray-500 hover:text-gray-700"
-          >
-            <X size={20} />
-          </button>
-        </div>
+      <DialogContent className="max-w-4xl w-full h-[80vh] p-0 bg-white">
+        <DialogHeader className="px-6 py-4 border-b">
+          <div className="flex items-center justify-between">
+            <div>
+              <DialogTitle className="text-xl">{selectedPolicy.name || 'Policy Document'}</DialogTitle>
+              <DialogDescription className="text-sm text-gray-500 mt-1">
+                Framework: {selectedPolicy.framework?.toUpperCase() || 'N/A'} | 
+                Created: {new Date(selectedPolicy.created_at).toLocaleDateString()} | 
+                Words: {policyWordCount}
+              </DialogDescription>
+            </div>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={() => setShowPolicyContent(false)}
+              className="h-8 w-8 p-0 rounded-full"
+            >
+              <X className="h-4 w-4" />
+              <span className="sr-only">Close</span>
+            </Button>
+          </div>
+        </DialogHeader>
 
-        <Tabs defaultValue="policy" className="flex-grow overflow-hidden flex flex-col" value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="mb-4">
-            <TabsTrigger value="policy">
-              <FileText className="w-4 h-4 mr-2" />
-              Policy Document
-            </TabsTrigger>
-            <TabsTrigger value="risk">
-              <AlertCircle className="w-4 h-4 mr-2" />
-              Risk Assessment
-            </TabsTrigger>
-            <TabsTrigger value="implementation">
-              <Award className="w-4 h-4 mr-2" />
-              Implementation
-            </TabsTrigger>
-            <TabsTrigger value="gaps">
-              <BarChart className="w-4 h-4 mr-2" />
-              Gaps Analysis
-            </TabsTrigger>
-            <TabsTrigger value="ai">
-              <FileText className="w-4 h-4 mr-2" />
-              AI Suggestions
-            </TabsTrigger>
-          </TabsList>
+        <Tabs defaultValue="policy" className="w-full h-full flex flex-col">
+          <div className="px-6 pt-4 border-b">
+            <TabsList className="bg-gray-100">
+              <TabsTrigger value="policy" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">
+                Policy Document
+              </TabsTrigger>
+              {riskAssessment && (
+                <TabsTrigger value="risk" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">
+                  Risk Assessment
+                </TabsTrigger>
+              )}
+              {implementationGuide && (
+                <TabsTrigger value="implementation" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">
+                  Implementation
+                </TabsTrigger>
+              )}
+              {gapsAnalysis && (
+                <TabsTrigger value="gaps" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">
+                  Gaps Analysis
+                </TabsTrigger>
+              )}
+              {aiSuggestions && (
+                <TabsTrigger value="ai" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">
+                  AI Suggestions
+                </TabsTrigger>
+              )}
+            </TabsList>
+          </div>
 
-          <div className="flex-grow overflow-auto pb-4">
-            <TabsContent value="policy" className="mt-0 h-full">
-              <div className="p-4 bg-white rounded-md border border-gray-200 overflow-auto max-h-[60vh]">
-                <PolicyContent content={selectedPolicy.policy_content || selectedPolicy.content} />
+          <div className="flex-1 overflow-hidden">
+            <TabsContent value="policy" className="h-full m-0 data-[state=active]:flex flex-col">
+              <div className="flex-1 overflow-y-auto px-6 py-4 bg-white">
+                <div className="prose max-w-none">
+                  <ReactMarkdown>{policyContent}</ReactMarkdown>
+                </div>
+              </div>
+              <div className="p-4 border-t bg-gray-50 flex justify-between items-center">
+                <div className="text-sm text-gray-500">
+                  {policyWordCount} words
+                </div>
+                <Button 
+                  onClick={() => handleDownloadPolicy(selectedPolicy, 'policy')}
+                  className="ml-auto"
+                >
+                  <Download className="mr-2 h-4 w-4" />
+                  Download PDF
+                </Button>
               </div>
             </TabsContent>
 
-            <TabsContent value="risk" className="mt-0 h-full">
-              <div className="p-4 bg-white rounded-md border border-gray-200 overflow-auto max-h-[60vh]">
-                <PolicyContent content={selectedPolicy.riskAssessment || selectedPolicy.risk_assessment} />
+            <TabsContent value="risk" className="h-full m-0 data-[state=active]:flex flex-col">
+              <div className="flex-1 overflow-y-auto px-6 py-4 bg-white">
+                <div className="prose max-w-none">
+                  <ReactMarkdown>{riskAssessment}</ReactMarkdown>
+                </div>
+              </div>
+              <div className="p-4 border-t bg-gray-50 flex justify-end">
+                <Button 
+                  onClick={() => handleDownloadPolicy(selectedPolicy, 'risk')}
+                >
+                  <Download className="mr-2 h-4 w-4" />
+                  Download PDF
+                </Button>
               </div>
             </TabsContent>
 
-            <TabsContent value="implementation" className="mt-0 h-full">
-              <div className="p-4 bg-white rounded-md border border-gray-200 overflow-auto max-h-[60vh]">
-                <PolicyContent content={selectedPolicy.implementationGuide || selectedPolicy.implementation_guide} />
+            <TabsContent value="implementation" className="h-full m-0 data-[state=active]:flex flex-col">
+              <div className="flex-1 overflow-y-auto px-6 py-4 bg-white">
+                <div className="prose max-w-none">
+                  <ReactMarkdown>{implementationGuide}</ReactMarkdown>
+                </div>
+              </div>
+              <div className="p-4 border-t bg-gray-50 flex justify-end">
+                <Button 
+                  onClick={() => handleDownloadPolicy(selectedPolicy, 'implementation')}
+                >
+                  <Download className="mr-2 h-4 w-4" />
+                  Download PDF
+                </Button>
               </div>
             </TabsContent>
 
-            <TabsContent value="gaps" className="mt-0 h-full">
-              <div className="p-4 bg-white rounded-md border border-gray-200 overflow-auto max-h-[60vh]">
-                <PolicyContent content={selectedPolicy.gapsAnalysis || selectedPolicy.gaps_analysis} />
+            <TabsContent value="gaps" className="h-full m-0 data-[state=active]:flex flex-col">
+              <div className="flex-1 overflow-y-auto px-6 py-4 bg-white">
+                <div className="prose max-w-none">
+                  <ReactMarkdown>{gapsAnalysis}</ReactMarkdown>
+                </div>
+              </div>
+              <div className="p-4 border-t bg-gray-50 flex justify-end">
+                <Button 
+                  onClick={() => handleDownloadPolicy(selectedPolicy, 'gaps')}
+                >
+                  <Download className="mr-2 h-4 w-4" />
+                  Download PDF
+                </Button>
               </div>
             </TabsContent>
 
-            <TabsContent value="ai" className="mt-0 h-full">
-              <div className="p-4 bg-white rounded-md border border-gray-200 overflow-auto max-h-[60vh]">
-                <PolicyContent content={selectedPolicy.aiSuggestions || selectedPolicy.ai_suggestions} />
+            <TabsContent value="ai" className="h-full m-0 data-[state=active]:flex flex-col">
+              <div className="flex-1 overflow-y-auto px-6 py-4 bg-white">
+                <div className="prose max-w-none">
+                  <ReactMarkdown>{aiSuggestions}</ReactMarkdown>
+                </div>
+              </div>
+              <div className="p-4 border-t bg-gray-50 flex justify-end">
+                <Button 
+                  onClick={() => handleDownloadPolicy(selectedPolicy, 'ai')}
+                >
+                  <Download className="mr-2 h-4 w-4" />
+                  Download PDF
+                </Button>
               </div>
             </TabsContent>
           </div>
         </Tabs>
-
-        <div className="flex justify-end space-x-2 mt-4 pt-4 border-t border-gray-200">
-          <Button 
-            variant="outline" 
-            onClick={() => handleDownloadPolicy(selectedPolicy, activeTab)}
-            leftIcon={<Download size={16} />}
-          >
-            Download Section
-          </Button>
-        </div>
       </DialogContent>
     </Dialog>
   );

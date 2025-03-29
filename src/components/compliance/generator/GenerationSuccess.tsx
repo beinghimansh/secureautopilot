@@ -18,7 +18,7 @@ const GenerationSuccess: React.FC<GenerationSuccessProps> = ({
   const isShortPolicy = wordCount !== null && wordCount < 200;
 
   return (
-    <div className="min-h-[400px] w-full flex flex-col items-center justify-center p-8">
+    <div className="min-h-[400px] w-full flex flex-col items-center justify-center p-8 bg-white rounded-lg shadow">
       <motion.div
         initial={{ scale: 0 }}
         animate={{ scale: 1 }}

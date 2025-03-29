@@ -1,116 +1,173 @@
+
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Card, CardContent } from '../common/Card';
-import Button from '../common/Button';
-import { ScaleIn } from '../common/Transitions';
-import { Shield, CheckCircle, File, ArrowRight } from 'lucide-react';
+import { navigate } from '@/components/ui/navigate';
+import { Shield, ArrowRight, Settings, RefreshCw } from 'lucide-react';
+import { Card, CardContent } from '@/components/common/Card';
+import { toast } from 'sonner';
+import { motion } from 'framer-motion';
 import { supabase } from '@/integrations/supabase/client';
-
-interface Framework {
-  id: string;
-  name: string;
-  description: string;
-  icon: JSX.Element;
-  implemented?: boolean;
-}
-
-const frameworks: Framework[] = [
-  {
-    id: 'iso27001',
-    name: 'ISO 27001',
-    description: 'Information security management system standard',
-    icon: (
-      <Shield className="h-8 w-8" />
-    ),
-  },
-  {
-    id: 'soc2',
-    name: 'SOC 2',
-    description: 'Service Organization Control standard for service providers',
-    icon: (
-      <CheckCircle className="h-8 w-8" />
-    ),
-  },
-  {
-    id: 'gdpr',
-    name: 'GDPR',
-    description: 'General Data Protection Regulation for EU data privacy',
-    icon: (
-      <File className="h-8 w-8" />
-    ),
-  },
-  {
-    id: 'hipaa',
-    name: 'HIPAA',
-    description: 'Health Insurance Portability and Accountability Act',
-    icon: (
-      <Shield className="h-8 w-8" />
-    ),
-  },
-];
 
 interface FrameworkSelectorProps {
   onSelectFramework: (frameworkId: string) => void;
 }
 
-const FrameworkSelector = ({ onSelectFramework }: FrameworkSelectorProps) => {
-  const navigate = useNavigate();
-  const [implementedFrameworks, setImplementedFrameworks] = useState<string[]>([]);
+const frameworks = [
+  {
+    id: 'iso27001',
+    name: 'ISO 27001',
+    description: 'Information Security Management',
+    color: 'blue'
+  },
+  {
+    id: 'soc2',
+    name: 'SOC 2',
+    description: 'Service Organization Controls',
+    color: 'indigo'
+  },
+  {
+    id: 'gdpr',
+    name: 'GDPR',
+    description: 'General Data Protection Regulation',
+    color: 'green'
+  },
+  {
+    id: 'hipaa',
+    name: 'HIPAA',
+    description: 'Health Insurance Portability and Accountability Act',
+    color: 'red'
+  },
+  {
+    id: 'pci_dss',
+    name: 'PCI DSS',
+    description: 'Payment Card Industry Data Security Standard',
+    color: 'orange'
+  }
+];
+
+const FrameworkSelector: React.FC<FrameworkSelectorProps> = ({ onSelectFramework }) => {
+  const [hasGeneratedPolicies, setHasGeneratedPolicies] = useState<Record<string, boolean>>({});
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const fetchImplementedFrameworks = async () => {
+    const fetchExistingPolicies = async () => {
       try {
-        setImplementedFrameworks(['iso27001']);
+        setIsLoading(true);
+        const { data, error } = await supabase
+          .from('generated_policies')
+          .select('framework_type, created_at')
+          .order('created_at', { ascending: false });
+
+        if (error) {
+          throw error;
+        }
+
+        // Create an object that tracks if each framework has any generated policies
+        const policyStatus: Record<string, boolean> = {};
+        
+        if (data) {
+          // Group by framework_type and get the most recent for each
+          const frameworkPolicies = data.reduce((acc: Record<string, any>, policy) => {
+            if (!acc[policy.framework_type] || new Date(policy.created_at) > new Date(acc[policy.framework_type].created_at)) {
+              acc[policy.framework_type] = policy;
+            }
+            return acc;
+          }, {});
+
+          // Set true for frameworks that have generated policies
+          frameworks.forEach(framework => {
+            policyStatus[framework.id] = !!frameworkPolicies[framework.id];
+          });
+        }
+
+        setHasGeneratedPolicies(policyStatus);
       } catch (error) {
-        console.error('Error fetching implemented frameworks:', error);
+        console.error('Error fetching policy data:', error);
+        toast.error('Failed to load policy data');
+      } finally {
+        setIsLoading(false);
       }
     };
 
-    fetchImplementedFrameworks();
+    fetchExistingPolicies();
   }, []);
 
-  const handleFrameworkClick = (frameworkId: string) => {
-    if (implementedFrameworks.includes(frameworkId)) {
-      navigate(`/compliance/${frameworkId}/requirements`);
-    } else {
-      onSelectFramework(frameworkId);
+  const getBackgroundColor = (color: string) => {
+    switch (color) {
+      case 'blue': return 'bg-blue-500';
+      case 'indigo': return 'bg-indigo-500';
+      case 'green': return 'bg-green-500';
+      case 'red': return 'bg-red-500';
+      case 'orange': return 'bg-orange-500';
+      default: return 'bg-blue-500';
     }
   };
 
+  const navigateToFrameworkRequirements = (frameworkId: string) => {
+    navigate(`/compliance/${frameworkId}/requirements`);
+  };
+
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-      {frameworks.map((framework, index) => (
-        <ScaleIn key={framework.id} delay={index * 100}>
-          <Card className="h-full hover:shadow-premium-md transition-all duration-300">
-            <CardContent className="p-6 flex flex-col h-full">
-              <div className="mb-4 p-3 bg-blue-100 rounded-full w-16 h-16 flex items-center justify-center text-blue-600">
-                {framework.icon}
-              </div>
-              
-              {implementedFrameworks.includes(framework.id) && (
-                <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full absolute top-4 right-4 flex items-center">
-                  <CheckCircle size={12} className="mr-1" />
-                  Implemented
-                </span>
-              )}
-              
-              <h3 className="text-xl font-medium mb-2">{framework.name}</h3>
-              <p className="text-gray-600 mb-6 flex-grow">{framework.description}</p>
-              
-              <Button 
-                onClick={() => handleFrameworkClick(framework.id)}
-                className="w-full mt-auto"
-                variant={implementedFrameworks.includes(framework.id) ? "outline" : "default"}
-                rightIcon={<ArrowRight size={16} />}
-              >
-                {implementedFrameworks.includes(framework.id) 
-                  ? `Manage ${framework.name} Controls`
-                  : `Select ${framework.name}`}
-              </Button>
-            </CardContent>
-          </Card>
-        </ScaleIn>
-      ))}
+    <div className="space-y-8">
+      <div className="text-center mb-8">
+        <h2 className="text-2xl font-bold mb-2">Compliance Frameworks</h2>
+        <p className="text-gray-600 max-w-2xl mx-auto">
+          Choose a compliance framework to generate policies, manage requirements, and track your implementation progress
+        </p>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {frameworks.map((framework) => (
+          <motion.div
+            key={framework.id}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex flex-col h-full">
+                  <div className="mb-4 flex items-center">
+                    <div className={`${getBackgroundColor(framework.color)} p-3 rounded-lg text-white`}>
+                      <Shield size={24} />
+                    </div>
+                    <div className="ml-4">
+                      <h3 className="text-lg font-medium">{framework.name}</h3>
+                      <p className="text-gray-600 text-sm">{framework.description}</p>
+                    </div>
+                  </div>
+
+                  {!isLoading && hasGeneratedPolicies[framework.id] ? (
+                    <div className="grid grid-cols-2 gap-3 mt-auto">
+                      <button
+                        onClick={() => navigateToFrameworkRequirements(framework.id)}
+                        className="flex items-center justify-center gap-2 py-2 px-4 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-md transition-colors"
+                      >
+                        <Settings size={16} />
+                        <span>Manage</span>
+                      </button>
+                      <button
+                        onClick={() => onSelectFramework(framework.id)}
+                        className="flex items-center justify-center gap-2 py-2 px-4 bg-green-50 hover:bg-green-100 text-green-700 rounded-md transition-colors"
+                      >
+                        <RefreshCw size={16} />
+                        <span>Re-assess</span>
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => onSelectFramework(framework.id)}
+                      className="mt-auto flex items-center justify-center gap-2 py-2 px-4 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-md transition-colors w-full"
+                    >
+                      <span>Get Started</span>
+                      <ArrowRight size={16} />
+                    </button>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        ))}
+      </div>
     </div>
   );
 };

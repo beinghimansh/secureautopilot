@@ -21,7 +21,7 @@ export const generateCompliancePolicy = async (
     console.log('Generating policy with data:', JSON.stringify(formData, null, 2));
     
     // Ensure we're sending detailed instructions for content length
-    const enhancedPrompt = `${prompt}\n\nIMPORTANT: Generate a HIGHLY DETAILED and COMPREHENSIVE policy with AT LEAST 1500 words. Include multiple sections with detailed content for each.`;
+    const enhancedPrompt = `${prompt}\n\nIMPORTANT: Generate a HIGHLY DETAILED and COMPREHENSIVE policy with AT LEAST 3000 words. Include multiple sections with detailed content for each. The policy should be authoritative, professional, and thorough, covering all aspects of ${formData.frameworkType.toUpperCase()} compliance for a ${formData.industry} organization of size ${formData.companySize}.`;
     
     const { data, error } = await supabase.functions.invoke('generate-comprehensive-policy', {
       body: {
@@ -30,7 +30,7 @@ export const generateCompliancePolicy = async (
         options: {
           model: options.model || 'gpt-4o',
           temperature: options.temperature || 0.7,
-          max_tokens: options.max_tokens || 8000, // Significantly increased token limit for comprehensive policies
+          max_tokens: options.max_tokens || 16000, // Significantly increased token limit for comprehensive policies
           stream: options.stream || false
         }
       }
@@ -51,6 +51,10 @@ export const generateCompliancePolicy = async (
     
     if (wordCount < 200) {
       console.warn('WARNING: Generated policy is shorter than the 200 word minimum!');
+    } else if (wordCount < 1000) {
+      console.warn('Policy is shorter than the recommended 1000 words for comprehensive coverage.');
+    } else {
+      console.log('Policy meets the word count requirements for comprehensive coverage.');
     }
     
     return data;

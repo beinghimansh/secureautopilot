@@ -22,7 +22,7 @@ const GenerationProgress: React.FC<GenerationProgressProps> = ({ frameworkName, 
   }, progressSteps[0]);
 
   return (
-    <div className="min-h-[400px] w-full flex flex-col items-center justify-center p-8">
+    <div className="min-h-[400px] w-full flex flex-col items-center justify-center p-8 bg-white rounded-lg shadow">
       <motion.div
         initial={{ rotate: 0 }}
         animate={{ rotate: 360 }}
