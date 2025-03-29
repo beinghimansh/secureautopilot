@@ -33,6 +33,7 @@ const CreateTrainingSession: React.FC<CreateTrainingSessionProps> = ({ onCreated
   const [creating, setCreating] = useState(false);
   const [previewAudio, setPreviewAudio] = useState<string | null>(null);
   const [userProfile, setUserProfile] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
   
   const { register, handleSubmit, watch, setValue, formState: { errors } } = useForm<TrainingSessionForm>({
     defaultValues: {
@@ -52,24 +53,82 @@ const CreateTrainingSession: React.FC<CreateTrainingSessionProps> = ({ onCreated
   // Fetch user profile and initialize form data
   useEffect(() => {
     const fetchUserData = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (session) {
-        const { data: profileData } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', session.user.id)
-          .single();
-          
-        if (profileData) {
-          setUserProfile(profileData);
-          
-          // Load user voice preference
-          const prefs = await voiceService.getUserVoicePreference();
-          if (prefs && (prefs.voice_id || prefs.preferred_voice_id)) {
-            setValue('voice_id', prefs.voice_id || prefs.preferred_voice_id || '');
+      setLoading(true);
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (session) {
+          // First, try to get the profile
+          const { data: profileData, error: profileError } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', session.user.id)
+            .single();
+            
+          if (profileError) {
+            console.error('Error fetching profile:', profileError);
+            toast.error('Could not load your profile. Please try again later.');
+            setLoading(false);
+            return;
           }
+            
+          if (profileData) {
+            console.log('User profile found:', profileData);
+            setUserProfile(profileData);
+            
+            // If no organization is set, create a default one for testing
+            if (!profileData.organization_id) {
+              console.log('No organization found, creating a default one for testing');
+              // Create a test organization if none exists
+              const { data: orgData, error: orgError } = await supabase
+                .from('organizations')
+                .insert({
+                  name: 'Test Organization',
+                  slug: 'test-org'
+                })
+                .select()
+                .single();
+                
+              if (orgError) {
+                console.error('Error creating test organization:', orgError);
+              } else if (orgData) {
+                // Update user profile with the new organization
+                const { error: updateError } = await supabase
+                  .from('profiles')
+                  .update({ organization_id: orgData.id })
+                  .eq('id', session.user.id);
+                  
+                if (updateError) {
+                  console.error('Error updating profile with organization:', updateError);
+                } else {
+                  // Refresh profile data
+                  const { data: updatedProfile } = await supabase
+                    .from('profiles')
+                    .select('*')
+                    .eq('id', session.user.id)
+                    .single();
+                    
+                  if (updatedProfile) {
+                    setUserProfile(updatedProfile);
+                  }
+                }
+              }
+            }
+            
+            // Load user voice preference
+            const prefs = await voiceService.getUserVoicePreference();
+            if (prefs && (prefs.voice_id || prefs.preferred_voice_id)) {
+              setValue('voice_id', prefs.voice_id || prefs.preferred_voice_id || '');
+            }
+          }
+        } else {
+          toast.error('You must be logged in to create training sessions');
         }
+      } catch (error) {
+        console.error('Error fetching user data:', error);
+        toast.error('Failed to load user data');
+      } finally {
+        setLoading(false);
       }
     };
     
@@ -91,8 +150,10 @@ const CreateTrainingSession: React.FC<CreateTrainingSessionProps> = ({ onCreated
       
       if (result.success && result.audioUrl) {
         setPreviewAudio(result.audioUrl);
+        toast.success('Preview generated successfully');
       } else {
-        toast.error('Failed to generate preview');
+        console.error('Preview generation failed:', result.error);
+        toast.error(`Failed to generate preview: ${result.error || 'Unknown error'}`);
       }
     } catch (error) {
       console.error('Error generating preview:', error);
@@ -102,13 +163,14 @@ const CreateTrainingSession: React.FC<CreateTrainingSessionProps> = ({ onCreated
   
   const onSubmit = async (data: TrainingSessionForm) => {
     if (!userProfile?.organization_id) {
-      toast.error('User organization not found');
+      toast.error('User organization not found. Please try again later.');
       return;
     }
     
     setCreating(true);
     
     try {
+      console.log('Creating training session with org ID:', userProfile.organization_id);
       const result = await voiceService.createTrainingSession({
         ...data,
         organization_id: userProfile.organization_id
@@ -134,6 +196,18 @@ const CreateTrainingSession: React.FC<CreateTrainingSessionProps> = ({ onCreated
       setCreating(false);
     }
   };
+
+  if (loading) {
+    return (
+      <Card>
+        <CardContent className="p-6">
+          <div className="flex justify-center items-center h-32">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card>

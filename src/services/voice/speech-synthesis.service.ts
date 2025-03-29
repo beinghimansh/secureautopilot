@@ -13,6 +13,8 @@ export interface SpeechGenerationResult {
 const speechSynthesisService = {
   async generateSpeech(text: string, voiceId: string, model?: string): Promise<SpeechGenerationResult> {
     try {
+      console.log(`Generating speech with voiceId: ${voiceId}, text length: ${text.length}`);
+      
       const response = await fetch('/api/text-to-speech', {
         method: 'POST',
         headers: {
@@ -27,12 +29,14 @@ const speechSynthesisService = {
 
       if (!response.ok) {
         const errorData = await response.json();
+        console.error('Text-to-speech API error:', errorData);
         throw new Error(errorData.error || 'Failed to generate speech');
       }
 
       const data = await response.json();
 
       if (!data.success) {
+        console.error('Text-to-speech API returned error:', data.error);
         throw new Error(data.error || 'Failed to generate speech');
       }
 
@@ -47,6 +51,8 @@ const speechSynthesisService = {
 
       const wordCount = text.split(/\s+/).length;
       const estimatedDuration = Math.round(wordCount * 60 / 150);
+      
+      console.log('Speech generated successfully');
 
       return {
         success: true,
