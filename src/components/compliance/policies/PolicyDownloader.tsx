@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Download, Eye, FileText, AlertCircle, BarChart, Award, FileText2 } from 'lucide-react';
+import { Download, Eye, FileText, AlertCircle, BarChart, Award } from 'lucide-react';
 import { Card, CardContent } from '@/components/common/Card';
 import Button from '@/components/common/Button';
 import { toast } from 'sonner';
@@ -13,6 +13,10 @@ interface Policy {
   framework: string;
   content?: string;
   policy_content?: string;
+  risk_assessment?: string;
+  implementation_guide?: string;
+  gaps_analysis?: string;
+  ai_suggestions?: string;
   status?: string;
 }
 
@@ -54,22 +58,22 @@ const PolicyDownloader: React.FC<PolicyDownloaderProps> = ({ policies, onViewPol
           title = `${policy.name} - Policy Document`;
           break;
         case 'risk':
-          content = policy.riskAssessment || policy.risk_assessment || '';
+          content = policy.risk_assessment || '';
           filename = `${policy.name.replace(/\s+/g, '-').toLowerCase()}-risk-assessment.pdf`;
           title = `${policy.name} - Risk Assessment`;
           break;
         case 'implementation':
-          content = policy.implementationGuide || policy.implementation_guide || '';
+          content = policy.implementation_guide || '';
           filename = `${policy.name.replace(/\s+/g, '-').toLowerCase()}-implementation-guide.pdf`;
           title = `${policy.name} - Implementation Guide`;
           break;
         case 'gaps':
-          content = policy.gapsAnalysis || policy.gaps_analysis || '';
+          content = policy.gaps_analysis || '';
           filename = `${policy.name.replace(/\s+/g, '-').toLowerCase()}-gaps-analysis.pdf`;
           title = `${policy.name} - Gaps Analysis`;
           break;
         case 'ai':
-          content = policy.aiSuggestions || policy.ai_suggestions || '';
+          content = policy.ai_suggestions || '';
           filename = `${policy.name.replace(/\s+/g, '-').toLowerCase()}-ai-suggestions.pdf`;
           title = `${policy.name} - AI Suggestions`;
           break;
@@ -174,7 +178,7 @@ const PolicyDownloader: React.FC<PolicyDownloaderProps> = ({ policies, onViewPol
                           onClick={() => handleDownload(policy, 'ai')}
                           className="w-full text-left px-3 py-2 rounded-md hover:bg-gray-100 flex items-center"
                         >
-                          <FileText2 className="w-4 h-4 mr-2" />
+                          <FileText className="w-4 h-4 mr-2" />
                           <span>AI Suggestions</span>
                         </button>
                       </div>

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { ChevronRight, ChevronDown, Check, Clock, AlertCircle } from 'lucide-react';
 
@@ -144,8 +143,6 @@ const isoControlsData: ControlItem[] = [
   }
 ];
 
-// Add more ISO 27001 controls following the same structure...
-
 interface TreeNodeProps {
   item: ControlItem;
   level: number;
@@ -236,9 +233,10 @@ const TreeNode: React.FC<TreeNodeProps> = ({ item, level, onSelect }) => {
 
 interface IsoControlsTreeProps {
   onSelectControl: (control: ControlItem) => void;
+  selectedRuleId: number | null;
 }
 
-const IsoControlsTree: React.FC<IsoControlsTreeProps> = ({ onSelectControl }) => {
+const IsoControlsTree: React.FC<IsoControlsTreeProps> = ({ onSelectControl, selectedRuleId }) => {
   return (
     <div className="bg-white border rounded-md shadow-sm">
       <div className="p-4 border-b">

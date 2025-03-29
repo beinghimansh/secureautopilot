@@ -110,13 +110,27 @@ const RulesDisplay: React.FC<RulesDisplayProps> = ({ frameworkId }) => {
     setImplementationNotes(content);
   };
 
+  const handleControlSelect = (control: any) => {
+    // Convert the tree control item to a rule format
+    const rule: Rule = {
+      id: parseInt(control.id.replace(/\D/g, '')) || Math.floor(Math.random() * 1000), // Extract numbers or use random
+      number: control.id,
+      content: control.title,
+      status: control.status === 'implemented' ? 'compliant' : 
+             control.status === 'in_progress' ? 'in_progress' : 
+             control.status === 'not_implemented' ? 'non_compliant' : 'not_applicable'
+    };
+    
+    setSelectedRule(rule);
+  };
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
       <div className="md:col-span-1 overflow-auto">
         {isTreeView ? (
           <IsoControlsTree 
             selectedRuleId={selectedRule?.id || null}
-            onSelectRule={handleRuleClick}
+            onSelectControl={handleControlSelect}
           />
         ) : (
           <RulesList 

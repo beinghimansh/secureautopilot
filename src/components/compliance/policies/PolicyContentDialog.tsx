@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Download, X, FileText, AlertCircle, BarChart, FileText2, Award } from 'lucide-react';
+import { Download, X, FileText, AlertCircle, BarChart, Award } from 'lucide-react';
 import { Dialog, DialogTitle, DialogContent, DialogDescription } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
@@ -82,7 +82,7 @@ const PolicyContentDialog: React.FC<PolicyContentDialogProps> = ({
               Gaps Analysis
             </TabsTrigger>
             <TabsTrigger value="ai">
-              <FileText2 className="w-4 h-4 mr-2" />
+              <FileText className="w-4 h-4 mr-2" />
               AI Suggestions
             </TabsTrigger>
           </TabsList>

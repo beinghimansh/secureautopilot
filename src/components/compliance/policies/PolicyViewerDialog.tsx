@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { X, Download, FileText, AlertCircle, BarChart, Award, FileText2 } from 'lucide-react';
+import { X, Download, FileText, AlertCircle, BarChart, Award } from 'lucide-react';
 import Button from '@/components/common/Button';
 import { toast } from 'sonner';
 import ReactMarkdown from 'react-markdown';
