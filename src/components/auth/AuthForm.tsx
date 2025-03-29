@@ -39,15 +39,15 @@ export default function AuthForm({ initialMode = 'login' }: AuthFormProps) {
         const firstName = nameParts[0] || '';
         const lastName = nameParts.slice(1).join(' ') || '';
         
-        await signUp(email, password, {
+        // Create metadata object combining user profile data and additional metadata
+        const userData = {
           first_name: firstName,
           last_name: lastName,
-          email
-        }, {
-          data: {
-            company_name: companyName
-          }
-        });
+          email,
+          company_name: companyName // Include company_name in the metadata
+        };
+        
+        await signUp(email, password, userData);
         toast.success("Account created successfully!");
       } else {
         await signIn(email, password);
