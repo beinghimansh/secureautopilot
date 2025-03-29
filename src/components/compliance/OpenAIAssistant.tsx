@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface OpenAIAssistantProps {
   onGenerateContent?: (prompt: string) => Promise<void>;
@@ -55,6 +56,31 @@ const OpenAIAssistant: React.FC<OpenAIAssistantProps> = ({
     }
   };
 
+  // Try to parse the response if it's in JSON format to extract just the content
+  const formatAIResponse = (response: string) => {
+    try {
+      // Check if response looks like JSON
+      if (response.trim().startsWith('{') && response.trim().endsWith('}')) {
+        const parsedResponse = JSON.parse(response);
+        
+        // Handle different response structures
+        if (parsedResponse.choices && parsedResponse.choices[0]?.message?.content) {
+          return parsedResponse.choices[0].message.content;
+        } else if (parsedResponse.message?.content) {
+          return parsedResponse.message.content;
+        } else if (parsedResponse.content) {
+          return parsedResponse.content;
+        }
+      }
+    } catch (e) {
+      // If parsing fails, return the original response
+      console.log('Response is not valid JSON, using as-is');
+    }
+    return response;
+  };
+
+  const displayResponse = aiResponse ? formatAIResponse(aiResponse) : null;
+
   return (
     <div className="bg-blue-50 p-5 rounded-lg border border-blue-100 mb-6 shadow-sm">
       <div className="flex items-center mb-4">
@@ -64,9 +90,11 @@ const OpenAIAssistant: React.FC<OpenAIAssistantProps> = ({
       
       {aiResponse ? (
         <div className="space-y-3">
-          <div className="bg-white p-4 rounded-md border border-blue-200 text-sm text-gray-700 whitespace-pre-wrap">
-            {aiResponse}
-          </div>
+          <ScrollArea className="bg-white rounded-md border border-blue-200 h-[300px] w-full">
+            <div className="p-4 text-sm text-gray-700 whitespace-pre-wrap">
+              {displayResponse}
+            </div>
+          </ScrollArea>
           <div className="flex justify-between">
             <Button 
               variant="outline"

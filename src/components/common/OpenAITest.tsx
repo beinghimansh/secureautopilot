@@ -1,7 +1,9 @@
 
 import React, { useState } from 'react';
-import { Bot, Loader2 } from 'lucide-react';
+import { Bot, Loader2, Copy } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { toast } from 'sonner';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface OpenAITestProps {
   title?: string;
@@ -44,6 +46,36 @@ const OpenAITest: React.FC<OpenAITestProps> = ({
       setError(err.message || 'Failed to connect to OpenAI');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  // Try to parse the response if it's in JSON format to extract just the content
+  const formatResponse = (responseText: string) => {
+    try {
+      // Check if response looks like JSON
+      if (responseText.trim().startsWith('{') && responseText.trim().endsWith('}')) {
+        const parsedResponse = JSON.parse(responseText);
+        
+        // Handle different response structures
+        if (parsedResponse.choices && parsedResponse.choices[0]?.message?.content) {
+          return parsedResponse.choices[0].message.content;
+        } else if (parsedResponse.message?.content) {
+          return parsedResponse.message.content;
+        } else if (parsedResponse.content) {
+          return parsedResponse.content;
+        }
+      }
+    } catch (e) {
+      // If parsing fails, return the original response
+      console.log('Response is not valid JSON, using as-is');
+    }
+    return responseText;
+  };
+
+  const handleCopyResponse = () => {
+    if (response) {
+      navigator.clipboard.writeText(response);
+      toast.success('Response copied to clipboard');
     }
   };
 
@@ -94,7 +126,22 @@ const OpenAITest: React.FC<OpenAITestProps> = ({
       {response && !error && (
         <div className="mt-4">
           <h4 className="font-medium text-sm text-gray-700 mb-2">Response:</h4>
-          <div className="p-3 bg-gray-50 rounded-md text-sm whitespace-pre-wrap">{response}</div>
+          <div className="flex justify-end mb-2">
+            <Button 
+              variant="outline"
+              size="sm"
+              onClick={handleCopyResponse}
+              className="text-blue-600 border-blue-200"
+            >
+              <Copy className="mr-2 h-4 w-4" />
+              Copy
+            </Button>
+          </div>
+          <ScrollArea className="border border-gray-200 rounded-md h-[200px]">
+            <div className="p-3 bg-gray-50 text-sm whitespace-pre-wrap">
+              {formatResponse(response)}
+            </div>
+          </ScrollArea>
         </div>
       )}
     </div>
