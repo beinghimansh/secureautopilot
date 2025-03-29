@@ -203,6 +203,30 @@ export type Database = {
           },
         ]
       }
+      control_implementation_notes: {
+        Row: {
+          content: string | null
+          control_id: string
+          created_at: string | null
+          id: string
+          updated_at: string | null
+        }
+        Insert: {
+          content?: string | null
+          control_id: string
+          created_at?: string | null
+          id?: string
+          updated_at?: string | null
+        }
+        Update: {
+          content?: string | null
+          control_id?: string
+          created_at?: string | null
+          id?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       generated_policies: {
         Row: {
           ai_suggestions: string | null

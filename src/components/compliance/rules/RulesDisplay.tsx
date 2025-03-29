@@ -13,18 +13,14 @@ interface Rule {
   status?: 'compliant' | 'non_compliant' | 'in_progress' | 'not_applicable';
 }
 
-interface Notes {
-  id: string;
-  content: string;
-  created_at: string;
-  updated_at: string;
+interface RulesDisplayProps {
+  frameworkId: string;
 }
 
-const RulesDisplay = () => {
+const RulesDisplay: React.FC<RulesDisplayProps> = ({ frameworkId }) => {
   const [selectedRule, setSelectedRule] = useState<Rule | null>(null);
   const [implementationNotes, setImplementationNotes] = useState<string>('');
   const [rules, setRules] = useState<Rule[]>([]);
-  const { frameworkId } = useParams();
   
   useEffect(() => {
     // Fetch rules data based on frameworkId
@@ -38,8 +34,7 @@ const RulesDisplay = () => {
     if (selectedRule?.id) {
       const fetchNotes = async () => {
         try {
-          // Check if the control_notes table exists in the database schema
-          // and fetch the notes for the selected rule
+          // Check if notes exist for the control
           const { data, error } = await supabase
             .from('control_implementation_notes')
             .select('*')
@@ -47,7 +42,10 @@ const RulesDisplay = () => {
             .single();
 
           if (error) {
-            console.error('Error fetching notes:', error);
+            if (error.code !== 'PGRST116') { // PGRST116 is "No rows returned" error
+              console.error('Error fetching notes:', error);
+            }
+            setImplementationNotes('');
             return;
           }
 

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/common/Card';
 import { 
@@ -13,6 +12,7 @@ import {
 } from 'lucide-react';
 import Button from '@/components/common/Button';
 import { toast } from 'sonner';
+import { Textarea } from '@/components/ui/textarea';
 
 interface Rule {
   id: number;
@@ -26,27 +26,34 @@ interface Rule {
 }
 
 interface RuleDetailsProps {
-  selectedRule: Rule | null;
+  rule: Rule;
+  implementationNotes: string;
+  onNotesChange: (content: string) => void;
+  onSaveNotes: () => Promise<void>;
 }
 
-const RuleDetails: React.FC<RuleDetailsProps> = ({ selectedRule }) => {
+const RuleDetails: React.FC<RuleDetailsProps> = ({ 
+  rule, 
+  implementationNotes, 
+  onNotesChange, 
+  onSaveNotes 
+}) => {
   const [isEditing, setIsEditing] = useState(false);
-  const [notes, setNotes] = useState('');
-  const [status, setStatus] = useState<Rule['status']>('in_progress');
+  const [status, setStatus] = useState<Rule['status']>(rule?.status || 'in_progress');
   
   // Update local state when selected rule changes
   React.useEffect(() => {
-    if (selectedRule) {
-      setNotes(selectedRule.notes || '');
-      setStatus(selectedRule.status || 'in_progress');
+    if (rule) {
+      setStatus(rule.status || 'in_progress');
     }
-  }, [selectedRule]);
+  }, [rule]);
 
   const handleStatusChange = (newStatus: Rule['status']) => {
     setStatus(newStatus);
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
+    await onSaveNotes();
     toast.success('Changes saved successfully');
     setIsEditing(false);
   };
@@ -96,7 +103,7 @@ const RuleDetails: React.FC<RuleDetailsProps> = ({ selectedRule }) => {
     }
   };
 
-  if (!selectedRule) {
+  if (!rule) {
     return (
       <Card className="h-full">
         <CardContent className="flex flex-col h-full items-center justify-center p-8 text-center">
@@ -119,14 +126,14 @@ const RuleDetails: React.FC<RuleDetailsProps> = ({ selectedRule }) => {
           <div>
             <div className="flex items-center mb-2">
               <span className="text-sm bg-blue-100 text-blue-800 px-2 py-0.5 rounded mr-2">
-                {selectedRule.number}
+                {rule.number}
               </span>
               <span className={`text-sm px-2 py-0.5 rounded flex items-center ${getStatusColor(status)}`}>
                 {getStatusIcon(status)}
                 <span className="ml-1">{getStatusText(status)}</span>
               </span>
             </div>
-            <h2 className="text-xl font-semibold">{selectedRule.content}</h2>
+            <h2 className="text-xl font-semibold">{rule.content}</h2>
           </div>
           <div>
             {isEditing ? (
@@ -150,18 +157,18 @@ const RuleDetails: React.FC<RuleDetailsProps> = ({ selectedRule }) => {
           </div>
         </div>
 
-        {selectedRule.description && (
+        {rule.description && (
           <div className="mb-6">
             <h3 className="text-sm font-medium text-gray-500 mb-2">Description</h3>
-            <p className="text-gray-700">{selectedRule.description}</p>
+            <p className="text-gray-700">{rule.description}</p>
           </div>
         )}
 
-        {selectedRule.requirement && (
+        {rule.requirement && (
           <div className="mb-6">
             <h3 className="text-sm font-medium text-gray-500 mb-2">Requirement</h3>
             <div className="bg-gray-50 rounded p-3 border border-gray-200 text-sm">
-              {selectedRule.requirement}
+              {rule.requirement}
             </div>
           </div>
         )}
@@ -210,15 +217,15 @@ const RuleDetails: React.FC<RuleDetailsProps> = ({ selectedRule }) => {
         <div className="mb-6">
           <h3 className="text-sm font-medium text-gray-500 mb-2">Notes</h3>
           {isEditing ? (
-            <textarea
+            <Textarea
               className="w-full border border-gray-300 rounded px-3 py-2 min-h-[100px]"
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
+              value={implementationNotes || ''}
+              onChange={(e) => onNotesChange(e.target.value)}
               placeholder="Add implementation notes here..."
             />
           ) : (
             <div className="bg-gray-50 border border-gray-200 rounded p-3 min-h-[80px]">
-              {notes || "No notes added yet."}
+              {implementationNotes || "No notes added yet."}
             </div>
           )}
         </div>
