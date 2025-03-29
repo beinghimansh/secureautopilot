@@ -1,123 +1,135 @@
+
 import React from 'react';
-import Navbar from '@/components/layout/Navbar';
-import { PageTransition } from '@/components/common/Transitions';
-import { Shield, Users, Award, Globe } from 'lucide-react';
-import Footer from '@/components/home/Footer';
+import PublicPageLayout from '@/components/layout/PublicPageLayout';
+import { Shield, Award, Users, Globe, Heart } from 'lucide-react';
+import Button from '@/components/common/Button';
+import { useNavigate } from 'react-router-dom';
 
 const About = () => {
+  const navigate = useNavigate();
+  
   return (
-    <div className="min-h-screen bg-white">
-      <Navbar />
-      <PageTransition skipAnimation={true}>
-        <main className="pt-20 pb-16">
-          <div className="container mx-auto px-4 md:px-6">
-            <div className="text-center max-w-3xl mx-auto mb-16">
-              <h1 className="text-4xl font-bold tracking-tight mb-4">About ComplyAI</h1>
-              <p className="text-xl text-gray-600">
-                We're on a mission to simplify compliance for businesses worldwide.
+    <PublicPageLayout>
+      <div className="pt-14 pb-16">
+        <div className="container mx-auto px-4 md:px-6">
+          {/* Hero Section */}
+          <div className="text-center max-w-3xl mx-auto mb-16">
+            <h1 className="text-4xl font-bold tracking-tight mb-4 text-white">
+              Our Mission
+            </h1>
+            <p className="text-xl text-gray-400 mb-8">
+              Simplifying compliance for businesses of all sizes with cutting-edge AI technology.
+            </p>
+          </div>
+          
+          {/* About Content */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-20">
+            <div className="space-y-6">
+              <h2 className="text-3xl font-bold text-white">Who We Are</h2>
+              <p className="text-gray-400">
+                ComplyAI was founded in 2021 by a team of compliance experts and AI engineers who recognized the challenges organizations face in navigating complex regulatory landscapes.
+              </p>
+              <p className="text-gray-400">
+                Our diverse team brings together expertise from cybersecurity, regulatory compliance, machine learning, and user experience design to create a platform that transforms how businesses approach compliance.
+              </p>
+              <p className="text-gray-400">
+                Today, we serve thousands of clients worldwide, from startups to Fortune 500 companies, helping them achieve and maintain compliance efficiently.
               </p>
             </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-16 mb-20">
-              <div>
-                <h2 className="text-3xl font-bold mb-6">Our Story</h2>
-                <p className="text-gray-600 text-lg mb-4">
-                  ComplyAI was founded in 2023 by a team of compliance experts and AI engineers who saw a gap in the market. Compliance processes were too cumbersome, time-consuming, and expensive for most businesses.
-                </p>
-                <p className="text-gray-600 text-lg mb-4">
-                  We set out to build a platform that would democratize compliance, making it accessible and manageable for organizations of all sizes - not just those with large compliance teams and budgets.
-                </p>
-                <p className="text-gray-600 text-lg">
-                  Today, ComplyAI helps thousands of businesses achieve and maintain compliance with major regulatory frameworks, saving them time, reducing costs, and improving their security posture.
-                </p>
+            
+            <div className="bg-[#1d1d1f] rounded-xl p-8 border border-gray-800">
+              <div className="flex items-center mb-6">
+                <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center mr-4">
+                  <Shield className="h-6 w-6 text-white" />
+                </div>
+                <h3 className="text-2xl font-bold text-white">ComplyAI</h3>
               </div>
-              <div className="flex items-center justify-center">
-                <img 
-                  src="/lovable-uploads/49b99d24-0168-4ba5-bcfa-00f6358ae80a.png" 
-                  alt="ComplyAI Team" 
-                  className="rounded-xl shadow-lg max-w-full h-auto"
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-20">
-              <ValueCard 
-                icon={<Shield className="h-8 w-8 text-blue-600" />}
-                title="Security First"
-                description="We believe security and compliance go hand in hand. Our platform is built with security at its core."
-              />
-              <ValueCard 
-                icon={<Users className="h-8 w-8 text-blue-600" />}
-                title="Customer Focused"
-                description="Our customers' success is our success. We're dedicated to providing exceptional support and guidance."
-              />
-              <ValueCard 
-                icon={<Award className="h-8 w-8 text-blue-600" />}
-                title="Excellence"
-                description="We strive for excellence in everything we do, from our platform to our customer service."
-              />
-              <ValueCard 
-                icon={<Globe className="h-8 w-8 text-blue-600" />}
-                title="Accessibility"
-                description="We're committed to making compliance accessible to organizations of all sizes and industries."
-              />
-            </div>
-
-            <div className="bg-gray-50 rounded-2xl p-10 mb-16">
-              <div className="text-center max-w-3xl mx-auto mb-10">
-                <h2 className="text-3xl font-bold mb-4">Our Leadership Team</h2>
-                <p className="text-lg text-gray-600">
-                  Meet the experts behind ComplyAI
-                </p>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                <TeamMember 
-                  name="Alex Johnson"
-                  title="CEO & Co-Founder"
-                  bio="Former CISO with 15+ years of experience in cybersecurity and compliance."
-                />
-                <TeamMember 
-                  name="Sarah Chen"
-                  title="CTO & Co-Founder"
-                  bio="AI researcher and engineer with a background in machine learning and natural language processing."
-                />
-                <TeamMember 
-                  name="Michael Rodriguez"
-                  title="Chief Compliance Officer"
-                  bio="Certified compliance professional with expertise in multiple regulatory frameworks."
-                />
+              
+              <div className="space-y-4">
+                <div className="flex items-start">
+                  <Award className="h-5 w-5 text-blue-400 mr-3 mt-1" />
+                  <div>
+                    <h4 className="text-white font-medium">Industry Recognition</h4>
+                    <p className="text-gray-400">Named "Most Innovative Compliance Solution" by TechAwards 2023</p>
+                  </div>
+                </div>
+                
+                <div className="flex items-start">
+                  <Users className="h-5 w-5 text-blue-400 mr-3 mt-1" />
+                  <div>
+                    <h4 className="text-white font-medium">Team Strength</h4>
+                    <p className="text-gray-400">100+ employees across 12 countries</p>
+                  </div>
+                </div>
+                
+                <div className="flex items-start">
+                  <Globe className="h-5 w-5 text-blue-400 mr-3 mt-1" />
+                  <div>
+                    <h4 className="text-white font-medium">Global Reach</h4>
+                    <p className="text-gray-400">Serving clients in over 30 countries</p>
+                  </div>
+                </div>
+                
+                <div className="flex items-start">
+                  <Heart className="h-5 w-5 text-blue-400 mr-3 mt-1" />
+                  <div>
+                    <h4 className="text-white font-medium">Customer Satisfaction</h4>
+                    <p className="text-gray-400">98% client retention rate</p>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
-        </main>
-        <Footer />
-      </PageTransition>
-    </div>
+          
+          {/* Values Section */}
+          <div className="mb-20">
+            <h2 className="text-3xl font-bold text-white text-center mb-12">Our Values</h2>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <ValueCard 
+                title="Innovation"
+                description="We constantly push the boundaries of what's possible with AI in compliance."
+              />
+              <ValueCard 
+                title="Integrity"
+                description="We uphold the highest standards of ethics in everything we do."
+              />
+              <ValueCard 
+                title="Simplicity"
+                description="We make complex compliance requirements accessible and manageable."
+              />
+              <ValueCard 
+                title="Customer Success"
+                description="Your compliance success is our ultimate measure of achievement."
+              />
+            </div>
+          </div>
+          
+          {/* CTA Section */}
+          <div className="text-center max-w-3xl mx-auto">
+            <h2 className="text-3xl font-bold text-white mb-6">Join Us On Our Mission</h2>
+            <p className="text-gray-400 mb-8">
+              Experience how ComplyAI can transform your compliance program with our platform.
+            </p>
+            <Button 
+              size="lg"
+              onClick={() => navigate('/auth?mode=register')}
+              className="px-8 py-3 text-lg shadow-xl bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white border-none"
+            >
+              Get Started Today
+            </Button>
+          </div>
+        </div>
+      </div>
+    </PublicPageLayout>
   );
 };
 
-const ValueCard = ({ icon, title, description }) => {
+const ValueCard = ({ title, description }) => {
   return (
-    <div className="text-center p-6">
-      <div className="mx-auto w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-4">
-        {icon}
-      </div>
-      <h3 className="text-xl font-semibold mb-2">{title}</h3>
-      <p className="text-gray-600">{description}</p>
-    </div>
-  );
-};
-
-const TeamMember = ({ name, title, bio }) => {
-  return (
-    <div className="bg-white p-6 rounded-xl border border-gray-200 text-center">
-      <div className="w-20 h-20 bg-gray-200 rounded-full mx-auto mb-4 flex items-center justify-center">
-        <Users className="h-10 w-10 text-gray-400" />
-      </div>
-      <h3 className="text-xl font-semibold mb-1">{name}</h3>
-      <p className="text-blue-600 mb-3">{title}</p>
-      <p className="text-gray-600">{bio}</p>
+    <div className="bg-[#1d1d1f] border border-gray-800 rounded-xl p-6 text-center">
+      <h3 className="text-xl font-semibold mb-3 text-white">{title}</h3>
+      <p className="text-gray-400">{description}</p>
     </div>
   );
 };
