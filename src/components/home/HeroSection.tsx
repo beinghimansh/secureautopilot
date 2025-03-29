@@ -17,15 +17,15 @@ const HeroSection = () => {
   };
 
   const complianceFrameworks = [
-    { name: "ISO 27001", description: "Information Security Management" },
-    { name: "SOC 2", description: "Service Organization Controls" },
-    { name: "GDPR", description: "Data Protection Regulation" },
-    { name: "HIPAA", description: "Health Information Privacy" },
-    { name: "PCI DSS", description: "Payment Card Security" },
-    { name: "ISO 42001", description: "Artificial Intelligence Management" },
-    { name: "NIST CSF", description: "Cybersecurity Framework" },
-    { name: "CCPA", description: "Consumer Privacy Act" },
-    { name: "ISO 9001", description: "Quality Management System" }
+    { name: "ISO 27001", description: "Information Security Management", color: "from-blue-600 to-cyan-400" },
+    { name: "SOC 2", description: "Service Organization Controls", color: "from-purple-600 to-pink-400" },
+    { name: "GDPR", description: "Data Protection Regulation", color: "from-green-600 to-teal-400" },
+    { name: "HIPAA", description: "Health Information Privacy", color: "from-orange-600 to-amber-400" },
+    { name: "PCI DSS", description: "Payment Card Security", color: "from-red-600 to-rose-400" },
+    { name: "ISO 42001", description: "Artificial Intelligence Management", color: "from-indigo-600 to-violet-400" },
+    { name: "NIST CSF", description: "Cybersecurity Framework", color: "from-yellow-600 to-amber-500" },
+    { name: "CCPA", description: "Consumer Privacy Act", color: "from-emerald-600 to-green-400" },
+    { name: "ISO 9001", description: "Quality Management System", color: "from-sky-600 to-blue-400" }
   ];
 
   // Auto-rotate carousel
@@ -137,17 +137,17 @@ const HeroSection = () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.4, delay: 0.5 + (index * 0.1) }}
-                className="bg-gradient-to-br from-gray-900 to-gray-800 p-6 rounded-xl border border-gray-700 hover:border-blue-500/50 hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-300 h-full flex flex-col"
+                className={`bg-gradient-to-br ${framework.color} p-6 rounded-xl border border-gray-700 hover:border-white/50 hover:shadow-lg hover:shadow-white/10 transition-all duration-300 h-full flex flex-col`}
                 onClick={() => navigate('/compliance')}
               >
                 <div className="flex items-center gap-4 mb-4">
-                  <div className="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center">
-                    <Shield className="h-5 w-5 text-blue-400" />
+                  <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
+                    <Shield className="h-5 w-5 text-white" />
                   </div>
                   <h3 className="text-xl font-semibold text-white">{framework.name}</h3>
                 </div>
-                <p className="text-gray-400 mb-3 flex-grow">{framework.description}</p>
-                <div className="text-blue-400 text-sm flex items-center hover:text-blue-300 transition-colors mt-auto">
+                <p className="text-white/90 mb-3 flex-grow">{framework.description}</p>
+                <div className="text-white text-sm flex items-center hover:text-white/80 transition-colors mt-auto">
                   Explore requirements
                   <ArrowRight className="ml-1 h-3 w-3" />
                 </div>
