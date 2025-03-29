@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, lazy, Suspense } from 'react';
 import Navbar from '@/components/layout/Navbar';
 import Sidebar from '@/components/layout/Sidebar';
@@ -61,7 +62,7 @@ const FrameworkRequirements = () => {
     navigate('/compliance');
   };
 
-  const handleGenerateWithAI = async (prompt) => {
+  const handleGenerateWithAI = async (prompt: string) => {
     setIsGenerating(true);
     // Simulate AI generation
     await new Promise(resolve => setTimeout(resolve, 1000));

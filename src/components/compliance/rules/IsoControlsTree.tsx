@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { Tree, StaticTreeDataProvider, TreeItemIndex, TreeItem, TreeItemRenderContext } from 'react-complex-tree';
+import { Tree, StaticTreeDataProvider, TreeItemIndex, TreeItem } from 'react-complex-tree';
 import 'react-complex-tree/lib/style-modern.css';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
@@ -140,7 +140,7 @@ const IsoControlsTree: React.FC<IsoControlsTreeProps> = ({
       <Tree
         treeId="iso-controls"
         rootItem="root"
-        items={treeItems}
+        treeItems={treeItems}
         dataProvider={dataProvider}
         selectedItems={selectedItems}
         focusedItem={focusedItem}

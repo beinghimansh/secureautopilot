@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
@@ -9,23 +10,64 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Loader2 } from 'lucide-react';
 
 interface RulesDisplayProps {
-  ruleId: string | null;
-  rules: any[];
-  setRules: React.Dispatch<React.SetStateAction<any[]>>;
+  ruleId?: string | null;
+  rules?: any[];
+  setRules?: React.Dispatch<React.SetStateAction<any[]>>;
+  frameworkId?: string;
 }
 
-const RulesDisplay: React.FC<RulesDisplayProps> = ({ ruleId, rules, setRules }) => {
+const RulesDisplay: React.FC<RulesDisplayProps> = ({ 
+  ruleId, 
+  rules = [], 
+  setRules = () => {}, 
+  frameworkId 
+}) => {
   const [selectedRule, setSelectedRule] = useState<any>(null);
   const [implementationNotes, setImplementationNotes] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [localRules, setLocalRules] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (frameworkId) {
+      fetchRulesForFramework(frameworkId);
+    }
+  }, [frameworkId]);
+
+  useEffect(() => {
+    if (rules.length > 0) {
+      setLocalRules(rules);
+    }
+  }, [rules]);
 
   useEffect(() => {
     if (ruleId) {
-      const rule = rules.find(r => r.id === ruleId);
+      const rule = localRules.find(r => r.id === ruleId);
       setSelectedRule(rule);
       setImplementationNotes(rule?.notes || null);
     }
-  }, [ruleId, rules]);
+  }, [ruleId, localRules]);
+
+  const fetchRulesForFramework = async (frameworkId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('compliance_rules')
+        .select('*')
+        .eq('framework_id', frameworkId);
+
+      if (error) {
+        console.error('Error fetching rules:', error);
+        toast.error('Failed to load compliance rules');
+      } else if (data) {
+        setLocalRules(data);
+        // If setRules was provided, update the parent component
+        if (setRules) {
+          setRules(data);
+        }
+      }
+    } catch (error) {
+      console.error('Unexpected error:', error);
+    }
+  };
 
   const handleNotesChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setImplementationNotes(e.target.value);
@@ -66,21 +108,48 @@ const RulesDisplay: React.FC<RulesDisplayProps> = ({ ruleId, rules, setRules }) 
         toast.success('Implementation notes saved successfully');
         
         // Update the rules data in state
-        setRules(prevRules => 
-          prevRules.map(rule => 
-            rule.id === selectedRule.id 
-              ? { ...rule, notes: implementationNotes, status: selectedRule.status } 
-              : rule
-          )
+        const updatedRules = localRules.map(rule => 
+          rule.id === selectedRule.id 
+            ? { ...rule, notes: implementationNotes, status: selectedRule.status } 
+            : rule
         );
+        
+        setLocalRules(updatedRules);
+        
+        // If setRules was provided, update the parent component
+        if (setRules) {
+          setRules(updatedRules);
+        }
       }
       
       setSaving(false);
     }
   };
 
+  if (!selectedRule && localRules.length > 0) {
+    return (
+      <div className="p-4">
+        <h3 className="text-lg font-medium mb-4">Select a control to view details</h3>
+        <div className="space-y-2">
+          {localRules.map(rule => (
+            <div 
+              key={rule.id}
+              className="p-3 border rounded-md hover:bg-gray-50 cursor-pointer"
+              onClick={() => {
+                setSelectedRule(rule);
+                setImplementationNotes(rule.notes || null);
+              }}
+            >
+              <p className="font-medium">{rule.control_id} - {rule.title}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
   if (!selectedRule) {
-    return <div className="p-4">Select a control to view details.</div>;
+    return <div className="p-4">Loading controls or no controls available for this framework.</div>;
   }
 
   return (

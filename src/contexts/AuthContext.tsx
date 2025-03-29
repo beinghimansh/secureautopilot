@@ -2,11 +2,13 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Session, User } from '@supabase/supabase-js';
+import { Profile, UserRole } from '@/types/database.types';
 
 export interface AuthContextProps {
   user: User | null;
   session: Session | null;
-  isLoading: boolean; // Made this explicit
+  isLoading: boolean;
+  profile: Profile | null; // Added profile property
   signIn: (email: string, password: string) => Promise<{
     error: any | null;
     data: any | null;
@@ -26,6 +28,7 @@ const AuthContext = createContext<AuthContextProps>({
   user: null,
   session: null,
   isLoading: true,
+  profile: null, // Initialize profile as null
   signIn: async () => ({ error: null, data: null }),
   signUp: async () => ({ error: null, data: null }),
   signOut: async () => {},
@@ -36,6 +39,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [profile, setProfile] = useState<Profile | null>(null);
 
   useEffect(() => {
     // Set up auth state listener
@@ -48,6 +52,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         } else {
           setSession(data.session);
           setUser(data.session?.user || null);
+          
+          // Fetch user profile if user exists
+          if (data.session?.user) {
+            fetchUserProfile(data.session.user.id);
+          }
         }
       } catch (error) {
         console.error('Unexpected error fetching session:', error);
@@ -63,6 +72,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       (_event, newSession) => {
         setSession(newSession);
         setUser(newSession?.user || null);
+        
+        // Fetch user profile when auth state changes
+        if (newSession?.user) {
+          fetchUserProfile(newSession.user.id);
+        } else {
+          setProfile(null);
+        }
+        
         setIsLoading(false);
       }
     );
@@ -72,6 +89,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       authListener.subscription.unsubscribe();
     };
   }, []);
+
+  // Fetch user profile from profiles table
+  const fetchUserProfile = async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .single();
+
+      if (error) {
+        console.error('Error fetching user profile:', error);
+      } else if (data) {
+        setProfile(data as Profile);
+      }
+    } catch (error) {
+      console.error('Unexpected error fetching user profile:', error);
+    }
+  };
 
   const signIn = async (email: string, password: string) => {
     try {
@@ -126,6 +162,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     user,
     session,
     isLoading,
+    profile,
     signIn,
     signUp,
     signOut,
