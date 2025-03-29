@@ -129,7 +129,6 @@ const RulesDisplay: React.FC<RulesDisplayProps> = ({ frameworkId }) => {
       <div className="md:col-span-1 overflow-auto">
         {isTreeView ? (
           <IsoControlsTree 
-            selectedRuleId={selectedRule?.id || null}
             onSelectControl={handleControlSelect}
           />
         ) : (

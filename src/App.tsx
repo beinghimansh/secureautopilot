@@ -4,6 +4,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Toaster } from 'sonner';
 import { AuthProvider } from './contexts/AuthContext';
 import Loading from './components/common/Loading';
+import NotFound from './pages/NotFound';
 
 // Lazy loaded pages for better performance
 const Home = React.lazy(() => import('./pages/Home'));
@@ -39,6 +40,7 @@ function App() {
             <Route path="/reports/activities" element={<ActivitiesPage />} />
             <Route path="/reports/analytics" element={<AnalyticsPage />} />
             <Route path="/reports/export" element={<ExportReportPage />} />
+            <Route path="*" element={<NotFound />} />
           </Routes>
         </Suspense>
         <Toaster position="top-right" richColors />
