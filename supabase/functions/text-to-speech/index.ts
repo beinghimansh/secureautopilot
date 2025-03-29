@@ -37,7 +37,7 @@ serve(async (req) => {
     // Generate speech from text using ElevenLabs API
     const apiUrl = `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`;
     console.log(`Calling ElevenLabs API at: ${apiUrl}`);
-    
+
     const response = await fetch(apiUrl, {
       method: 'POST',
       headers: {
@@ -55,22 +55,22 @@ serve(async (req) => {
       }),
     });
 
+    // Check if the response is successful
     if (!response.ok) {
-      const errorText = await response.text();
-      console.error('ElevenLabs API error status:', response.status);
-      console.error('ElevenLabs API error response:', errorText);
-      
       let errorMessage;
-      try {
-        // Try to parse as JSON to get a structured error
-        const errorJson = JSON.parse(errorText);
-        errorMessage = errorJson.detail?.message || errorJson.detail || errorJson.error || 'Unknown error from ElevenLabs API';
-      } catch (e) {
-        // If it's not JSON, use the raw text
-        errorMessage = `API Error (${response.status}): ${errorText.substring(0, 100)}...`;
+      const contentType = response.headers.get('content-type');
+      
+      if (contentType && contentType.includes('application/json')) {
+        // Try to parse as JSON if it's JSON content
+        const errorData = await response.json();
+        errorMessage = errorData.detail?.message || errorData.detail || errorData.error || `API Error (${response.status})`;
+      } else {
+        // If it's not JSON, just get the status
+        errorMessage = `ElevenLabs API Error: Status ${response.status}`;
       }
       
-      throw new Error(`Failed to generate speech: ${errorMessage}`);
+      console.error('ElevenLabs API error:', errorMessage);
+      throw new Error(errorMessage);
     }
 
     // Get audio data and convert to base64

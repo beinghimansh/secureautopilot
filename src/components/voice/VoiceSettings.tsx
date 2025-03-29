@@ -1,11 +1,10 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
-import { Volume2, Settings, Loader2 } from 'lucide-react';
+import { Volume2, Settings, Loader2, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import voiceService, { availableVoices, UserVoicePreference } from '@/services/voice';
 
@@ -24,6 +23,7 @@ const VoiceSettings: React.FC<VoiceSettingsProps> = ({ onSettingsChange }) => {
   const [saving, setSaving] = useState(false);
   const [testingVoice, setTestingVoice] = useState(false);
   const [audioInstance, setAudioInstance] = useState<HTMLAudioElement | null>(null);
+  const [testError, setTestError] = useState<string | null>(null);
 
   useEffect(() => {
     const loadPreferences = async () => {
@@ -60,6 +60,7 @@ const VoiceSettings: React.FC<VoiceSettingsProps> = ({ onSettingsChange }) => {
       voice_id: voiceId,
       preferred_voice_id: voiceId 
     }));
+    setTestError(null);
   };
 
   const handleSpeedChange = (speed: string) => {
@@ -98,12 +99,12 @@ const VoiceSettings: React.FC<VoiceSettingsProps> = ({ onSettingsChange }) => {
       return;
     }
     
-    // Stop any currently playing audio
     if (audioInstance) {
       audioInstance.pause();
       audioInstance.src = '';
     }
     
+    setTestError(null);
     setTestingVoice(true);
     
     try {
@@ -128,24 +129,26 @@ const VoiceSettings: React.FC<VoiceSettingsProps> = ({ onSettingsChange }) => {
         
         audio.onerror = (e) => {
           console.error('Audio playback error:', e);
-          toast.error('Error playing test audio');
+          setTestError('Error playing audio');
           setTestingVoice(false);
         };
         
         audio.play().catch(error => {
           console.error('Failed to play audio:', error);
-          toast.error('Failed to play audio');
+          setTestError('Failed to play audio');
           setTestingVoice(false);
         });
         
         toast.success('Test voice played successfully');
       } else {
         console.error('Speech generation failed:', result.error);
+        setTestError(result.error || 'Unknown error');
         toast.error(`Failed to generate test speech: ${result.error || 'Unknown error'}`);
         setTestingVoice(false);
       }
     } catch (error) {
       console.error('Error testing voice:', error);
+      setTestError(error.message || 'Unknown error');
       toast.error(`Failed to test voice: ${error.message || 'Unknown error'}`);
       setTestingVoice(false);
     }
@@ -213,6 +216,13 @@ const VoiceSettings: React.FC<VoiceSettingsProps> = ({ onSettingsChange }) => {
               </>
             )}
           </Button>
+
+          {testError && (
+            <div className="mt-2 p-2 bg-red-50 text-red-600 text-sm rounded flex items-start">
+              <AlertCircle className="h-4 w-4 mr-1 mt-0.5 flex-shrink-0" />
+              <span>{testError}</span>
+            </div>
+          )}
         </div>
         
         <div className="space-y-2">

@@ -20,6 +20,14 @@ const speechSynthesisService = {
     try {
       console.log(`Generating speech with voiceId: ${voiceId}, language: ${language || 'en'}, text length: ${text.length}`);
       
+      if (!text.trim()) {
+        throw new Error('Text content is required');
+      }
+      
+      if (!voiceId) {
+        throw new Error('Voice ID is required');
+      }
+      
       const response = await fetch('/api/text-to-speech', {
         method: 'POST',
         headers: {

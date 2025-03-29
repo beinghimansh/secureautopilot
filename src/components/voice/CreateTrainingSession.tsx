@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -10,7 +9,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Switch } from '@/components/ui/switch';
 import { toast } from 'sonner';
 import { GraduationCap, Volume2 } from 'lucide-react';
-// Update the import to use the new module
 import voiceService, { availableVoices, VoiceTrainingSession } from '@/services/voice';
 import AudioPlayer from './AudioPlayer';
 import { supabase } from '@/integrations/supabase/client';
@@ -34,6 +32,7 @@ const CreateTrainingSession: React.FC<CreateTrainingSessionProps> = ({ onCreated
   const [previewAudio, setPreviewAudio] = useState<string | null>(null);
   const [userProfile, setUserProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [defaultOrgId, setDefaultOrgId] = useState<string | null>(null);
   
   const { register, handleSubmit, watch, setValue, formState: { errors } } = useForm<TrainingSessionForm>({
     defaultValues: {
@@ -50,7 +49,6 @@ const CreateTrainingSession: React.FC<CreateTrainingSessionProps> = ({ onCreated
   const watchVoiceId = watch('voice_id');
   const watchContent = watch('content');
   
-  // Fetch user profile and initialize form data
   useEffect(() => {
     const fetchUserData = async () => {
       setLoading(true);
@@ -58,7 +56,6 @@ const CreateTrainingSession: React.FC<CreateTrainingSessionProps> = ({ onCreated
         const { data: { session } } = await supabase.auth.getSession();
         
         if (session) {
-          // First, try to get the profile
           const { data: profileData, error: profileError } = await supabase
             .from('profiles')
             .select('*')
@@ -67,59 +64,21 @@ const CreateTrainingSession: React.FC<CreateTrainingSessionProps> = ({ onCreated
             
           if (profileError) {
             console.error('Error fetching profile:', profileError);
-            toast.error('Could not load your profile. Please try again later.');
-            setLoading(false);
-            return;
-          }
-            
-          if (profileData) {
+            await createDefaultUserProfile(session.user.id);
+            toast.error('Could not load your profile. Creating a default profile.');
+          } else if (profileData) {
             console.log('User profile found:', profileData);
             setUserProfile(profileData);
             
-            // If no organization is set, create a default one for testing
             if (!profileData.organization_id) {
               console.log('No organization found, creating a default one for testing');
-              // Create a test organization if none exists
-              const { data: orgData, error: orgError } = await supabase
-                .from('organizations')
-                .insert({
-                  name: 'Test Organization',
-                  slug: 'test-org'
-                })
-                .select()
-                .single();
-                
-              if (orgError) {
-                console.error('Error creating test organization:', orgError);
-              } else if (orgData) {
-                // Update user profile with the new organization
-                const { error: updateError } = await supabase
-                  .from('profiles')
-                  .update({ organization_id: orgData.id })
-                  .eq('id', session.user.id);
-                  
-                if (updateError) {
-                  console.error('Error updating profile with organization:', updateError);
-                } else {
-                  // Refresh profile data
-                  const { data: updatedProfile } = await supabase
-                    .from('profiles')
-                    .select('*')
-                    .eq('id', session.user.id)
-                    .single();
-                    
-                  if (updatedProfile) {
-                    setUserProfile(updatedProfile);
-                  }
-                }
-              }
+              await createDefaultOrganization(session.user.id);
             }
-            
-            // Load user voice preference
-            const prefs = await voiceService.getUserVoicePreference();
-            if (prefs && (prefs.voice_id || prefs.preferred_voice_id)) {
-              setValue('voice_id', prefs.voice_id || prefs.preferred_voice_id || '');
-            }
+          }
+          
+          const prefs = await voiceService.getUserVoicePreference();
+          if (prefs && (prefs.voice_id || prefs.preferred_voice_id)) {
+            setValue('voice_id', prefs.voice_id || prefs.preferred_voice_id || '');
           }
         } else {
           toast.error('You must be logged in to create training sessions');
@@ -134,6 +93,115 @@ const CreateTrainingSession: React.FC<CreateTrainingSessionProps> = ({ onCreated
     
     fetchUserData();
   }, [setValue]);
+
+  const createDefaultOrganization = async (userId: string) => {
+    try {
+      const { data: existingOrgs } = await supabase
+        .from('organizations')
+        .select('id')
+        .eq('name', 'Default Organization')
+        .limit(1);
+
+      let organizationId;
+      
+      if (existingOrgs && existingOrgs.length > 0) {
+        organizationId = existingOrgs[0].id;
+        console.log('Using existing default organization:', organizationId);
+      } else {
+        const { data: orgData, error: orgError } = await supabase
+          .from('organizations')
+          .insert({
+            name: 'Default Organization',
+            slug: 'default-org'
+          })
+          .select()
+          .single();
+          
+        if (orgError) {
+          console.error('Error creating default organization:', orgError);
+          toast.error('Failed to create default organization');
+          return;
+        }
+        
+        organizationId = orgData.id;
+        console.log('Created default organization:', organizationId);
+      }
+      
+      setDefaultOrgId(organizationId);
+      
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ organization_id: organizationId })
+        .eq('id', userId);
+        
+      if (updateError) {
+        console.error('Error updating profile with organization:', updateError);
+        toast.error('Failed to update profile with organization');
+      } else {
+        const { data: updatedProfile } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', userId)
+          .single();
+          
+        if (updatedProfile) {
+          setUserProfile(updatedProfile);
+        }
+      }
+    } catch (error) {
+      console.error('Error creating default organization:', error);
+      toast.error('Failed to create default organization');
+    }
+  };
+
+  const createDefaultUserProfile = async (userId: string) => {
+    try {
+      const { data: userData } = await supabase.auth.getUser();
+      
+      if (!userData?.user) {
+        throw new Error('User not found');
+      }
+      
+      const { data: orgData, error: orgError } = await supabase
+        .from('organizations')
+        .insert({
+          name: 'Default Organization',
+          slug: 'default-org'
+        })
+        .select()
+        .single();
+        
+      if (orgError) {
+        console.error('Error creating default organization:', orgError);
+        throw new Error('Failed to create default organization');
+      }
+      
+      setDefaultOrgId(orgData.id);
+      
+      const { data: profileData, error: profileError } = await supabase
+        .from('profiles')
+        .insert({
+          id: userId,
+          email: userData.user.email,
+          first_name: 'User',
+          last_name: 'Name',
+          organization_id: orgData.id
+        })
+        .select()
+        .single();
+        
+      if (profileError) {
+        console.error('Error creating default profile:', profileError);
+        throw new Error('Failed to create default profile');
+      }
+      
+      setUserProfile(profileData);
+      
+    } catch (error) {
+      console.error('Error creating default user profile:', error);
+      toast.error('Failed to create default user profile');
+    }
+  };
   
   const onPreviewVoice = async () => {
     if (!watchContent) {
@@ -162,18 +230,20 @@ const CreateTrainingSession: React.FC<CreateTrainingSessionProps> = ({ onCreated
   };
   
   const onSubmit = async (data: TrainingSessionForm) => {
-    if (!userProfile?.organization_id) {
-      toast.error('User organization not found. Please try again later.');
+    const orgId = userProfile?.organization_id || defaultOrgId;
+    
+    if (!orgId) {
+      toast.error('User organization not found. Please refresh the page and try again.');
       return;
     }
     
     setCreating(true);
     
     try {
-      console.log('Creating training session with org ID:', userProfile.organization_id);
+      console.log('Creating training session with org ID:', orgId);
       const result = await voiceService.createTrainingSession({
         ...data,
-        organization_id: userProfile.organization_id
+        organization_id: orgId
       });
       
       if (result) {
@@ -182,7 +252,6 @@ const CreateTrainingSession: React.FC<CreateTrainingSessionProps> = ({ onCreated
           onCreated(result);
         }
         
-        // Reset form
         setValue('title', '');
         setValue('description', '');
         setValue('content', '');

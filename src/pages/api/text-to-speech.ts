@@ -18,7 +18,7 @@ export async function POST(request: Request) {
       }
     );
     
-    // Check if the response is JSON
+    // Always check for non-JSON responses
     const contentType = response.headers.get('content-type');
     if (!contentType || !contentType.includes('application/json')) {
       const errorText = await response.text();
@@ -26,7 +26,7 @@ export async function POST(request: Request) {
       return new Response(
         JSON.stringify({ 
           success: false, 
-          error: `Invalid response format: ${contentType || 'unknown'}, status: ${response.status}` 
+          error: `Invalid response format from API: ${contentType || 'unknown'}, status: ${response.status}` 
         }),
         { status: 500, headers: { 'Content-Type': 'application/json' } }
       );
@@ -35,12 +35,12 @@ export async function POST(request: Request) {
     const data = await response.json();
     return new Response(
       JSON.stringify(data),
-      { status: 200, headers: { 'Content-Type': 'application/json' } }
+      { status: response.status, headers: { 'Content-Type': 'application/json' } }
     );
   } catch (error) {
     console.error('Error calling text-to-speech function:', error);
     return new Response(
-      JSON.stringify({ success: false, error: `Internal server error: ${error.message}` }),
+      JSON.stringify({ success: false, error: `API request failed: ${error.message}` }),
       { status: 500, headers: { 'Content-Type': 'application/json' } }
     );
   }
