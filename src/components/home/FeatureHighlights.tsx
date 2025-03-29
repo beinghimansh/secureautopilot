@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Shield, FileText, CheckCircle, Lock } from 'lucide-react';
+import { Shield, FileText, CheckCircle, Lock, Server, Brain } from 'lucide-react';
 import { motion } from 'framer-motion';
 import FeatureCard from './FeatureCard';
 
@@ -29,6 +29,18 @@ const FeatureHighlights = () => {
       title: "Risk Management",
       description: "Identify, assess, and mitigate risks with our comprehensive risk register.",
       delay: 900
+    },
+    {
+      icon: <Server size={24} className="text-indigo-600" />,
+      title: "Secure Infrastructure",
+      description: "Monitor and maintain secure infrastructure across all your systems.",
+      delay: 1000
+    },
+    {
+      icon: <Brain size={24} className="text-purple-600" />,
+      title: "ISO 42001 AI Act Compliance",
+      description: "Ensure your AI systems comply with the latest regulatory requirements.",
+      delay: 1100
     }
   ];
 
@@ -44,7 +56,7 @@ const FeatureHighlights = () => {
         >
           Key Features
         </motion.h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10">
           {features.map((feature, index) => (
             <FeatureCard
               key={index}

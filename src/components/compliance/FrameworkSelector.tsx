@@ -41,6 +41,12 @@ const frameworks = [
     name: 'PCI DSS',
     description: 'Payment Card Industry Data Security Standard',
     color: 'orange'
+  },
+  {
+    id: 'iso42001',
+    name: 'ISO 42001',
+    description: 'AI Act Compliance',
+    color: 'purple'
   }
 ];
 
@@ -99,6 +105,7 @@ const FrameworkSelector: React.FC<FrameworkSelectorProps> = ({ onSelectFramework
       case 'green': return 'bg-green-500';
       case 'red': return 'bg-red-500';
       case 'orange': return 'bg-orange-500';
+      case 'purple': return 'bg-purple-500';
       default: return 'bg-blue-500';
     }
   };
@@ -151,7 +158,7 @@ const FrameworkSelector: React.FC<FrameworkSelectorProps> = ({ onSelectFramework
                         className="flex items-center justify-center gap-2 py-2 px-4 bg-green-50 hover:bg-green-100 text-green-700 rounded-md transition-colors"
                       >
                         <RefreshCw size={16} />
-                        <span>Re-assess</span>
+                        <span>Review</span>
                       </button>
                     </div>
                   ) : (

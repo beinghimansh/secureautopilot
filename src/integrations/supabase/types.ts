@@ -353,6 +353,36 @@ export type Database = {
           },
         ]
       }
+      iso42001_requirements: {
+        Row: {
+          control_number: string
+          created_at: string | null
+          description: string
+          id: string
+          requirement: string | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          control_number: string
+          created_at?: string | null
+          description: string
+          id?: string
+          requirement?: string | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          control_number?: string
+          created_at?: string | null
+          description?: string
+          id?: string
+          requirement?: string | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       organizations: {
         Row: {
           created_at: string
@@ -599,7 +629,13 @@ export type Database = {
       }
     }
     Enums: {
-      framework_type: "iso27001" | "soc2" | "gdpr" | "hipaa" | "pci_dss"
+      framework_type:
+        | "iso27001"
+        | "soc2"
+        | "gdpr"
+        | "hipaa"
+        | "pci_dss"
+        | "iso42001"
       user_role:
         | "super_admin"
         | "company_admin"

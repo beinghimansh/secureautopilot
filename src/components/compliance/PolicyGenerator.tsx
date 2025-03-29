@@ -2,12 +2,13 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
-import { FileText } from 'lucide-react';
+import { FileText, ChevronLeft } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { generateCompliancePolicy } from '@/services/openaiService';
 import PolicyFormWrapper from './generator/PolicyFormWrapper';
 import GenerationProgress from './generator/GenerationProgress';
 import GenerationSuccess from './generator/GenerationSuccess';
+import Button from '@/components/common/Button';
 
 interface PolicyGeneratorProps {
   frameworkId: string;
@@ -95,7 +96,8 @@ const PolicyGenerator: React.FC<PolicyGeneratorProps> = ({ frameworkId, onComple
     frameworkId === 'soc2' ? 'SOC 2' : 
     frameworkId === 'gdpr' ? 'GDPR' : 
     frameworkId === 'hipaa' ? 'HIPAA' : 
-    frameworkId === 'pci_dss' ? 'PCI DSS' : 'Compliance';
+    frameworkId === 'pci_dss' ? 'PCI DSS' :
+    frameworkId === 'iso42001' ? 'ISO 42001 (AI Act)' : 'Compliance';
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -144,6 +146,10 @@ const PolicyGenerator: React.FC<PolicyGeneratorProps> = ({ frameworkId, onComple
 
   const prevStep = () => {
     setCurrentStep(currentStep - 1);
+  };
+
+  const handleBackToCompliance = () => {
+    navigate('/compliance');
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -311,21 +317,32 @@ const PolicyGenerator: React.FC<PolicyGeneratorProps> = ({ frameworkId, onComple
   }
 
   return (
-    <PolicyFormWrapper
-      frameworkName={frameworkName}
-      currentStep={currentStep}
-      formValues={formValues}
-      error={error}
-      handleInputChange={handleInputChange}
-      handleCheckboxChange={handleCheckboxChange}
-      handleSubmit={handleSubmit}
-      prevStep={prevStep}
-      nextStep={nextStep}
-      industries={industries}
-      companySizes={companySize}
-      securityControlOptions={securityControlOptions}
-      riskAppetiteOptions={riskAppetiteOptions}
-    />
+    <>
+      <div className="mb-6">
+        <Button
+          variant="outline"
+          onClick={handleBackToCompliance}
+          leftIcon={<ChevronLeft size={16} />}
+        >
+          Back to Compliance
+        </Button>
+      </div>
+      <PolicyFormWrapper
+        frameworkName={frameworkName}
+        currentStep={currentStep}
+        formValues={formValues}
+        error={error}
+        handleInputChange={handleInputChange}
+        handleCheckboxChange={handleCheckboxChange}
+        handleSubmit={handleSubmit}
+        prevStep={prevStep}
+        nextStep={nextStep}
+        industries={industries}
+        companySizes={companySize}
+        securityControlOptions={securityControlOptions}
+        riskAppetiteOptions={riskAppetiteOptions}
+      />
+    </>
   );
 };
 
