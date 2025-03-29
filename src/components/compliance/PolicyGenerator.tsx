@@ -1,348 +1,123 @@
 
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { toast } from 'sonner';
-import { FileText, ChevronLeft } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
-import { generateCompliancePolicy } from '@/services/openaiService';
-import PolicyFormWrapper from './generator/PolicyFormWrapper';
+import { useNavigate } from 'react-router-dom'; // Add this import
+import PolicyGeneratorSteps from './generator/PolicyGeneratorSteps';
+import OrganizationStep from './generator/OrganizationStep';
+import DataInfrastructureStep from './generator/DataInfrastructureStep';
+import SecurityRiskStep from './generator/SecurityRiskStep';
+import ReviewStep from './generator/ReviewStep';
 import GenerationProgress from './generator/GenerationProgress';
 import GenerationSuccess from './generator/GenerationSuccess';
-import Button from '@/components/common/Button';
+import { Button } from '@/components/ui/button';
+import { ArrowLeft } from 'lucide-react';
+import { Card, CardContent } from '@/components/common/Card';
+import { motion } from 'framer-motion';
+import { useFrameworkName } from './hooks/useFrameworkName';
 
 interface PolicyGeneratorProps {
   frameworkId: string;
-  onComplete?: () => void;
-  onClose?: () => void; // Added onClose prop
+  onComplete: () => void;
 }
 
-interface FormValues {
-  companyName: string;
-  industry: string;
-  companySize: string;
-  dataTypes: string;
-  businessLocation: string;
-  infrastructureDetails: string;
-  securityControls: string[];
-  riskAppetite: string;
-}
-
-// Data options
-const industries = [
-  'Technology',
-  'Healthcare',
-  'Finance',
-  'Retail',
-  'Manufacturing',
-  'Education',
-  'Government',
-  'Professional Services',
-  'Media & Entertainment',
-  'Telecommunications',
-  'Transportation',
-  'Energy',
-  'Hospitality'
-];
-
-const companySize = [
-  '1-10 employees',
-  '11-50 employees',
-  '51-250 employees',
-  '251-500 employees',
-  '501-1000 employees',
-  '1000+ employees'
-];
-
-const securityControlOptions = [
-  'Access Control',
-  'Encryption',
-  'Firewalls',
-  'Anti-virus',
-  'Multi-factor Authentication',
-  'Backup Systems',
-  'Incident Response',
-  'Physical Security',
-  'Vulnerability Management',
-  'Security Awareness Training'
-];
-
-const riskAppetiteOptions = [
-  'Low (Risk Averse)',
-  'Moderate',
-  'High (Risk Tolerant)'
-];
-
-const PolicyGenerator: React.FC<PolicyGeneratorProps> = ({ frameworkId, onComplete, onClose }) => {
-  const navigate = useNavigate();
+const PolicyGenerator: React.FC<PolicyGeneratorProps> = ({ frameworkId, onComplete }) => {
+  const navigate = useNavigate(); // Add this
   const [currentStep, setCurrentStep] = useState(1);
-  const [generating, setGenerating] = useState(false);
-  const [generationProgress, setGenerationProgress] = useState(0);
-  const [error, setError] = useState<string | null>(null);
-  const [generationSuccess, setGenerationSuccess] = useState(false);
-  const [wordCount, setWordCount] = useState<number | null>(null);
-  const [formValues, setFormValues] = useState<FormValues>({
-    companyName: '',
-    industry: '',
-    companySize: '',
-    dataTypes: '',
-    businessLocation: '',
-    infrastructureDetails: '',
-    securityControls: [],
-    riskAppetite: 'Moderate'
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [isCompleted, setIsCompleted] = useState(false);
+  const [formData, setFormData] = useState({
+    organization: {},
+    dataInfrastructure: {},
+    securityRisk: {}
   });
   
-  const frameworkName = 
-    frameworkId === 'iso27001' ? 'ISO 27001' : 
-    frameworkId === 'soc2' ? 'SOC 2' : 
-    frameworkId === 'gdpr' ? 'GDPR' : 
-    frameworkId === 'hipaa' ? 'HIPAA' : 
-    frameworkId === 'pci_dss' ? 'PCI DSS' :
-    frameworkId === 'iso42001' ? 'ISO 42001 (AI Act)' : 'Compliance';
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setFormValues({
-      ...formValues,
-      [name]: value
-    });
-  };
-
-  const handleCheckboxChange = (controlName: string) => {
-    const updatedControls = formValues.securityControls.includes(controlName)
-      ? formValues.securityControls.filter(control => control !== controlName)
-      : [...formValues.securityControls, controlName];
-    
-    setFormValues({
-      ...formValues,
-      securityControls: updatedControls
-    });
-  };
-
-  const validateStep = (step: number) => {
-    setError(null);
-    
+  const frameworkName = useFrameworkName(frameworkId);
+  
+  const handleStepComplete = (step: number, data: any) => {
     if (step === 1) {
-      if (!formValues.companyName || !formValues.industry || !formValues.companySize) {
-        setError('Please fill in all required fields');
-        return false;
-      }
+      setFormData({ ...formData, organization: data });
+    } else if (step === 2) {
+      setFormData({ ...formData, dataInfrastructure: data });
+    } else if (step === 3) {
+      setFormData({ ...formData, securityRisk: data });
     }
     
-    if (step === 2) {
-      if (!formValues.dataTypes) {
-        setError('Please specify what types of data your organization processes');
-        return false;
-      }
+    if (step < 4) {
+      setCurrentStep(step + 1);
+    } else {
+      startGeneration();
+    }
+  };
+  
+  const startGeneration = () => {
+    setIsGenerating(true);
+    
+    // Simulate AI generation (would connect to OpenAI in production)
+    setTimeout(() => {
+      setIsGenerating(false);
+      setIsCompleted(true);
+    }, 5000);
+  };
+  
+  const handleBackToFrameworks = () => {
+    navigate('/compliance'); // Use navigate to go back to compliance page
+  };
+  
+  const renderStep = () => {
+    if (isCompleted) {
+      return <GenerationSuccess onViewPolicies={onComplete} />;
     }
     
-    return true;
-  };
-
-  const nextStep = () => {
-    if (validateStep(currentStep)) {
-      setCurrentStep(currentStep + 1);
-    }
-  };
-
-  const prevStep = () => {
-    setCurrentStep(currentStep - 1);
-  };
-
-  const handleBackToCompliance = () => {
-    navigate('/compliance');
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!validateStep(currentStep)) {
-      return;
+    if (isGenerating) {
+      return <GenerationProgress frameworkName={frameworkName} />;
     }
     
-    try {
-      setGenerating(true);
-      setError(null);
-      setGenerationProgress(10); // Start progress
-      
-      const { data: sessionData } = await supabase.auth.getSession();
-      const userId = sessionData?.session?.user?.id;
-      
-      // Store the company profile data
-      try {
-        console.log("Storing company profile data...");
-        setGenerationProgress(20);
-        const { error: companyError } = await supabase
-          .from('company_profiles')
-          .upsert({
-            name: formValues.companyName,
-            industry: formValues.industry,
-            company_size: formValues.companySize,
-            data_types: formValues.dataTypes,
-            business_location: formValues.businessLocation,
-            infrastructure_details: formValues.infrastructureDetails,
-            security_controls: formValues.securityControls,
-            risk_appetite: formValues.riskAppetite,
-            created_by: userId,
-            updated_at: new Date().toISOString()
-          });
-          
-        if (companyError) {
-          console.error("Error saving company profile data:", companyError);
-        } else {
-          console.log("Company profile data saved successfully");
-        }
-      } catch (profileError) {
-        console.error("Failed to store company profile:", profileError);
-      }
-      
-      setGenerationProgress(30);
-      
-      // Generate a custom prompt based on framework type and form values
-      const customPrompt = `Generate a comprehensive ${frameworkName} compliance policy for ${formValues.companyName}. This policy should meet or exceed industry standards and regulatory requirements.`;
-      
-      // Send all form data to OpenAI via our service
-      const formData = {
-        companyName: formValues.companyName,
-        industry: formValues.industry,
-        companySize: formValues.companySize,
-        dataTypes: formValues.dataTypes,
-        businessLocation: formValues.businessLocation,
-        infrastructureDetails: formValues.infrastructureDetails,
-        securityControls: formValues.securityControls,
-        riskAppetite: formValues.riskAppetite,
-        frameworkType: frameworkId
-      };
-      
-      console.log("Sending data to OpenAI:", formData);
-      setGenerationProgress(50);
-      
-      // Call the OpenAI service with all form data
-      const generatedContent = await generateCompliancePolicy(customPrompt, formData, {
-        model: 'gpt-4o',
-        max_tokens: 8000, // Increase token limit for more comprehensive output
-        temperature: 0.7
-      });
-      
-      setGenerationProgress(80);
-      
-      const contentLength = generatedContent?.policy_content?.length || 0;
-      const approximateWordCount = generatedContent?.policy_content ? 
-                                  generatedContent.policy_content.split(/\s+/).length : 0;
-      
-      console.log("Policy generated, content length:", contentLength);
-      console.log("Approximate word count:", approximateWordCount);
-      setWordCount(approximateWordCount);
-      
-      if (approximateWordCount < 200) {
-        console.warn("WARNING: Generated policy is shorter than expected minimum of 200 words");
-        // Continue anyway but log the warning
-      }
-      
-      if (!generatedContent || !generatedContent.policy_content) {
-        throw new Error("Failed to generate policy content");
-      }
-
-      // Store the generated policy in the database
-      if (userId) {
-        try {
-          console.log("Storing generated policy locally...");
-          const { error: insertError } = await supabase
-            .from('generated_policies')
-            .insert({
-              organization_id: null,
-              framework_type: frameworkId,
-              policy_content: generatedContent.policy_content,
-              risk_assessment: generatedContent.risk_assessment || "",
-              implementation_guide: `# Implementation Guide for ${formValues.companyName}\n\nCustomized implementation guide based on ${frameworkName} requirements for your organization.`,
-              gaps_analysis: `# Gaps Analysis for ${formValues.companyName}\n\nCustomized gaps analysis based on ${frameworkName} requirements for ${formValues.industry} sector.`,
-              ai_suggestions: `# AI Suggestions for ${formValues.companyName}\n\nAI-powered improvement suggestions for optimizing ${frameworkName} compliance in a ${formValues.industry} organization.`,
-              created_by: userId
-            });
-            
-          if (insertError) {
-            console.error("Error saving policy to database:", insertError);
-          } else {
-            console.log("Policy saved to database successfully");
-          }
-        } catch (dbError) {
-          console.error("Database error:", dbError);
-        }
-      }
-      
-      setGenerationProgress(100);
-      toast.success(`${frameworkName} Policy has been generated successfully for ${formValues.companyName}!`);
-      
-      if (approximateWordCount < 200) {
-        toast.warning("The generated policy is shorter than expected. You may want to regenerate or enhance it manually.");
-      }
-      
-      setGenerationSuccess(true);
-      
-      setTimeout(() => {
-        if (onComplete) {
-          onComplete();
-        } else if (onClose) {
-          onClose();
-        }
-      }, 1500);
-      
-    } catch (err: any) {
-      console.error('Policy generation error:', err);
-      
-      let errorMessage = 'Failed to generate policy. Please try again.';
-      
-      if (err.message && typeof err.message === 'string') {
-        errorMessage = err.message;
-      }
-      
-      setError(errorMessage);
-      toast.error(errorMessage);
-    } finally {
-      setGenerating(false);
+    switch (currentStep) {
+      case 1:
+        return <OrganizationStep onComplete={(data) => handleStepComplete(1, data)} />;
+      case 2:
+        return <DataInfrastructureStep onComplete={(data) => handleStepComplete(2, data)} />;
+      case 3:
+        return <SecurityRiskStep onComplete={(data) => handleStepComplete(3, data)} />;
+      case 4:
+        return <ReviewStep formData={formData} onComplete={() => handleStepComplete(4, {})} />;
+      default:
+        return null;
     }
   };
-
-  if (generating) {
-    return <GenerationProgress frameworkName={frameworkName} progress={generationProgress} />;
-  }
-
-  if (generationSuccess) {
-    return <GenerationSuccess 
-      frameworkName={frameworkName} 
-      onComplete={onComplete || (() => {
-        if (onClose) onClose();
-      })}
-      wordCount={wordCount}
-    />;
-  }
-
+  
   return (
-    <>
+    <div className="space-y-6">
       <div className="mb-6">
         <Button
           variant="outline"
-          onClick={handleBackToCompliance}
-          leftIcon={<ChevronLeft size={16} />}
+          size="sm"
+          onClick={handleBackToFrameworks}
+          className="mb-4 flex items-center"
         >
+          <ArrowLeft size={16} className="mr-2" />
           Back to Compliance
         </Button>
+        
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+        >
+          <h2 className="text-2xl font-bold mb-2">{frameworkName} Policy Generator</h2>
+          <p className="text-gray-600">
+            AI will generate customized policies for your organization based on the {frameworkName} framework
+          </p>
+        </motion.div>
       </div>
-      <PolicyFormWrapper
-        frameworkName={frameworkName}
-        currentStep={currentStep}
-        formValues={formValues}
-        error={error}
-        handleInputChange={handleInputChange}
-        handleCheckboxChange={handleCheckboxChange}
-        handleSubmit={handleSubmit}
-        prevStep={prevStep}
-        nextStep={nextStep}
-        industries={industries}
-        companySizes={companySize}
-        securityControlOptions={securityControlOptions}
-        riskAppetiteOptions={riskAppetiteOptions}
-      />
-    </>
+      
+      <PolicyGeneratorSteps currentStep={currentStep} />
+      
+      <Card>
+        <CardContent className="p-6 md:p-8">
+          {renderStep()}
+        </CardContent>
+      </Card>
+    </div>
   );
 };
 

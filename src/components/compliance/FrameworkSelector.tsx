@@ -144,32 +144,34 @@ const FrameworkSelector: React.FC<FrameworkSelectorProps> = ({ onSelectFramework
                     </div>
                   </div>
 
-                  {!isLoading && hasGeneratedPolicies[framework.id] ? (
-                    <div className="grid grid-cols-2 gap-3 mt-auto">
-                      <button
-                        onClick={() => navigateToFrameworkRequirements(framework.id)}
-                        className="flex items-center justify-center gap-2 py-2 px-4 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-md transition-colors"
-                      >
-                        <Settings size={16} />
-                        <span>Manage</span>
-                      </button>
+                  <div className="mt-auto">
+                    {!isLoading && hasGeneratedPolicies[framework.id] ? (
+                      <div className="grid grid-cols-2 gap-3 mt-4">
+                        <button
+                          onClick={() => navigateToFrameworkRequirements(framework.id)}
+                          className="flex items-center justify-center gap-2 py-2 px-4 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-md transition-colors"
+                        >
+                          <Settings size={16} />
+                          <span>Manage</span>
+                        </button>
+                        <button
+                          onClick={() => onSelectFramework(framework.id)}
+                          className="flex items-center justify-center gap-2 py-2 px-4 bg-green-50 hover:bg-green-100 text-green-700 rounded-md transition-colors"
+                        >
+                          <RefreshCw size={16} />
+                          <span>Review</span>
+                        </button>
+                      </div>
+                    ) : (
                       <button
                         onClick={() => onSelectFramework(framework.id)}
-                        className="flex items-center justify-center gap-2 py-2 px-4 bg-green-50 hover:bg-green-100 text-green-700 rounded-md transition-colors"
+                        className="mt-4 flex items-center justify-center gap-2 py-2 px-4 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-md transition-colors w-full"
                       >
-                        <RefreshCw size={16} />
-                        <span>Review</span>
+                        <span>Get Started</span>
+                        <ArrowRight size={16} />
                       </button>
-                    </div>
-                  ) : (
-                    <button
-                      onClick={() => onSelectFramework(framework.id)}
-                      className="mt-auto flex items-center justify-center gap-2 py-2 px-4 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-md transition-colors w-full"
-                    >
-                      <span>Get Started</span>
-                      <ArrowRight size={16} />
-                    </button>
-                  )}
+                    )}
+                  </div>
                 </div>
               </CardContent>
             </Card>

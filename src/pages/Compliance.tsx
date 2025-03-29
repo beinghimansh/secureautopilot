@@ -93,9 +93,19 @@ const CompliancePage = () => {
               <ComplianceHeader />
               
               <Tabs defaultValue="frameworks" className="mb-6">
-                <TabsList className="mb-4">
-                  <TabsTrigger value="frameworks">Frameworks</TabsTrigger>
-                  <TabsTrigger value="policies">Policy Library</TabsTrigger>
+                <TabsList className="mb-4 bg-white shadow border border-gray-200">
+                  <TabsTrigger 
+                    value="frameworks" 
+                    className="data-[state=active]:bg-blue-600 data-[state=active]:text-white font-medium"
+                  >
+                    Frameworks
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="policies" 
+                    className="data-[state=active]:bg-blue-600 data-[state=active]:text-white font-medium"
+                  >
+                    Policy Library
+                  </TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="frameworks">
