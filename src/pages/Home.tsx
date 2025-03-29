@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import Header from '@/components/home/Header';
 import HeroSection from '@/components/home/HeroSection';
 import FeatureHighlights from '@/components/home/FeatureHighlights';
@@ -9,13 +9,18 @@ import CTASection from '@/components/home/CTASection';
 import Footer from '@/components/home/Footer';
 
 const Home = () => {
+  // Scroll to top on component mount for better UX
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
+    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white overflow-x-hidden">
       <Header />
       
       <main>
         <HeroSection />
-        <div className="container mx-auto px-6">
+        <div className="container mx-auto px-4 md:px-6">
           <FeatureHighlights />
         </div>
         <SocialProof />

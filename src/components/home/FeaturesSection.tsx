@@ -1,6 +1,7 @@
 
 import React from 'react';
 import FeatureDetail from './FeatureDetail';
+import { motion } from 'framer-motion';
 
 const FeaturesSection = () => {
   const featureDetails = [
@@ -43,22 +44,29 @@ const FeaturesSection = () => {
   ];
 
   return (
-    <section className="py-20 px-6">
+    <section className="py-16 md:py-20 px-6">
       <div className="container mx-auto max-w-6xl">
-        <div className="text-center mb-16">
+        <motion.div 
+          className="text-center mb-16"
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5 }}
+        >
           <h2 className="text-3xl md:text-4xl font-bold mb-4">Everything You Need for Compliance</h2>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
             Our comprehensive platform provides all the tools you need to achieve and maintain compliance with multiple frameworks.
           </p>
-        </div>
+        </motion.div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-10">
           {featureDetails.map((detail, index) => (
             <FeatureDetail 
               key={index}
               title={detail.title}
               features={detail.features}
               className={detail.className}
+              index={index}
             />
           ))}
         </div>
