@@ -81,9 +81,10 @@ const OpenAIAssistant: React.FC<OpenAIAssistantProps> = ({
 
   const displayResponse = aiResponse ? formatAIResponse(aiResponse) : null;
 
-  // New function to handle resetting the prompt and preparing for a new question
+  // Updated function to handle resetting the prompt and preparing for a new question
   const handleAskAnotherQuestion = () => {
     setPrompt(''); // Clear the prompt
+    // Note: We do not reset aiResponse here, as that should be handled by the parent component
   };
 
   return (
@@ -199,3 +200,4 @@ const AIGuidanceButton: React.FC<AIGuidanceButtonProps> = ({ text, onClick }) =>
 };
 
 export default OpenAIAssistant;
+
