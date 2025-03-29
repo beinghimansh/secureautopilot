@@ -1,4 +1,3 @@
-
 import { lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
@@ -39,10 +38,10 @@ const Notifications = lazy(() => import('@/pages/Notifications'));
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 1000 * 60 * 5, // 5 minutes
+      staleTime: 60 * 1000, // 1 minute
+      gcTime: 5 * 60 * 1000, // 5 minutes (renamed from cacheTime in newer versions)
+      retry: 1,
       refetchOnWindowFocus: false,
-      retry: 1, // Reduce retries for faster error feedback
-      cacheTime: 1000 * 60 * 30, // 30 minutes
     },
   },
 });
