@@ -26,21 +26,7 @@ const Home = () => {
     };
   }, []);
 
-  // Performance optimization - if user is logged in, show minimal home page
-  if (user) {
-    return (
-      <div className="min-h-screen overflow-x-hidden bg-[#111]">
-        <Suspense fallback={<Loading />}>
-          <Header />
-          <main className="pt-20">
-            <HeroSection />
-          </main>
-          <Footer />
-        </Suspense>
-      </div>
-    );
-  }
-
+  // Performance optimization - show the same layout for all users
   return (
     <div className="min-h-screen overflow-x-hidden bg-[#111]">
       <Suspense fallback={<Loading />}>
