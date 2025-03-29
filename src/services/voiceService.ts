@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -85,6 +86,7 @@ const voiceService = {
 
   async saveUserVoicePreference(preferences: Partial<UserVoicePreference>): Promise<UserVoicePreference | null> {
     try {
+      // Make sure required fields are set with default values
       const preferenceData = {
         preferred_voice_id: availableVoices[0].voice_id,
         playback_speed: 1.0,
@@ -163,10 +165,11 @@ const voiceService = {
 
   async createVoiceSummary(summary: Partial<VoiceSummary>): Promise<VoiceSummary | null> {
     try {
+      // Ensure required fields are set
       const summaryData = {
-        title: '',
-        summary_text: '',
-        voice_id: availableVoices[0].voice_id,
+        title: summary.title || '',
+        summary_text: summary.summary_text || '',
+        voice_id: summary.voice_id || availableVoices[0].voice_id,
         ...summary
       };
 
@@ -199,9 +202,16 @@ const voiceService = {
       const { data, error } = await supabase
         .from('voice_summaries')
         .insert({
-          ...summaryData,
+          title: summaryData.title,
+          summary_text: summaryData.summary_text,
+          voice_id: summaryData.voice_id,
           audio_url: publicUrl.publicUrl,
-          duration: audioResult.duration || 0
+          duration: audioResult.duration || 0,
+          organization_id: summaryData.organization_id,
+          policy_id: summaryData.policy_id,
+          framework_id: summaryData.framework_id,
+          language: summaryData.language || 'en',
+          is_featured: summaryData.is_featured || false
         })
         .select()
         .single();
@@ -250,11 +260,12 @@ const voiceService = {
 
   async createTrainingSession(session: Partial<VoiceTrainingSession>): Promise<VoiceTrainingSession | null> {
     try {
+      // Ensure required fields are set
       const sessionData = {
-        title: '',
-        content: '',
-        category: 'general',
-        voice_id: availableVoices[0].voice_id,
+        title: session.title || '',
+        content: session.content || '',
+        category: session.category || 'general',
+        voice_id: session.voice_id || availableVoices[0].voice_id,
         ...session
       };
 
@@ -287,9 +298,16 @@ const voiceService = {
       const { data, error } = await supabase
         .from('voice_training_sessions')
         .insert({
-          ...sessionData,
+          title: sessionData.title,
+          content: sessionData.content,
+          category: sessionData.category,
+          voice_id: sessionData.voice_id,
           audio_url: publicUrl.publicUrl,
-          duration: audioResult.duration || 0
+          duration: audioResult.duration || 0,
+          organization_id: sessionData.organization_id,
+          description: sessionData.description,
+          language: sessionData.language || 'en',
+          is_featured: sessionData.is_featured || false
         })
         .select()
         .single();
