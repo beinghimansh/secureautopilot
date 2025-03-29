@@ -1,24 +1,30 @@
 
 import React from 'react';
 import { 
-  Bot, // Changed from Robot to Bot
+  Bot,
   Loader2 
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import AIGuidanceButton from './AIGuidanceButton'; // Fixed import
 
 interface OpenAIIntegrationProps {
   onGenerateContent?: (prompt: string) => Promise<void>;
   isLoading?: boolean;
   placeholder?: string;
+  promptContext?: string;
+  initialPrompt?: string;
+  headingText?: string;
+  frameworkId?: string;
 }
 
 const OpenAIIntegration: React.FC<OpenAIIntegrationProps> = ({
   onGenerateContent,
   isLoading = false,
-  placeholder = "Ask AI for guidance..."
+  placeholder = "Ask AI for guidance...",
+  promptContext,
+  initialPrompt,
+  headingText = "AI Assistance"
 }) => {
-  const [prompt, setPrompt] = React.useState('');
+  const [prompt, setPrompt] = React.useState(initialPrompt || '');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -32,7 +38,7 @@ const OpenAIIntegration: React.FC<OpenAIIntegrationProps> = ({
     <div className="bg-blue-50 p-4 rounded-lg border border-blue-100 mb-6">
       <div className="flex items-center mb-3">
         <Bot className="text-blue-600 mr-2 h-5 w-5" />
-        <h3 className="font-medium text-blue-700">AI Assistance</h3>
+        <h3 className="font-medium text-blue-700">{headingText}</h3>
       </div>
       
       <form onSubmit={handleSubmit} className="flex gap-2">
@@ -60,11 +66,28 @@ const OpenAIIntegration: React.FC<OpenAIIntegrationProps> = ({
       </form>
       
       <div className="mt-3 flex flex-wrap gap-2">
-        <AIGuidanceButton prompt="How do I implement this control?" onClick={setPrompt} />
-        <AIGuidanceButton prompt="What evidence is required?" onClick={setPrompt} />
-        <AIGuidanceButton prompt="Generate implementation guidelines" onClick={setPrompt} />
+        <AIGuidanceButton text="How do I implement this control?" onClick={(text) => setPrompt(text)} />
+        <AIGuidanceButton text="What evidence is required?" onClick={(text) => setPrompt(text)} />
+        <AIGuidanceButton text="Generate implementation guidelines" onClick={(text) => setPrompt(text)} />
       </div>
     </div>
+  );
+};
+
+interface AIGuidanceButtonProps {
+  text: string;
+  onClick: (text: string) => void;
+}
+
+const AIGuidanceButton: React.FC<AIGuidanceButtonProps> = ({ text, onClick }) => {
+  return (
+    <button
+      type="button"
+      onClick={() => onClick(text)}
+      className="px-3 py-1 bg-white border border-blue-200 rounded-full text-xs text-blue-600 hover:bg-blue-50 transition-colors"
+    >
+      {text}
+    </button>
   );
 };
 

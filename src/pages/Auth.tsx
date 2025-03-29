@@ -8,7 +8,7 @@ import Loading from '@/components/common/Loading';
 const Auth = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const { user, isLoading } = useAuth(); // Use isLoading instead of loading
+  const { user, isLoading } = useAuth();
   
   // Get the mode from the URL parameters (login or register)
   const mode = searchParams.get('mode') === 'register' ? 'register' : 'login';
