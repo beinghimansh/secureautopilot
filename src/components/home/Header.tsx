@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Shield, Menu, X } from 'lucide-react';
@@ -11,13 +10,13 @@ const Header = () => {
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
 
-  // Track scroll for header transparency effect
+  // Track scroll for header transparency effect using passive event listener for better performance
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 20);
     };
 
-    window.addEventListener('scroll', handleScroll);
+    window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 

@@ -1,4 +1,3 @@
-
 import { lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useParams } from 'react-router-dom';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
@@ -9,8 +8,23 @@ import { Toaster } from 'sonner';
 // Loading component with reduced animation for better performance
 const Loading = () => (
   <div className="flex items-center justify-center min-h-screen">
-    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
   </div>
+);
+
+// Create a separate routes component for public pages to avoid lazy loading
+const PublicPages = () => (
+  <>
+    <Route path="/" element={<Home />} />
+    <Route path="/features" element={<Features />} />
+    <Route path="/pricing" element={<Pricing />} />
+    <Route path="/about" element={<About />} />
+    <Route path="/blog" element={<Blog />} />
+    <Route path="/documentation" element={<Documentation />} />
+    <Route path="/support" element={<Support />} />
+    <Route path="/security" element={<Security />} />
+    <Route path="/auth" element={<Auth />} />
+  </>
 );
 
 // Lazy loaded pages with performance optimizations
@@ -68,168 +82,159 @@ function App() {
       <AuthProvider>
         <BrowserRouter>
           <Toaster position="top-right" />
-          <Suspense fallback={<Loading />}>
-            <Routes>
-              <Route path="/" element={<Home />} />
-              <Route path="/auth" element={<Auth />} />
-              
-              {/* Public pages */}
-              <Route path="/features" element={<Features />} />
-              <Route path="/pricing" element={<Pricing />} />
-              <Route path="/about" element={<About />} />
-              <Route path="/blog" element={<Blog />} />
-              <Route path="/documentation" element={<Documentation />} />
-              <Route path="/support" element={<Support />} />
-              <Route path="/security" element={<Security />} />
-              
-              {/* Protected routes */}
-              <Route 
-                path="/dashboard" 
-                element={
+          <Routes>
+            {/* Public routes - directly loaded without Suspense */}
+            <PublicPages />
+            
+            {/* Protected routes - loaded with Suspense */}
+            <Route 
+              path="/dashboard" 
+              element={
+                <Suspense fallback={<Loading />}>
                   <ProtectedRoute>
                     <Dashboard />
                   </ProtectedRoute>
-                } 
-              />
-              <Route 
-                path="/tasks" 
-                element={
-                  <ProtectedRoute>
-                    <Tasks />
-                  </ProtectedRoute>
-                } 
-              />
-              <Route 
-                path="/tasks/upcoming" 
-                element={
-                  <ProtectedRoute>
-                    <Upcoming />
-                  </ProtectedRoute>
-                } 
-              />
-              <Route 
-                path="/reports" 
-                element={
-                  <ProtectedRoute>
-                    <Reports />
-                  </ProtectedRoute>
-                } 
-              />
-              <Route 
-                path="/reports/activities" 
-                element={
-                  <ProtectedRoute>
-                    <Activities />
-                  </ProtectedRoute>
-                } 
-              />
-              <Route 
-                path="/reports/analytics" 
-                element={
-                  <ProtectedRoute>
-                    <Analytics />
-                  </ProtectedRoute>
-                } 
-              />
-              <Route 
-                path="/reports/export" 
-                element={
-                  <ProtectedRoute>
-                    <Export />
-                  </ProtectedRoute>
-                } 
-              />
-              <Route 
-                path="/settings" 
-                element={
-                  <ProtectedRoute>
-                    <Settings />
-                  </ProtectedRoute>
-                } 
-              />
-              <Route 
-                path="/compliance" 
-                element={
-                  <ProtectedRoute>
-                    <Compliance />
-                  </ProtectedRoute>
-                } 
-              />
-              <Route 
-                path="/compliance/frameworks/:frameworkId" 
-                element={
-                  <ProtectedRoute>
-                    <FrameworkRequirements />
-                  </ProtectedRoute>
-                } 
-              />
-              <Route 
-                path="/compliance/:frameworkId/requirements" 
-                element={
-                  <ProtectedRoute>
-                    <RedirectToFramework />
-                  </ProtectedRoute>
-                } 
-              />
-              <Route 
-                path="/policies" 
-                element={
-                  <ProtectedRoute>
-                    <Policies />
-                  </ProtectedRoute>
-                } 
-              />
-              <Route 
-                path="/team" 
-                element={
-                  <ProtectedRoute>
-                    <Team />
-                  </ProtectedRoute>
-                } 
-              />
-              <Route 
-                path="/compliance/risks" 
-                element={
-                  <ProtectedRoute>
-                    <Risks />
-                  </ProtectedRoute>
-                } 
-              />
-              <Route 
-                path="/admin/setup" 
-                element={
-                  <ProtectedRoute>
-                    <SuperAdminSetup />
-                  </ProtectedRoute>
-                } 
-              />
-              <Route 
-                path="/cloud-security" 
-                element={
-                  <ProtectedRoute>
-                    <CloudSecurity />
-                  </ProtectedRoute>
-                } 
-              />
-              <Route 
-                path="/data-sources" 
-                element={
-                  <ProtectedRoute>
-                    <DataSources />
-                  </ProtectedRoute>
-                } 
-              />
-              <Route 
-                path="/notifications" 
-                element={
-                  <ProtectedRoute>
-                    <Notifications />
-                  </ProtectedRoute>
-                } 
-              />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </Suspense>
+                </Suspense>
+              } 
+            />
+            <Route 
+              path="/tasks" 
+              element={
+                <ProtectedRoute>
+                  <Tasks />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/tasks/upcoming" 
+              element={
+                <ProtectedRoute>
+                  <Upcoming />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/reports" 
+              element={
+                <ProtectedRoute>
+                  <Reports />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/reports/activities" 
+              element={
+                <ProtectedRoute>
+                  <Activities />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/reports/analytics" 
+              element={
+                <ProtectedRoute>
+                  <Analytics />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/reports/export" 
+              element={
+                <ProtectedRoute>
+                  <Export />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/settings" 
+              element={
+                <ProtectedRoute>
+                  <Settings />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/compliance" 
+              element={
+                <ProtectedRoute>
+                  <Compliance />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/compliance/frameworks/:frameworkId" 
+              element={
+                <ProtectedRoute>
+                  <FrameworkRequirements />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/compliance/:frameworkId/requirements" 
+              element={
+                <ProtectedRoute>
+                  <RedirectToFramework />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/policies" 
+              element={
+                <ProtectedRoute>
+                  <Policies />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/team" 
+              element={
+                <ProtectedRoute>
+                  <Team />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/compliance/risks" 
+              element={
+                <ProtectedRoute>
+                  <Risks />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/admin/setup" 
+              element={
+                <ProtectedRoute>
+                  <SuperAdminSetup />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/cloud-security" 
+              element={
+                <ProtectedRoute>
+                  <CloudSecurity />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/data-sources" 
+              element={
+                <ProtectedRoute>
+                  <DataSources />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/notifications" 
+              element={
+                <ProtectedRoute>
+                  <Notifications />
+                </ProtectedRoute>
+              } 
+            />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
         </BrowserRouter>
       </AuthProvider>
     </QueryClientProvider>

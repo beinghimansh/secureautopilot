@@ -1,4 +1,3 @@
-
 import React from "react";
 import { cn } from "@/lib/utils";
 
@@ -77,6 +76,13 @@ export const ScaleIn: React.FC<FadeProps> = ({
   );
 };
 
-export const PageTransition: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const PageTransition: React.FC<{ children: React.ReactNode; skipAnimation?: boolean }> = ({ 
+  children, 
+  skipAnimation = false 
+}) => {
+  if (skipAnimation) {
+    return <>{children}</>;
+  }
+  
   return <div className="animate-fade-in">{children}</div>;
 };
