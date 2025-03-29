@@ -14,6 +14,7 @@ import { toast } from 'sonner';
 import { motion } from 'framer-motion';
 import OpenAIIntegration from '@/components/compliance/OpenAIIntegration';
 import Loading from '@/components/common/Loading';
+import { completeWithAI } from '@/services/openaiService';
 
 const RiskRegister = lazy(() => import('@/components/compliance/risks/RiskRegister'));
 const DocumentsSection = lazy(() => import('@/components/compliance/documents/DocumentsSection'));
@@ -34,6 +35,7 @@ const FrameworkRequirements = () => {
   const frameworkName = useFrameworkName(frameworkId);
   const [isLoading, setIsLoading] = useState(true);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [aiResponse, setAiResponse] = useState<string | null>(null);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -63,10 +65,26 @@ const FrameworkRequirements = () => {
 
   const handleGenerateWithAI = async (prompt: string) => {
     setIsGenerating(true);
-    // Simulate AI generation
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    setIsGenerating(false);
-    toast.success('AI guidance generated');
+    
+    try {
+      console.log('Generating AI response for prompt:', prompt);
+      
+      // In a real implementation, we would call the AI service
+      const response = await completeWithAI(prompt, {
+        model: 'gpt-4o-mini',
+        temperature: 0.7,
+      });
+      
+      console.log('Generated AI response:', response);
+      setAiResponse(response?.content || 'No response received from AI service');
+      toast.success('AI guidance generated');
+    } catch (error) {
+      console.error('Error generating AI guidance:', error);
+      toast.error('Failed to generate AI guidance');
+      setAiResponse(null);
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   if (isLoading) {
@@ -177,6 +195,8 @@ const FrameworkRequirements = () => {
                       onGenerateContent={handleGenerateWithAI}
                       isLoading={isGenerating}
                       placeholder="Ask AI about this framework or control..."
+                      headingText="AI Assistance"
+                      frameworkId={frameworkId}
                     />
                     
                     <div className="mt-4 space-y-2">

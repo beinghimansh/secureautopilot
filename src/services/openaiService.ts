@@ -8,6 +8,11 @@ interface OpenAIRequestOptions {
   stream?: boolean;
 }
 
+interface AIResponse {
+  content?: string;
+  error?: string;
+}
+
 /**
  * Generates a comprehensive compliance policy based on the provided prompt.
  * Uses Supabase Edge Function for secure API key handling.
@@ -71,7 +76,7 @@ export const generateCompliancePolicy = async (
 export const completeWithAI = async (
   prompt: string,
   options: OpenAIRequestOptions = {}
-) => {
+): Promise<AIResponse> => {
   try {
     console.log('AI completion request with prompt:', prompt.substring(0, 50) + '...');
     
@@ -93,9 +98,31 @@ export const completeWithAI = async (
     }
     
     console.log('AI completion successful');
-    return data;
-  } catch (error) {
+    
+    // Check if data structure contains the expected response format
+    if (data && typeof data === 'object') {
+      if (data.generatedText) {
+        return { content: data.generatedText };
+      } else if (data.completion) {
+        return { content: data.completion };
+      } else if (data.text) {
+        return { content: data.text };
+      } else if (data.content) {
+        return { content: data.content };
+      } else if (data.response) {
+        return { content: data.response };
+      } else {
+        // Fallback: return the whole data object as a string if no specific field is found
+        return { content: JSON.stringify(data, null, 2) };
+      }
+    }
+    
+    return { 
+      content: "I couldn't process your request properly. Please try again or contact support if the issue persists.",
+      error: "Invalid response format"
+    };
+  } catch (error: any) {
     console.error('Error completing with AI:', error);
-    throw error;
+    return { error: error.message || 'Unknown error occurred' };
   }
 };
