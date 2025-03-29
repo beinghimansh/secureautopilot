@@ -72,7 +72,7 @@ const Footer = () => {
                 </Link>
               </li>
               <li>
-                <Link to="/about" className="hover:text-white transition-colors inline-flex items-center">
+                <Link to="/documentation" className="hover:text-white transition-colors inline-flex items-center">
                   <ChevronRight size={14} className="mr-1 text-blue-500" />
                   Roadmap
                 </Link>
@@ -144,13 +144,13 @@ const Footer = () => {
         <div className="mt-16 pt-8 border-t border-gray-800 flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
           <p>© {currentYear} ComplyAI. All rights reserved.</p>
           <div className="flex space-x-6">
-            <Link to="/about" className="hover:text-white transition-colors">
+            <Link to="/security" className="hover:text-white transition-colors">
               Privacy Policy
             </Link>
-            <Link to="/about" className="hover:text-white transition-colors">
+            <Link to="/security" className="hover:text-white transition-colors">
               Terms of Service
             </Link>
-            <Link to="/about" className="hover:text-white transition-colors">
+            <Link to="/security" className="hover:text-white transition-colors">
               Cookie Policy
             </Link>
           </div>

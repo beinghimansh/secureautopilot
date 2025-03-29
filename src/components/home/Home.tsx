@@ -6,6 +6,9 @@ import HeroSection from './HeroSection';
 import FeatureHighlights from './FeatureHighlights';
 import CTASection from './CTASection';
 import Footer from './Footer';
+import TrustedBySection from './TrustedBySection';
+import ComplianceFrameworks from './ComplianceFrameworks';
+import MessageCarousel from './MessageCarousel';
 
 const Home = () => {
   const { user } = useAuth();
@@ -16,7 +19,10 @@ const Home = () => {
       <Header />
       <main>
         <HeroSection />
+        <TrustedBySection />
         <FeatureHighlights />
+        <ComplianceFrameworks />
+        <MessageCarousel />
         <CTASection />
       </main>
       <Footer />
