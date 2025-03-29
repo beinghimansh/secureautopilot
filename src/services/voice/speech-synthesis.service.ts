@@ -11,9 +11,14 @@ export interface SpeechGenerationResult {
 }
 
 const speechSynthesisService = {
-  async generateSpeech(text: string, voiceId: string, model?: string): Promise<SpeechGenerationResult> {
+  async generateSpeech(
+    text: string, 
+    voiceId: string, 
+    model?: string, 
+    language?: string
+  ): Promise<SpeechGenerationResult> {
     try {
-      console.log(`Generating speech with voiceId: ${voiceId}, text length: ${text.length}`);
+      console.log(`Generating speech with voiceId: ${voiceId}, language: ${language || 'en'}, text length: ${text.length}`);
       
       const response = await fetch('/api/text-to-speech', {
         method: 'POST',
@@ -23,7 +28,8 @@ const speechSynthesisService = {
         body: JSON.stringify({
           text,
           voiceId,
-          model
+          model,
+          language
         }),
       });
 

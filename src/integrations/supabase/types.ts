@@ -609,6 +609,7 @@ export type Database = {
           auto_play: boolean | null
           created_at: string
           id: string
+          language: string | null
           playback_speed: number | null
           preferred_voice_id: string
           updated_at: string
@@ -618,6 +619,7 @@ export type Database = {
           auto_play?: boolean | null
           created_at?: string
           id?: string
+          language?: string | null
           playback_speed?: number | null
           preferred_voice_id: string
           updated_at?: string
@@ -627,6 +629,7 @@ export type Database = {
           auto_play?: boolean | null
           created_at?: string
           id?: string
+          language?: string | null
           playback_speed?: number | null
           preferred_voice_id?: string
           updated_at?: string
