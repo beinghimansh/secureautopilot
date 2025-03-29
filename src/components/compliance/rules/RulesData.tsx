@@ -1,4 +1,3 @@
-
 import React from 'react';
 
 export interface Rule {
@@ -473,7 +472,7 @@ const gdprRules: Rule[] = [
   }
 ];
 
-// SOC 2 controls
+// SOC 2 controls - updated with detailed requirements
 const soc2Rules: Rule[] = [
   {
     id: 1,
@@ -520,8 +519,90 @@ const soc2Rules: Rule[] = [
     number: "CC6",
     content: "Logical and Physical Access Controls",
     status: 'compliant',
-    description: "Controls over system access",
-    requirement: "The entity implements logical access security software, infrastructure, and architectures over protected information assets."
+    description: "Controls over system access and physical facilities",
+    requirement: "The entity implements logical access security software, infrastructure, and architectures over protected information assets.",
+    clauses: [
+      {
+        id: 601,
+        number: "CC6.1",
+        content: "Access Controls (Logical and Physical)",
+        description: "The entity implements logical access security software, infrastructure, and architectures for authentication and access enforcement.",
+        requirement: "Access to information assets is protected through the implementation of identity management and access controls.",
+        status: 'compliant'
+      },
+      {
+        id: 602,
+        number: "CC6.2",
+        content: "System Monitoring",
+        description: "The entity implements and operates monitoring systems to identify potential security breaches and incidents.",
+        requirement: "Systems are monitored for unauthorized access attempts and security events to enable timely response.",
+        status: 'in_progress'
+      },
+      {
+        id: 603,
+        number: "CC6.3",
+        content: "Change Management",
+        description: "The entity implements policies and procedures to manage changes to system components.",
+        requirement: "Changes to infrastructure, data, software, and procedures are authorized, tested, approved, and implemented to meet the entity's objectives.",
+        status: 'in_progress'
+      },
+      {
+        id: 604,
+        number: "CC6.4",
+        content: "Incident Response",
+        description: "The entity has formal incident response procedures for security events.",
+        requirement: "Security incidents are identified, reported, and addressed in a timely manner to minimize impact.",
+        status: 'non_compliant'
+      },
+      {
+        id: 605,
+        number: "CC6.5",
+        content: "Risk Assessment",
+        description: "The entity identifies and assesses risks to achieving its objectives.",
+        requirement: "Regular risk assessments are performed to identify threats and vulnerabilities that could impact system security.",
+        status: 'in_progress'
+      },
+      {
+        id: 606,
+        number: "CC6.6",
+        content: "Security Awareness Training",
+        description: "The entity implements a security awareness training program for all personnel.",
+        requirement: "Personnel receive regular training on security awareness and their responsibilities regarding information security.",
+        status: 'compliant'
+      },
+      {
+        id: 607,
+        number: "CC6.7",
+        content: "Data Protection",
+        description: "The entity has controls to protect sensitive data throughout its lifecycle.",
+        requirement: "Sensitive data is identified and protected during collection, storage, processing, transmission, and disposal.",
+        status: 'in_progress'
+      },
+      {
+        id: 608,
+        number: "CC6.8",
+        content: "Vulnerability Management",
+        description: "The entity identifies and manages vulnerabilities in its systems.",
+        requirement: "Systems are regularly scanned for vulnerabilities, and identified vulnerabilities are remediated in a timely manner.",
+        status: 'non_compliant'
+      },
+      {
+        id: 609,
+        number: "CC6.9",
+        content: "Configuration Management",
+        description: "The entity manages the configuration of system components to reduce security risks.",
+        requirement: "System configurations are documented, implemented according to security best practices, and monitored for compliance.",
+        status: 'in_progress'
+      },
+      {
+        id: 610,
+        number: "CC6.10",
+        content: "Business Continuity and Disaster Recovery",
+        description: "The entity has plans for business continuity and disaster recovery.",
+        requirement: "Business continuity and disaster recovery plans are documented, tested, and updated to ensure system availability and data recovery.",
+        status: 'non_compliant'
+      }
+    ]
   },
   {
     id: 7,

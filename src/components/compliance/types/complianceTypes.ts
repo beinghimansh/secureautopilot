@@ -37,3 +37,13 @@ export interface TreeItem {
   requirement?: string;
   number?: string;
 }
+
+// Add new interface for SOC2 Control Clause
+export interface Soc2ControlClause {
+  id: number;
+  number: string;
+  content: string;
+  description: string;
+  requirement: string;
+  status?: 'compliant' | 'non_compliant' | 'in_progress' | 'not_applicable';
+}
