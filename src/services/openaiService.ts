@@ -14,18 +14,20 @@ interface OpenAIRequestOptions {
  */
 export const generateCompliancePolicy = async (
   prompt: string,
+  formData: any,
   options: OpenAIRequestOptions = {}
 ) => {
   try {
-    console.log('Generating policy with prompt:', prompt.substring(0, 50) + '...');
+    console.log('Generating policy with data:', JSON.stringify(formData).substring(0, 100) + '...');
     
     const { data, error } = await supabase.functions.invoke('generate-comprehensive-policy', {
       body: {
         prompt,
+        formData,
         options: {
           model: options.model || 'gpt-4o',
           temperature: options.temperature || 0.7,
-          max_tokens: options.max_tokens || 2000,
+          max_tokens: options.max_tokens || 4000, // Increased token limit for comprehensive policies
           stream: options.stream || false
         }
       }
@@ -36,7 +38,7 @@ export const generateCompliancePolicy = async (
       throw new Error(`Failed to generate policy: ${error.message}`);
     }
     
-    console.log('Policy generated successfully');
+    console.log('Policy generated successfully, length:', data?.policy_content?.length || 0);
     return data;
   } catch (error) {
     console.error('Error generating policy:', error);

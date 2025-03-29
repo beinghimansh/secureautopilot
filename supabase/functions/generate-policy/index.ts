@@ -346,7 +346,7 @@ serve(async (req) => {
     }
     
     const policyContent = data.choices[0].message.content;
-    console.log("Policy generated successfully");
+    console.log("Policy generated successfully, length:", policyContent.length);
     
     // Generate additional documents using the same approach
     // Generate Risk Assessment
@@ -391,7 +391,7 @@ serve(async (req) => {
     if (riskResponse.ok) {
       const riskData = await riskResponse.json();
       riskAssessment = riskData.choices[0].message.content;
-      console.log("Risk assessment generated successfully");
+      console.log("Risk assessment generated successfully, length:", riskAssessment.length);
     } else {
       console.error("Failed to generate risk assessment");
       riskAssessment = `# Risk Assessment for ${companyName}\n\nRisk assessment document could not be generated.`;
@@ -440,7 +440,7 @@ serve(async (req) => {
     if (implResponse.ok) {
       const implData = await implResponse.json();
       implementationGuide = implData.choices[0].message.content;
-      console.log("Implementation guide generated successfully");
+      console.log("Implementation guide generated successfully, length:", implementationGuide.length);
     } else {
       console.error("Failed to generate implementation guide");
       implementationGuide = `# Implementation Guide for ${companyName}\n\nImplementation guide could not be generated.`;
@@ -489,7 +489,7 @@ serve(async (req) => {
     if (gapsResponse.ok) {
       const gapsData = await gapsResponse.json();
       gapsAnalysis = gapsData.choices[0].message.content;
-      console.log("Gaps analysis generated successfully");
+      console.log("Gaps analysis generated successfully, length:", gapsAnalysis.length);
     } else {
       console.error("Failed to generate gaps analysis");
       gapsAnalysis = `# Gaps Analysis for ${companyName}\n\nGaps analysis could not be generated.`;
@@ -537,7 +537,7 @@ serve(async (req) => {
     if (suggestionsResponse.ok) {
       const suggestionsData = await suggestionsResponse.json();
       aiSuggestions = suggestionsData.choices[0].message.content;
-      console.log("AI suggestions generated successfully");
+      console.log("AI suggestions generated successfully, length:", aiSuggestions.length);
     } else {
       console.error("Failed to generate AI suggestions");
       aiSuggestions = `# AI Suggestions for ${companyName}\n\nAI suggestions could not be generated.`;

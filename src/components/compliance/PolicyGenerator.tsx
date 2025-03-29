@@ -1,9 +1,9 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { FileText } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { generateCompliancePolicy } from '@/services/openaiService';
 import PolicyFormWrapper from './generator/PolicyFormWrapper';
 import GenerationProgress from './generator/GenerationProgress';
 import GenerationSuccess from './generator/GenerationSuccess';
@@ -183,75 +183,36 @@ const PolicyGenerator: React.FC<PolicyGeneratorProps> = ({ frameworkId, onComple
         console.error("Failed to store company profile:", profileError);
       }
       
-      // Simulate OpenAI API call
-      console.log("Simulating policy generation...");
+      // Generate a custom prompt based on framework type and form values
+      const customPrompt = `Generate a comprehensive ${frameworkName} compliance policy for ${formValues.companyName}.`;
       
-      // Create the policy content with company name and other form values
-      const policyContent = `# ${frameworkName} Policy for ${formValues.companyName}
-
-## 1. Introduction
-This ${frameworkName} policy is designed specifically for ${formValues.companyName}, a ${formValues.industry} company with ${formValues.companySize}.
-
-## 2. Scope
-This policy applies to all systems, people, and processes that constitute the organization's information systems, including management, employees, suppliers, and other third parties who have access to ${formValues.companyName}'s systems.
-
-## 3. Data Types
-This policy covers the following types of data processed by the organization:
-${formValues.dataTypes}
-
-## 4. Risk Approach
-${formValues.companyName} has a ${formValues.riskAppetite} risk appetite and implements controls accordingly.
-
-## 5. Security Controls
-The following security controls are implemented:
-${formValues.securityControls.map(control => `- ${control}`).join('\n')}
-
-## 6. Infrastructure Details
-${formValues.infrastructureDetails || 'Standard infrastructure setup with appropriate security measures.'}
-
-## 7. Compliance Requirements
-As a ${formValues.industry} organization operating in ${formValues.businessLocation || 'various locations'}, ${formValues.companyName} is committed to maintaining ${frameworkName} compliance.
-`;
-
-      // Risk assessment with company name
-      const riskAssessment = `# Risk Assessment for ${formValues.companyName}
-
-## 1. Critical Assets
-- Customer data
-- Financial information
-- Intellectual property specific to ${formValues.industry}
-
-## 2. Threats and Vulnerabilities
-- Unauthorized access
-- Data breach
-- System failures
-- ${formValues.industry}-specific threats
-
-## 3. Risk Mitigation
-- Regular security training
-- System updates and patches
-- Network monitoring
-- Controls appropriate for ${formValues.riskAppetite} risk appetite
-`;
-
-      // Implementation guide with company name
-      const implementationGuide = `# Implementation Guide for ${formValues.companyName}
-
-## Timeline
-1. Initial Assessment: 2 weeks
-2. Policy Development: 4 weeks
-3. Implementation: 8 weeks
-4. Training: 2 weeks
-5. Auditing: Ongoing
-
-## Key Steps
-- Establish security team within ${formValues.companyName}
-- Conduct risk assessment specific to ${formValues.industry} sector
-- Develop policies and procedures
-- Implement controls
-- Train staff on ${frameworkName} requirements
-- Monitor and review compliance status
-`;
+      // Send all form data to OpenAI via our service
+      const formData = {
+        companyName: formValues.companyName,
+        industry: formValues.industry,
+        companySize: formValues.companySize,
+        dataTypes: formValues.dataTypes,
+        businessLocation: formValues.businessLocation,
+        infrastructureDetails: formValues.infrastructureDetails,
+        securityControls: formValues.securityControls,
+        riskAppetite: formValues.riskAppetite,
+        frameworkType: frameworkId
+      };
+      
+      console.log("Sending data to OpenAI:", formData);
+      
+      // Call the OpenAI service with all form data
+      const generatedContent = await generateCompliancePolicy(customPrompt, formData, {
+        model: 'gpt-4o',
+        max_tokens: 4000,
+        temperature: 0.7
+      });
+      
+      console.log("Policy generated, content length:", generatedContent?.policy_content?.length || 0);
+      
+      if (!generatedContent || !generatedContent.policy_content) {
+        throw new Error("Failed to generate policy content");
+      }
 
       // Store the generated policy in the database
       if (userId) {
@@ -262,9 +223,9 @@ As a ${formValues.industry} organization operating in ${formValues.businessLocat
             .insert({
               organization_id: null,
               framework_type: frameworkId,
-              policy_content: policyContent,
-              risk_assessment: riskAssessment,
-              implementation_guide: implementationGuide,
+              policy_content: generatedContent.policy_content,
+              risk_assessment: generatedContent.risk_assessment || "",
+              implementation_guide: `# Implementation Guide for ${formValues.companyName}\n\nCustomized implementation guide based on ${frameworkName} requirements for your organization.`,
               gaps_analysis: `# Gaps Analysis for ${formValues.companyName}\n\nCustomized gaps analysis based on ${frameworkName} requirements for ${formValues.industry} sector.`,
               ai_suggestions: `# AI Suggestions for ${formValues.companyName}\n\nAI-powered improvement suggestions for optimizing ${frameworkName} compliance in a ${formValues.industry} organization.`,
               created_by: userId
@@ -280,15 +241,12 @@ As a ${formValues.industry} organization operating in ${formValues.businessLocat
         }
       }
       
-      // Simulate policy generation delay
+      toast.success(`${frameworkName} Policy has been generated successfully for ${formValues.companyName}!`);
+      setGenerationSuccess(true);
+      
       setTimeout(() => {
-        toast.success(`${frameworkName} Policy has been generated successfully for ${formValues.companyName}!`);
-        setGenerationSuccess(true);
-        
-        setTimeout(() => {
-          onComplete();
-        }, 1500);
-      }, 3000);
+        onComplete();
+      }, 1500);
       
     } catch (err: any) {
       console.error('Policy generation error:', err);

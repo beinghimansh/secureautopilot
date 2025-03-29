@@ -18,70 +18,125 @@ serve(async (req) => {
   }
 
   try {
+    const requestData = await req.json()
+    const { prompt, formData, options } = requestData
+
+    // Extract all relevant form data fields
     const {
-      frameworkType,
-      organizationName,
-      companySize,
+      companyName,
       industry,
-      businessLocation,
+      companySize,
       dataTypes,
-      riskAppetite,
+      businessLocation,
       infrastructureDetails,
-      securityControls
-    } = await req.json()
+      securityControls,
+      riskAppetite,
+      frameworkType
+    } = formData || {}
 
-    // Comprehensive prompt leveraging all context
-    const policyPrompt = `
-    You are an expert compliance auditor creating a comprehensive security policy for a ${companySize} ${industry} company.
+    // Create a detailed and comprehensive prompt using all available form fields
+    const comprehensivePrompt = `
+    You are an expert compliance auditor and policy writer. Create a HIGHLY DETAILED and COMPREHENSIVE ${frameworkType || 'compliance'} policy document for "${companyName || 'the organization'}", a ${industry || ''} company with ${companySize || ''} employees.
 
-    Company Details:
-    - Name: ${organizationName}
-    - Location: ${businessLocation}
-    - Data Types Handled: ${dataTypes}
-    - Infrastructure: ${infrastructureDetails}
-    - Existing Security Controls: ${securityControls}
-    - Risk Appetite: ${riskAppetite}
+    Company Context:
+    - Company Name: ${companyName || 'The organization'}
+    - Industry: ${industry || 'Technology'}
+    - Company Size: ${companySize || 'Medium-sized'}
+    - Data Types Handled: ${dataTypes || 'Customer and business data'}
+    - Business Location: ${businessLocation || 'Multiple locations'}
+    - Infrastructure Details: ${infrastructureDetails || 'Cloud and on-premises infrastructure'}
+    - Security Controls: ${Array.isArray(securityControls) ? securityControls.join(', ') : securityControls || 'Standard security controls'}
+    - Risk Appetite: ${riskAppetite || 'Moderate'}
 
-    Framework: ${frameworkType}
+    REQUIREMENTS:
+    1. The policy document MUST be extremely comprehensive, with AT LEAST 1500 words.
+    2. Include a proper policy structure with sections including:
+       - Introduction and Purpose
+       - Scope and Applicability
+       - Detailed Policy Statements
+       - Roles and Responsibilities
+       - Implementation Guidelines
+       - Compliance Monitoring
+       - Review and Update Procedures
+       - Appendices as needed
+    3. For EACH policy section, provide AT LEAST 3 substantive paragraphs with specific and actionable policy statements.
+    4. Make frequent reference to the company name (${companyName || 'the organization'}) throughout the document.
+    5. Provide highly specific implementation measures tailored to a ${industry || ''} company.
+    6. Reference relevant industry-specific compliance requirements and best practices.
+    7. IMPORTANT: Each main section should have multiple subsections with detailed content.
+    8. Format the content using markdown for readability.
+    9. Ensure the policy is professionally written and suitable for a formal compliance document.
+    10. The document MUST be comprehensive enough to serve as a primary compliance policy document.
 
-    Please generate a thorough, professionally worded policy document that:
-    1. Addresses all relevant compliance requirements
-    2. Reflects the specific context of this organization
-    3. Provides actionable and specific guidance
-    4. Follows best practices for ${frameworkType} compliance
-    5. Includes sections on risk management, data protection, access control, and incident response
+    ${prompt || ''}
     `
 
+    console.log("Sending comprehensive prompt to OpenAI. Length:", comprehensivePrompt.length)
+
     const response = await openai.chat.completions.create({
-      model: "gpt-4-turbo",
-      messages: [{ role: "system", content: policyPrompt }],
-      max_tokens: 4000
+      model: options?.model || "gpt-4o",
+      messages: [{ role: "system", content: comprehensivePrompt }],
+      max_tokens: options?.max_tokens || 4000,
+      temperature: options?.temperature || 0.7
     })
 
     const generatedPolicy = response.choices[0].message.content
 
+    console.log("Generated policy. Length:", generatedPolicy.length)
+
+    // Create a more detailed version of a risk assessment based on the company context
+    const riskAssessmentPrompt = `
+    Create a comprehensive risk assessment document for ${companyName || 'the organization'}, a ${industry || ''} company.
+    
+    Include the following sections:
+    1. Executive Summary
+    2. Critical Assets (with detailed descriptions of at least 5 critical assets)
+    3. Threats and Vulnerabilities (identify at least 7 specific threats)
+    4. Risk Mitigation Strategies (provide at least 7 detailed strategies)
+    5. Implementation Timeline and Responsibilities
+    6. Monitoring and Review Process
+    
+    Make sure the assessment is highly specific to the company profile:
+    - Industry: ${industry || 'Technology'}
+    - Size: ${companySize || 'Medium-sized'}
+    - Data Types: ${dataTypes || 'Customer and business data'}
+    - Current Security Controls: ${Array.isArray(securityControls) ? securityControls.join(', ') : securityControls || 'Standard security controls'}
+    
+    The document should be at least 1000 words in length and formatted in markdown.
+    `
+
+    const riskResponse = await openai.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: [{ role: "system", content: riskAssessmentPrompt }],
+      max_tokens: 2500,
+      temperature: 0.7
+    })
+
+    const riskAssessment = riskResponse.choices[0].message.content
+
     return new Response(
-      JSON.stringify({ 
+      JSON.stringify({
         policy_content: generatedPolicy,
-        framework_type: frameworkType 
+        risk_assessment: riskAssessment,
+        framework_type: frameworkType || 'general'
       }),
-      { 
-        headers: { 
-          ...corsHeaders, 
-          'Content-Type': 'application/json' 
-        } 
+      {
+        headers: {
+          ...corsHeaders,
+          'Content-Type': 'application/json'
+        }
       }
     )
   } catch (error) {
     console.error('Policy Generation Error:', error)
     return new Response(
       JSON.stringify({ error: error.message }),
-      { 
-        status: 500, 
-        headers: { 
-          ...corsHeaders, 
-          'Content-Type': 'application/json' 
-        } 
+      {
+        status: 500,
+        headers: {
+          ...corsHeaders,
+          'Content-Type': 'application/json'
+        }
       }
     )
   }
