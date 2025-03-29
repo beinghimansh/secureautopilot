@@ -10,16 +10,17 @@ import GenerationProgress from './generator/GenerationProgress';
 import GenerationSuccess from './generator/GenerationSuccess';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
-import { Card, CardContent } from '@/components/common/Card';
+import { Card, CardContent } from '@/components/ui/card';
 import { motion } from 'framer-motion';
 import { useFrameworkName } from './hooks/useFrameworkName';
 
 interface PolicyGeneratorProps {
   frameworkId: string;
-  onComplete: () => void;
+  onComplete?: () => void;
+  onClose?: () => void;
 }
 
-const PolicyGenerator: React.FC<PolicyGeneratorProps> = ({ frameworkId, onComplete }) => {
+const PolicyGenerator: React.FC<PolicyGeneratorProps> = ({ frameworkId, onComplete, onClose }) => {
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(1);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -59,12 +60,22 @@ const PolicyGenerator: React.FC<PolicyGeneratorProps> = ({ frameworkId, onComple
   };
   
   const handleBackToFrameworks = () => {
-    navigate('/compliance');
+    if (onClose) {
+      onClose();
+    } else {
+      navigate('/compliance');
+    }
+  };
+  
+  const handleComplete = () => {
+    if (onComplete) {
+      onComplete();
+    }
   };
   
   const renderStep = () => {
     if (isCompleted) {
-      return <GenerationSuccess onComplete={onComplete} />;
+      return <GenerationSuccess frameworkName={frameworkName} onComplete={handleComplete} />;
     }
     
     if (isGenerating) {
@@ -73,13 +84,44 @@ const PolicyGenerator: React.FC<PolicyGeneratorProps> = ({ frameworkId, onComple
     
     switch (currentStep) {
       case 1:
-        return <OrganizationStep onStepComplete={(data) => handleStepComplete(1, data)} />;
+        return <OrganizationStep formValues={{
+          companyName: '',
+          industry: '',
+          companySize: '',
+          businessLocation: ''
+        }} 
+        handleInputChange={() => {}} 
+        industries={[]} 
+        companySizes={[]} />;
       case 2:
-        return <DataInfrastructureStep onStepComplete={(data) => handleStepComplete(2, data)} />;
+        return <DataInfrastructureStep formValues={{
+          dataTypes: '',
+          infrastructureDetails: ''
+        }} 
+        handleInputChange={() => {}} />;
       case 3:
-        return <SecurityRiskStep onStepComplete={(data) => handleStepComplete(3, data)} />;
+        return <SecurityRiskStep 
+          formValues={{
+            securityControls: [],
+            riskAppetite: ''
+          }}
+          handleInputChange={() => {}}
+          handleCheckboxChange={() => {}}
+          securityControlOptions={[]}
+          riskAppetiteOptions={[]} />;
       case 4:
-        return <ReviewStep data={formData} onStepComplete={() => handleStepComplete(4, {})} />;
+        return <ReviewStep 
+          formValues={{
+            companyName: '',
+            industry: '',
+            companySize: '',
+            businessLocation: '',
+            dataTypes: '',
+            infrastructureDetails: '',
+            securityControls: [],
+            riskAppetite: ''
+          }} 
+          frameworkName={frameworkName} />;
       default:
         return null;
     }

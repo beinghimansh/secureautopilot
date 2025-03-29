@@ -2,7 +2,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { CheckCircle, AlertCircle } from 'lucide-react';
-import Button from '@/components/common/Button';
+import { Button } from '@/components/ui/button';
 
 interface GenerationSuccessProps {
   frameworkName: string;
@@ -13,7 +13,7 @@ interface GenerationSuccessProps {
 const GenerationSuccess: React.FC<GenerationSuccessProps> = ({ 
   frameworkName, 
   onComplete,
-  wordCount
+  wordCount = null
 }) => {
   const isShortPolicy = wordCount !== null && wordCount < 200;
 
