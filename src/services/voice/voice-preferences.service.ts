@@ -27,6 +27,7 @@ const voicePreferencesService = {
         preferred_voice_id: data.preferred_voice_id,
         playback_speed: data.playback_speed,
         auto_play: data.auto_play,
+        // Use nullish coalescing to provide a default value if language is not present
         language: data.language || 'en',
         created_at: data.created_at,
         updated_at: data.updated_at
