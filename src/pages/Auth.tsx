@@ -1,31 +1,61 @@
 
-import React, { useEffect } from 'react';
-import { useSearchParams, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
+import { PageTransition } from '@/components/common/Transitions';
+import AuthForm from '@/components/auth/AuthForm';
 import { useAuth } from '@/contexts/AuthContext';
-import AuthOptimized from '@/components/auth/AuthOptimized';
-import Loading from '@/components/common/Loading';
+import { ScaleIn } from '@/components/common/Transitions';
+import { Link } from 'react-router-dom';
+import { ArrowLeft } from 'lucide-react';
 
-const Auth = () => {
+const AuthPage = () => {
   const [searchParams] = useSearchParams();
+  const { user } = useAuth();
   const navigate = useNavigate();
-  const { user, isLoading } = useAuth();
+  const location = useLocation();
   
-  // Get the mode from the URL parameters (login or register)
-  const mode = searchParams.get('mode') === 'register' ? 'register' : 'login';
-
+  // Get the return URL from location state or default to dashboard
+  const from = location.state?.from?.pathname || '/dashboard';
+  
+  // Add console log to debug rendering
   useEffect(() => {
-    // If the user is already logged in, redirect to dashboard
-    if (user && !isLoading) {
-      navigate('/dashboard');
+    console.log('Auth page rendered', { user, from });
+    
+    // Redirect if already authenticated
+    if (user) {
+      console.log('User already authenticated, redirecting to:', from);
+      navigate(from, { replace: true });
     }
-  }, [user, isLoading, navigate]);
-
-  // Show loading while checking auth state
-  if (isLoading) {
-    return <Loading />;
-  }
-
-  return <AuthOptimized initialMode={mode} />;
+  }, [user, navigate, from]);
+  
+  // Check if mode is specified in URL
+  const initialMode = searchParams.get('mode') === 'register' ? 'register' : 'login';
+  
+  return (
+    <PageTransition>
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 py-12 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-md w-full space-y-8">
+          <ScaleIn delay={150}>
+            <Link 
+              to="/" 
+              className="inline-flex items-center text-white hover:underline mb-6"
+            >
+              <ArrowLeft size={16} className="mr-2" />
+              Back to Home
+            </Link>
+            
+            <AuthForm initialMode={initialMode} />
+            
+            <div className="mt-4 text-center text-sm text-white">
+              <p>
+                By signing up, you agree to our Terms of Service and Privacy Policy.
+              </p>
+            </div>
+          </ScaleIn>
+        </div>
+      </div>
+    </PageTransition>
+  );
 };
 
-export default Auth;
+export default AuthPage;
