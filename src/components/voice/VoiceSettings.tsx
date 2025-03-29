@@ -1,197 +1,230 @@
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+
+import React, { useEffect, useState } from 'react';
+import { z } from 'zod';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { 
+  Form, 
+  FormControl, 
+  FormDescription,
+  FormField, 
+  FormItem, 
+  FormLabel, 
+  FormMessage
+} from '@/components/ui/form';
+import { 
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Volume2, Settings } from 'lucide-react';
 import { toast } from 'sonner';
-import voiceService, { availableVoices, UserVoicePreference } from '@/services/voice';
+import voiceService, { UserVoicePreference, availableVoices } from '@/services/voice';
+
+const formSchema = z.object({
+  voice_id: z.string().min(1, "Please select a voice"),
+  auto_play: z.boolean().default(false),
+  playback_speed: z.number().min(0.5).max(2).default(1),
+  language: z.string().default('en')
+});
+
+type FormValues = z.infer<typeof formSchema>;
 
 interface VoiceSettingsProps {
   onSettingsChange?: (preferences: UserVoicePreference) => void;
 }
 
 const VoiceSettings: React.FC<VoiceSettingsProps> = ({ onSettingsChange }) => {
-  const [preferences, setPreferences] = useState<Partial<UserVoicePreference>>({
-    preferred_voice_id: availableVoices[0].voice_id,
-    playback_speed: 1.0,
-    auto_play: false
+  const [isLoading, setIsLoading] = useState(false);
+  
+  const form = useForm<FormValues>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      voice_id: availableVoices[0].voice_id,
+      auto_play: false,
+      playback_speed: 1,
+      language: 'en'
+    }
   });
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     const loadPreferences = async () => {
-      setLoading(true);
-      const userPrefs = await voiceService.getUserVoicePreference();
-      
-      if (userPrefs) {
-        setPreferences({
-          ...userPrefs,
-          preferred_voice_id: userPrefs.preferred_voice_id,
-          playback_speed: userPrefs.playback_speed,
-          auto_play: userPrefs.auto_play
-        });
+      setIsLoading(true);
+      try {
+        const preferences = await voiceService.getUserVoicePreference();
+        if (preferences) {
+          form.reset({
+            voice_id: preferences.voice_id || availableVoices[0].voice_id,
+            auto_play: preferences.auto_play || false,
+            playback_speed: preferences.playback_speed || 1,
+            language: preferences.language || 'en'
+          });
+        }
+      } catch (error) {
+        console.error('Error loading voice preferences:', error);
+      } finally {
+        setIsLoading(false);
       }
-      
-      setLoading(false);
     };
     
     loadPreferences();
-  }, []);
+  }, [form]);
 
-  const handleVoiceChange = (voiceId: string) => {
-    setPreferences(prev => ({ ...prev, preferred_voice_id: voiceId }));
-  };
-
-  const handleSpeedChange = (speed: string) => {
-    setPreferences(prev => ({ ...prev, playback_speed: parseFloat(speed) }));
-  };
-
-  const handleAutoPlayChange = (checked: boolean) => {
-    setPreferences(prev => ({ ...prev, auto_play: checked }));
-  };
-
-  const handleSavePreferences = async () => {
-    setSaving(true);
-    
+  const onSubmit = async (values: FormValues) => {
+    setIsLoading(true);
     try {
-      const result = await voiceService.saveUserVoicePreference(preferences);
-      
-      if (result && onSettingsChange) {
-        onSettingsChange(result);
+      await voiceService.saveUserVoicePreference(values as UserVoicePreference);
+      toast.success('Voice settings saved successfully');
+      if (onSettingsChange) {
+        onSettingsChange(values as UserVoicePreference);
       }
     } catch (error) {
-      console.error('Error saving preferences:', error);
-      toast.error('Failed to save voice preferences');
+      console.error('Error saving voice preferences:', error);
+      toast.error('Failed to save voice settings');
     } finally {
-      setSaving(false);
+      setIsLoading(false);
     }
   };
-
-  const handleTestVoice = async () => {
-    if (!preferences.preferred_voice_id) {
-      toast.error('Please select a voice first');
-      return;
-    }
-    
-    const voiceName = voiceService.getVoiceNameById(preferences.preferred_voice_id);
-    const testText = `This is a test of the ${voiceName} voice. Your current playback speed is set to ${preferences.playback_speed}x.`;
-    
-    try {
-      const result = await voiceService.generateSpeech(testText, preferences.preferred_voice_id);
-      
-      if (result.success && result.audioUrl) {
-        const audio = new Audio(result.audioUrl);
-        if (preferences.playback_speed) {
-          audio.playbackRate = preferences.playback_speed;
-        }
-        audio.play();
-      } else {
-        toast.error('Failed to generate test speech');
-      }
-    } catch (error) {
-      console.error('Error testing voice:', error);
-      toast.error('Failed to test voice');
-    }
-  };
-
-  if (loading) {
-    return (
-      <Card>
-        <CardContent className="p-6">
-          <div className="flex justify-center items-center h-32">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center">
-          <Settings className="mr-2 h-5 w-5" />
-          Voice Settings
-        </CardTitle>
-        <CardDescription>
-          Customize your voice experience for compliance audio
-        </CardDescription>
+        <CardTitle>Voice Settings</CardTitle>
+        <CardDescription>Customize your voice experience</CardDescription>
       </CardHeader>
-      
-      <CardContent className="space-y-6">
-        <div className="space-y-2">
-          <Label htmlFor="voice-select">Preferred Voice</Label>
-          <Select 
-            value={preferences.preferred_voice_id} 
-            onValueChange={handleVoiceChange}
-          >
-            <SelectTrigger id="voice-select">
-              <SelectValue placeholder="Select a voice" />
-            </SelectTrigger>
-            <SelectContent>
-              {availableVoices.map(voice => (
-                <SelectItem key={voice.voice_id} value={voice.voice_id}>
-                  {voice.name} {voice.category ? `(${voice.category})` : ''}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          
-          <Button 
-            variant="outline" 
-            size="sm" 
-            className="mt-2"
-            onClick={handleTestVoice}
-          >
-            <Volume2 className="mr-2 h-4 w-4" />
-            Test Voice
-          </Button>
-        </div>
-        
-        <div className="space-y-2">
-          <Label htmlFor="speed-select">Default Playback Speed</Label>
-          <Select 
-            value={preferences.playback_speed?.toString()} 
-            onValueChange={handleSpeedChange}
-          >
-            <SelectTrigger id="speed-select">
-              <SelectValue placeholder="Select speed" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="0.5">0.5x (Slow)</SelectItem>
-              <SelectItem value="0.75">0.75x</SelectItem>
-              <SelectItem value="1">1x (Normal)</SelectItem>
-              <SelectItem value="1.25">1.25x</SelectItem>
-              <SelectItem value="1.5">1.5x (Fast)</SelectItem>
-              <SelectItem value="2">2x (Very Fast)</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        
-        <div className="flex items-center justify-between">
-          <div className="space-y-0.5">
-            <Label htmlFor="auto-play">Auto-Play Audio</Label>
-            <p className="text-sm text-muted-foreground">
-              Automatically play audio when available
-            </p>
-          </div>
-          <Switch 
-            id="auto-play" 
-            checked={preferences.auto_play} 
-            onCheckedChange={handleAutoPlayChange} 
-          />
-        </div>
-        
-        <Button 
-          onClick={handleSavePreferences} 
-          disabled={saving} 
-          className="w-full"
-        >
-          {saving ? 'Saving...' : 'Save Settings'}
-        </Button>
+      <CardContent>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <FormField
+              control={form.control}
+              name="voice_id"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Default Voice</FormLabel>
+                  <Select 
+                    disabled={isLoading}
+                    value={field.value}
+                    onValueChange={field.onChange}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a voice" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectGroup>
+                        <SelectLabel>Available Voices</SelectLabel>
+                        {availableVoices.map((voice) => (
+                          <SelectItem key={voice.voice_id} value={voice.voice_id}>
+                            {voice.name} ({voice.accent})
+                          </SelectItem>
+                        ))}
+                      </SelectGroup>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            <FormField
+              control={form.control}
+              name="language"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Preferred Language</FormLabel>
+                  <Select 
+                    disabled={isLoading}
+                    value={field.value}
+                    onValueChange={field.onChange}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a language" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectGroup>
+                        <SelectLabel>Languages</SelectLabel>
+                        <SelectItem value="en">English</SelectItem>
+                        <SelectItem value="es">Spanish</SelectItem>
+                        <SelectItem value="fr">French</SelectItem>
+                        <SelectItem value="de">German</SelectItem>
+                        <SelectItem value="zh">Chinese</SelectItem>
+                      </SelectGroup>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            <FormField
+              control={form.control}
+              name="playback_speed"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Default Playback Speed</FormLabel>
+                  <Select 
+                    disabled={isLoading}
+                    value={field.value.toString()}
+                    onValueChange={(value) => field.onChange(parseFloat(value))}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select playback speed" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectGroup>
+                        <SelectLabel>Speed</SelectLabel>
+                        <SelectItem value="0.5">0.5x</SelectItem>
+                        <SelectItem value="0.75">0.75x</SelectItem>
+                        <SelectItem value="1">1x (Normal)</SelectItem>
+                        <SelectItem value="1.25">1.25x</SelectItem>
+                        <SelectItem value="1.5">1.5x</SelectItem>
+                        <SelectItem value="2">2x</SelectItem>
+                      </SelectGroup>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            <FormField
+              control={form.control}
+              name="auto_play"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                  <div className="space-y-0.5">
+                    <FormLabel className="text-base">Auto-play</FormLabel>
+                    <FormDescription>
+                      Automatically play audio when navigating to voice summaries
+                    </FormDescription>
+                  </div>
+                  <FormControl>
+                    <Switch
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                      disabled={isLoading}
+                    />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+            
+            <Button type="submit" disabled={isLoading}>
+              {isLoading ? 'Saving...' : 'Save Settings'}
+            </Button>
+          </form>
+        </Form>
       </CardContent>
     </Card>
   );
