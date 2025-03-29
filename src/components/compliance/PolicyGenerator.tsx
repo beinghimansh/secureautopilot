@@ -11,7 +11,8 @@ import GenerationSuccess from './generator/GenerationSuccess';
 
 interface PolicyGeneratorProps {
   frameworkId: string;
-  onComplete: () => void;
+  onComplete?: () => void;
+  onClose?: () => void; // Added onClose prop
 }
 
 interface FormValues {
@@ -70,7 +71,7 @@ const riskAppetiteOptions = [
   'High (Risk Tolerant)'
 ];
 
-const PolicyGenerator: React.FC<PolicyGeneratorProps> = ({ frameworkId, onComplete }) => {
+const PolicyGenerator: React.FC<PolicyGeneratorProps> = ({ frameworkId, onComplete, onClose }) => {
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(1);
   const [generating, setGenerating] = useState(false);
@@ -272,7 +273,11 @@ const PolicyGenerator: React.FC<PolicyGeneratorProps> = ({ frameworkId, onComple
       setGenerationSuccess(true);
       
       setTimeout(() => {
-        onComplete();
+        if (onComplete) {
+          onComplete();
+        } else if (onClose) {
+          onClose();
+        }
       }, 1500);
       
     } catch (err: any) {
@@ -298,7 +303,9 @@ const PolicyGenerator: React.FC<PolicyGeneratorProps> = ({ frameworkId, onComple
   if (generationSuccess) {
     return <GenerationSuccess 
       frameworkName={frameworkName} 
-      onComplete={onComplete} 
+      onComplete={onComplete || (() => {
+        if (onClose) onClose();
+      })}
       wordCount={wordCount}
     />;
   }

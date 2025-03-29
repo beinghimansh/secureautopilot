@@ -1,15 +1,11 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, lazy, Suspense } from 'react';
 import Navbar from '@/components/layout/Navbar';
 import Sidebar from '@/components/layout/Sidebar';
 import { PageTransition } from '@/components/common/Transitions';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Button from '@/components/common/Button';
-import RiskRegister from '@/components/compliance/risks/RiskRegister';
-import DocumentsSection from '@/components/compliance/documents/DocumentsSection';
-import PoliciesSection from '@/components/compliance/policies/PoliciesSection';
-import RulesDisplay from '@/components/compliance/rules/RulesDisplay';
 import { useFrameworkName } from '@/components/compliance/hooks/useFrameworkName';
 import { Card, CardContent } from '@/components/common/Card';
 import { ScaleIn } from '@/components/common/Transitions';
@@ -17,6 +13,19 @@ import { InfoIcon, ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
 import OpenAIIntegration from '@/components/compliance/OpenAIIntegration';
+import AIGuidanceButton from '@/components/compliance/AIGuidanceButton';
+import Loading from '@/components/common/Loading';
+
+const RiskRegister = lazy(() => import('@/components/compliance/risks/RiskRegister'));
+const DocumentsSection = lazy(() => import('@/components/compliance/documents/DocumentsSection'));
+const PoliciesSection = lazy(() => import('@/components/compliance/policies/PoliciesSection'));
+const RulesDisplay = lazy(() => import('@/components/compliance/rules/RulesDisplay'));
+
+const ComponentLoader = () => (
+  <div className="flex justify-center items-center h-[400px]">
+    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+  </div>
+);
 
 const FrameworkRequirements = () => {
   const { frameworkId = 'iso27001' } = useParams<{ frameworkId: string }>();
@@ -24,9 +33,18 @@ const FrameworkRequirements = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const frameworkName = useFrameworkName(frameworkId);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isGenerating, setIsGenerating] = useState(false);
 
   useEffect(() => {
-    // Extract tab from URL if present
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 300);
+    
+    return () => clearTimeout(timer);
+  }, [frameworkId]);
+
+  useEffect(() => {
     const searchParams = new URLSearchParams(location.search);
     const tab = searchParams.get('tab');
     if (tab && ['controls', 'risks', 'documents', 'policies'].includes(tab)) {
@@ -34,7 +52,6 @@ const FrameworkRequirements = () => {
     }
   }, [location]);
 
-  // Update URL when tab changes
   useEffect(() => {
     const searchParams = new URLSearchParams(location.search);
     searchParams.set('tab', selectedTab);
@@ -44,6 +61,17 @@ const FrameworkRequirements = () => {
   const handleBackClick = () => {
     navigate('/compliance');
   };
+
+  const handleGenerateWithAI = async (prompt: string) => {
+    setIsGenerating(true);
+    // Simulate AI generation
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    setIsGenerating(false);
+  };
+
+  if (isLoading) {
+    return <Loading />;
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -108,20 +136,28 @@ const FrameworkRequirements = () => {
 
                     <TabsContent value="controls" className="mt-0">
                       <div className="grid grid-cols-1 gap-6">
-                        <RulesDisplay frameworkId={frameworkId} />
+                        <Suspense fallback={<ComponentLoader />}>
+                          <RulesDisplay frameworkId={frameworkId} />
+                        </Suspense>
                       </div>
                     </TabsContent>
 
                     <TabsContent value="risks" className="mt-0">
-                      <RiskRegister frameworkId={frameworkId} />
+                      <Suspense fallback={<ComponentLoader />}>
+                        <RiskRegister frameworkId={frameworkId} />
+                      </Suspense>
                     </TabsContent>
 
                     <TabsContent value="documents" className="mt-0">
-                      <DocumentsSection frameworkId={frameworkId} />
+                      <Suspense fallback={<ComponentLoader />}>
+                        <DocumentsSection frameworkId={frameworkId} />
+                      </Suspense>
                     </TabsContent>
 
                     <TabsContent value="policies" className="mt-0">
-                      <PoliciesSection frameworkId={frameworkId} />
+                      <Suspense fallback={<ComponentLoader />}>
+                        <PoliciesSection frameworkId={frameworkId} />
+                      </Suspense>
                     </TabsContent>
                   </Tabs>
                 </div>
@@ -133,9 +169,9 @@ const FrameworkRequirements = () => {
                     transition={{ duration: 0.4, delay: 0.2 }}
                   >
                     <OpenAIIntegration 
-                      title={`Ask about ${frameworkName}`}
-                      description={`Get AI guidance specific to ${frameworkName} requirements`}
-                      placeholder={`Ask anything about implementing ${frameworkName} in your organization...`}
+                      onGenerateContent={handleGenerateWithAI}
+                      isLoading={isGenerating}
+                      placeholder="Ask AI about this framework or control..."
                     />
                   </motion.div>
                 </div>

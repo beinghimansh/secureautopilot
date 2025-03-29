@@ -1,154 +1,202 @@
 
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
-import RulesList from '@/components/compliance/rules/RulesList';
-import RuleDetails from '@/components/compliance/rules/RuleDetails';
-import IsoControlsTree from '@/components/compliance/rules/IsoControlsTree';
-import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-
-interface Rule {
-  id: number;
-  number: string;
-  content: string;
-  status?: 'compliant' | 'non_compliant' | 'in_progress' | 'not_applicable';
-}
+import { supabase } from '@/integrations/supabase/client';
+import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Loader2 } from 'lucide-react';
 
 interface RulesDisplayProps {
-  frameworkId: string;
+  ruleId?: string | null;
+  rules?: any[];
+  setRules?: React.Dispatch<React.SetStateAction<any[]>>;
+  frameworkId?: string;
 }
 
-const RulesDisplay: React.FC<RulesDisplayProps> = ({ frameworkId }) => {
-  const [selectedRule, setSelectedRule] = useState<Rule | null>(null);
-  const [implementationNotes, setImplementationNotes] = useState<string>('');
-  const [rules, setRules] = useState<Rule[]>([]);
-  const [isTreeView, setIsTreeView] = useState<boolean>(frameworkId === 'iso27001');
-  
+const RulesDisplay: React.FC<RulesDisplayProps> = ({ 
+  ruleId, 
+  rules = [], 
+  setRules = () => {}, 
+  frameworkId 
+}) => {
+  const [selectedRule, setSelectedRule] = useState<any>(null);
+  const [implementationNotes, setImplementationNotes] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [localRules, setLocalRules] = useState<any[]>([]);
+
   useEffect(() => {
-    const fetchRules = async () => {
-      try {
-        const rulesData = require('@/components/compliance/rules/RulesData').getFrameworkRules(frameworkId);
-        setRules(rulesData);
-      } catch (error) {
-        console.error("Error loading rules data:", error);
-        toast.error("Failed to load requirements data");
-        setRules([]);
-      }
-    };
-    
-    fetchRules();
-    setIsTreeView(frameworkId === 'iso27001');
+    if (frameworkId) {
+      fetchRulesForFramework(frameworkId);
+    }
   }, [frameworkId]);
 
   useEffect(() => {
-    if (selectedRule?.id) {
-      const fetchNotes = async () => {
-        try {
-          const { data, error } = await supabase
-            .from('control_implementation_notes')
-            .select('*')
-            .eq('control_id', selectedRule.id.toString())
-            .maybeSingle();
-
-          if (error && error.code !== 'PGRST116') {
-            console.error('Error fetching notes:', error);
-            toast.error("Failed to load implementation notes");
-          }
-
-          if (data) {
-            setImplementationNotes(data.content || '');
-          } else {
-            setImplementationNotes('');
-          }
-        } catch (err) {
-          console.error('Error fetching implementation notes:', err);
-          toast.error("An error occurred while loading notes");
-        }
-      };
-
-      fetchNotes();
+    if (rules.length > 0) {
+      setLocalRules(rules);
     }
-  }, [selectedRule]);
+  }, [rules]);
 
-  const handleSaveNotes = async () => {
-    if (!selectedRule) return;
+  useEffect(() => {
+    if (ruleId) {
+      const rule = localRules.find(r => r.id === ruleId);
+      setSelectedRule(rule);
+      setImplementationNotes(rule?.notes || null);
+    }
+  }, [ruleId, localRules]);
 
+  const fetchRulesForFramework = async (frameworkId: string) => {
     try {
       const { data, error } = await supabase
-        .from('control_implementation_notes')
+        .from('compliance_rules')
+        .select('*')
+        .eq('framework_id', frameworkId);
+
+      if (error) {
+        console.error('Error fetching rules:', error);
+        toast.error('Failed to load compliance rules');
+      } else if (data) {
+        setLocalRules(data);
+        // If setRules was provided, update the parent component
+        if (setRules) {
+          setRules(data);
+        }
+      }
+    } catch (error) {
+      console.error('Unexpected error:', error);
+    }
+  };
+
+  const handleNotesChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setImplementationNotes(e.target.value);
+  };
+
+  const handleStatusChange = (value: string) => {
+    if (selectedRule) {
+      setSelectedRule(prevRule => ({ ...prevRule, status: value }));
+    }
+  };
+
+  const saveImplementationNotes = async () => {
+    if (selectedRule && implementationNotes !== null) {
+      setSaving(true);
+      
+      console.log('Saving notes for rule:', ruleId, 'Content:', implementationNotes, 'Status:', selectedRule.status);
+      
+      // Correctly structure the upsert call without the invalid 'returning' option
+      const { data, error } = await supabase
+        .from('implementation_notes')
         .upsert(
-          { 
-            control_id: selectedRule.id.toString(),
+          {
+            requirement_id: selectedRule.id,
             content: implementationNotes,
+            status: selectedRule.status,
             updated_at: new Date().toISOString()
           },
-          { onConflict: 'control_id' }
+          { 
+            onConflict: 'requirement_id'
+          }
         );
 
       if (error) {
-        toast.error('Failed to save notes');
         console.error('Error saving notes:', error);
-        return;
+        toast.error('Failed to save implementation notes');
+      } else {
+        console.log('Saved notes successfully:', data);
+        toast.success('Implementation notes saved successfully');
+        
+        // Update the rules data in state
+        const updatedRules = localRules.map(rule => 
+          rule.id === selectedRule.id 
+            ? { ...rule, notes: implementationNotes, status: selectedRule.status } 
+            : rule
+        );
+        
+        setLocalRules(updatedRules);
+        
+        // If setRules was provided, update the parent component
+        if (setRules) {
+          setRules(updatedRules);
+        }
       }
-
-      toast.success('Implementation notes saved successfully');
-    } catch (err) {
-      toast.error('An error occurred while saving');
-      console.error('Error saving implementation notes:', err);
+      
+      setSaving(false);
     }
   };
 
-  const handleRuleClick = (rule: Rule) => {
-    setSelectedRule(rule);
-  };
+  if (!selectedRule && localRules.length > 0) {
+    return (
+      <div className="p-4">
+        <h3 className="text-lg font-medium mb-4">Select a control to view details</h3>
+        <div className="space-y-2">
+          {localRules.map(rule => (
+            <div 
+              key={rule.id}
+              className="p-3 border rounded-md hover:bg-gray-50 cursor-pointer"
+              onClick={() => {
+                setSelectedRule(rule);
+                setImplementationNotes(rule.notes || null);
+              }}
+            >
+              <p className="font-medium">{rule.control_id} - {rule.title}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
 
-  const handleNotesChange = (content: string) => {
-    setImplementationNotes(content);
-  };
-
-  const handleControlSelect = (control: any) => {
-    const rule: Rule = {
-      id: parseInt(control.id.replace(/\D/g, '')) || Math.floor(Math.random() * 1000),
-      number: control.id,
-      content: control.title,
-      status: control.status === 'implemented' ? 'compliant' : 
-              control.status === 'in_progress' ? 'in_progress' : 
-              control.status === 'not_implemented' ? 'non_compliant' : 'not_applicable'
-    };
-    
-    setSelectedRule(rule);
-  };
+  if (!selectedRule) {
+    return <div className="p-4">Loading controls or no controls available for this framework.</div>;
+  }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
-      <div className="md:col-span-1 overflow-auto">
-        {isTreeView ? (
-          <IsoControlsTree 
-            onSelectControl={handleControlSelect}
-            selectedRuleId={selectedRule?.id || null}
-          />
-        ) : (
-          <RulesList 
-            rules={rules} 
-            selectedRuleId={selectedRule?.id || null} 
-            onRuleClick={handleRuleClick} 
-          />
-        )}
+    <div className="p-4 space-y-4">
+      <div>
+        <h3 className="text-lg font-semibold">
+          {selectedRule.control_id} - {selectedRule.title}
+        </h3>
+        <p className="text-gray-600">{selectedRule.description}</p>
       </div>
-      <div className="md:col-span-2">
-        {selectedRule ? (
-          <RuleDetails 
-            rule={selectedRule} 
-            implementationNotes={implementationNotes}
-            onNotesChange={handleNotesChange}
-            onSaveNotes={handleSaveNotes}
-          />
-        ) : (
-          <div className="bg-white p-6 rounded-lg shadow border border-gray-100 h-full flex items-center justify-center">
-            <p className="text-gray-500 text-center">Select a requirement from the {isTreeView ? 'tree' : 'list'} to view details and manage implementation</p>
-          </div>
-        )}
+
+      <div>
+        <Label htmlFor="implementation-notes">Implementation Notes</Label>
+        <Textarea
+          id="implementation-notes"
+          placeholder="Enter implementation notes..."
+          value={implementationNotes || ''}
+          onChange={handleNotesChange}
+          className="mt-2"
+        />
       </div>
+
+      <div>
+        <Label>Status</Label>
+        <Select value={selectedRule.status} onValueChange={handleStatusChange}>
+          <SelectTrigger className="mt-2 w-[180px]">
+            <SelectValue placeholder="Select a status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="Not Started">Not Started</SelectItem>
+            <SelectItem value="In Progress">In Progress</SelectItem>
+            <SelectItem value="Completed">Completed</SelectItem>
+            <SelectItem value="Not Applicable">Not Applicable</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      <Button onClick={saveImplementationNotes} disabled={saving}>
+        {saving ? (
+          <>
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            Saving...
+          </>
+        ) : (
+          'Save Notes'
+        )}
+      </Button>
     </div>
   );
 };

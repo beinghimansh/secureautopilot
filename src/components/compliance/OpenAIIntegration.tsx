@@ -1,137 +1,93 @@
 
-import React, { useState, useRef, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import React from 'react';
+import { 
+  Bot,
+  Loader2 
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
-import { completeWithAI } from '@/services/openaiService';
-import { toast } from 'sonner';
-import { Loader2, RefreshCw, Copy, Check } from 'lucide-react';
-import { motion } from 'framer-motion';
 
 interface OpenAIIntegrationProps {
+  onGenerateContent?: (prompt: string) => Promise<void>;
+  isLoading?: boolean;
   placeholder?: string;
-  title?: string;
-  description?: string;
+  promptContext?: string;
+  initialPrompt?: string;
+  headingText?: string;
+  frameworkId?: string;
 }
 
-const OpenAIIntegration = ({
-  placeholder = "Enter your compliance question here...",
-  title = "Ask AI Assistant",
-  description = "Get instant compliance guidance from our AI assistant"
-}: OpenAIIntegrationProps) => {
-  const [prompt, setPrompt] = useState('');
-  const [response, setResponse] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [copied, setCopied] = useState(false);
-  const responseRef = useRef<HTMLDivElement>(null);
+const OpenAIIntegration: React.FC<OpenAIIntegrationProps> = ({
+  onGenerateContent,
+  isLoading = false,
+  placeholder = "Ask AI for guidance...",
+  promptContext,
+  initialPrompt,
+  headingText = "AI Assistance"
+}) => {
+  const [prompt, setPrompt] = React.useState(initialPrompt || '');
 
-  const handleGenerateResponse = async () => {
-    if (!prompt.trim()) {
-      toast.error('Please enter a question or prompt');
-      return;
-    }
-
-    setIsLoading(true);
-    try {
-      const result = await completeWithAI(prompt);
-      setResponse(result.choices[0].message.content);
-      
-      // Wait for response to be set then scroll to it
-      setTimeout(() => {
-        responseRef.current?.scrollIntoView({ behavior: 'smooth' });
-      }, 100);
-      
-    } catch (error) {
-      console.error('Error:', error);
-      toast.error('Failed to generate response. Please try again.');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleCopyToClipboard = () => {
-    if (!response) return;
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!prompt.trim() || !onGenerateContent) return;
     
-    navigator.clipboard.writeText(response)
-      .then(() => {
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2000);
-        toast.success('Response copied to clipboard');
-      })
-      .catch(err => {
-        console.error('Failed to copy:', err);
-        toast.error('Failed to copy text');
-      });
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    // Submit on Ctrl+Enter or Cmd+Enter
-    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
-      handleGenerateResponse();
-    }
+    await onGenerateContent(prompt);
+    setPrompt('');
   };
 
   return (
-    <Card className="w-full shadow-sm hover:shadow-md transition-shadow duration-300">
-      <CardHeader>
-        <CardTitle>{title}</CardTitle>
-        <CardDescription>{description}</CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <Textarea
-          placeholder={placeholder}
-          className="min-h-[120px] resize-y"
+    <div className="bg-blue-50 p-4 rounded-lg border border-blue-100 mb-6">
+      <div className="flex items-center mb-3">
+        <Bot className="text-blue-600 mr-2 h-5 w-5" />
+        <h3 className="font-medium text-blue-700">{headingText}</h3>
+      </div>
+      
+      <form onSubmit={handleSubmit} className="flex gap-2">
+        <input
+          type="text"
           value={prompt}
           onChange={(e) => setPrompt(e.target.value)}
-          onKeyDown={handleKeyDown}
+          placeholder={placeholder}
+          className="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          disabled={isLoading}
         />
-        
-        {response && (
-          <motion.div 
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3 }}
-            className="p-4 bg-gray-50 rounded-md border"
-            ref={responseRef}
-          >
-            <div className="flex justify-between items-center mb-2">
-              <h3 className="text-sm font-medium">AI Response:</h3>
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                onClick={handleCopyToClipboard}
-                className="h-8 px-2"
-              >
-                {copied ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
-              </Button>
-            </div>
-            <p className="text-gray-700 whitespace-pre-wrap">{response}</p>
-          </motion.div>
-        )}
-      </CardContent>
-      <CardFooter className="flex justify-between items-center">
-        <div className="text-xs text-gray-500">
-          Press Ctrl+Enter to submit
-        </div>
         <Button 
-          onClick={handleGenerateResponse} 
-          disabled={isLoading || !prompt.trim()} 
-          className="ml-auto"
+          type="submit" 
+          disabled={isLoading || !prompt.trim()}
+          variant="default"
+          size="sm"
         >
           {isLoading ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               Generating...
             </>
-          ) : (
-            <>
-              <RefreshCw className="mr-2 h-4 w-4" />
-              Get AI Guidance
-            </>
-          )}
+          ) : 'Generate'}
         </Button>
-      </CardFooter>
-    </Card>
+      </form>
+      
+      <div className="mt-3 flex flex-wrap gap-2">
+        <AIGuidanceButton text="How do I implement this control?" onClick={(text) => setPrompt(text)} />
+        <AIGuidanceButton text="What evidence is required?" onClick={(text) => setPrompt(text)} />
+        <AIGuidanceButton text="Generate implementation guidelines" onClick={(text) => setPrompt(text)} />
+      </div>
+    </div>
+  );
+};
+
+interface AIGuidanceButtonProps {
+  text: string;
+  onClick: (text: string) => void;
+}
+
+const AIGuidanceButton: React.FC<AIGuidanceButtonProps> = ({ text, onClick }) => {
+  return (
+    <button
+      type="button"
+      onClick={() => onClick(text)}
+      className="px-3 py-1 bg-white border border-blue-200 rounded-full text-xs text-blue-600 hover:bg-blue-50 transition-colors"
+    >
+      {text}
+    </button>
   );
 };
 

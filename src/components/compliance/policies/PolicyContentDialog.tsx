@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import ReactMarkdown from 'react-markdown';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from 'sonner';
 
 interface PolicyContentDialogProps {
@@ -46,7 +47,7 @@ const PolicyContentDialog: React.FC<PolicyContentDialogProps> = ({
   return (
     <Dialog open={showPolicyContent} onOpenChange={setShowPolicyContent}>
       <DialogContent className="max-w-4xl w-full h-[80vh] p-0 bg-white">
-        <DialogHeader className="px-6 py-4 border-b">
+        <DialogHeader className="px-6 py-4 border-b bg-white">
           <div className="flex items-center justify-between">
             <div>
               <DialogTitle className="text-xl">{selectedPolicy.name || 'Policy Document'}</DialogTitle>
@@ -68,8 +69,8 @@ const PolicyContentDialog: React.FC<PolicyContentDialogProps> = ({
           </div>
         </DialogHeader>
 
-        <Tabs defaultValue="policy" className="w-full h-full flex flex-col">
-          <div className="px-6 pt-4 border-b">
+        <Tabs defaultValue="policy" className="w-full h-full flex flex-col bg-white">
+          <div className="px-6 pt-4 border-b bg-white">
             <TabsList className="bg-gray-100">
               <TabsTrigger value="policy" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">
                 Policy Document
@@ -97,20 +98,21 @@ const PolicyContentDialog: React.FC<PolicyContentDialogProps> = ({
             </TabsList>
           </div>
 
-          <div className="flex-1 overflow-hidden">
-            <TabsContent value="policy" className="h-full m-0 data-[state=active]:flex flex-col">
-              <div className="flex-1 overflow-y-auto px-6 py-4 bg-white">
-                <div className="prose max-w-none">
-                  <ReactMarkdown>{policyContent}</ReactMarkdown>
+          <div className="flex-1 overflow-hidden bg-white">
+            <TabsContent value="policy" className="h-full m-0 data-[state=active]:flex flex-col bg-white">
+              <ScrollArea className="flex-1">
+                <div className="px-6 py-4 bg-white">
+                  <div className="prose max-w-none">
+                    <ReactMarkdown>{policyContent}</ReactMarkdown>
+                  </div>
                 </div>
-              </div>
+              </ScrollArea>
               <div className="p-4 border-t bg-gray-50 flex justify-between items-center">
                 <div className="text-sm text-gray-500">
                   {policyWordCount} words
                 </div>
                 <Button 
                   onClick={() => handleDownloadPolicy(selectedPolicy, 'policy')}
-                  className="ml-auto"
                 >
                   <Download className="mr-2 h-4 w-4" />
                   Download PDF
@@ -119,11 +121,13 @@ const PolicyContentDialog: React.FC<PolicyContentDialogProps> = ({
             </TabsContent>
 
             <TabsContent value="risk" className="h-full m-0 data-[state=active]:flex flex-col">
-              <div className="flex-1 overflow-y-auto px-6 py-4 bg-white">
-                <div className="prose max-w-none">
-                  <ReactMarkdown>{riskAssessment}</ReactMarkdown>
+              <ScrollArea className="flex-1">
+                <div className="px-6 py-4 bg-white">
+                  <div className="prose max-w-none">
+                    <ReactMarkdown>{riskAssessment}</ReactMarkdown>
+                  </div>
                 </div>
-              </div>
+              </ScrollArea>
               <div className="p-4 border-t bg-gray-50 flex justify-end">
                 <Button 
                   onClick={() => handleDownloadPolicy(selectedPolicy, 'risk')}
@@ -135,11 +139,13 @@ const PolicyContentDialog: React.FC<PolicyContentDialogProps> = ({
             </TabsContent>
 
             <TabsContent value="implementation" className="h-full m-0 data-[state=active]:flex flex-col">
-              <div className="flex-1 overflow-y-auto px-6 py-4 bg-white">
-                <div className="prose max-w-none">
-                  <ReactMarkdown>{implementationGuide}</ReactMarkdown>
+              <ScrollArea className="flex-1">
+                <div className="px-6 py-4 bg-white">
+                  <div className="prose max-w-none">
+                    <ReactMarkdown>{implementationGuide}</ReactMarkdown>
+                  </div>
                 </div>
-              </div>
+              </ScrollArea>
               <div className="p-4 border-t bg-gray-50 flex justify-end">
                 <Button 
                   onClick={() => handleDownloadPolicy(selectedPolicy, 'implementation')}
@@ -151,11 +157,13 @@ const PolicyContentDialog: React.FC<PolicyContentDialogProps> = ({
             </TabsContent>
 
             <TabsContent value="gaps" className="h-full m-0 data-[state=active]:flex flex-col">
-              <div className="flex-1 overflow-y-auto px-6 py-4 bg-white">
-                <div className="prose max-w-none">
-                  <ReactMarkdown>{gapsAnalysis}</ReactMarkdown>
+              <ScrollArea className="flex-1">
+                <div className="px-6 py-4 bg-white">
+                  <div className="prose max-w-none">
+                    <ReactMarkdown>{gapsAnalysis}</ReactMarkdown>
+                  </div>
                 </div>
-              </div>
+              </ScrollArea>
               <div className="p-4 border-t bg-gray-50 flex justify-end">
                 <Button 
                   onClick={() => handleDownloadPolicy(selectedPolicy, 'gaps')}
@@ -167,11 +175,13 @@ const PolicyContentDialog: React.FC<PolicyContentDialogProps> = ({
             </TabsContent>
 
             <TabsContent value="ai" className="h-full m-0 data-[state=active]:flex flex-col">
-              <div className="flex-1 overflow-y-auto px-6 py-4 bg-white">
-                <div className="prose max-w-none">
-                  <ReactMarkdown>{aiSuggestions}</ReactMarkdown>
+              <ScrollArea className="flex-1">
+                <div className="px-6 py-4 bg-white">
+                  <div className="prose max-w-none">
+                    <ReactMarkdown>{aiSuggestions}</ReactMarkdown>
+                  </div>
                 </div>
-              </div>
+              </ScrollArea>
               <div className="p-4 border-t bg-gray-50 flex justify-end">
                 <Button 
                   onClick={() => handleDownloadPolicy(selectedPolicy, 'ai')}
