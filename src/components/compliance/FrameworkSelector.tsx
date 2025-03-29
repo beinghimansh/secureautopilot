@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { navigate } from '@/components/ui/navigate';
+import { useNavigate } from 'react-router-dom';
 import { Shield, ArrowRight, Settings, RefreshCw } from 'lucide-react';
 import { Card, CardContent } from '@/components/common/Card';
 import { toast } from 'sonner';
@@ -47,6 +47,7 @@ const frameworks = [
 const FrameworkSelector: React.FC<FrameworkSelectorProps> = ({ onSelectFramework }) => {
   const [hasGeneratedPolicies, setHasGeneratedPolicies] = useState<Record<string, boolean>>({});
   const [isLoading, setIsLoading] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchExistingPolicies = async () => {
