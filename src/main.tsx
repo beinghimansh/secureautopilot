@@ -22,10 +22,10 @@ const LoadingIndicator = () => {
   }, []);
   
   return (
-    <div className="flex flex-col items-center justify-center h-screen bg-gray-50">
+    <div className="flex flex-col items-center justify-center h-screen bg-gray-50 dark:bg-[#111]">
       <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mb-4"></div>
-      <p className="text-gray-700 font-medium mb-2">Loading application...</p>
-      <div className="w-64 h-2 bg-gray-200 rounded-full overflow-hidden">
+      <p className="text-gray-700 dark:text-gray-300 font-medium mb-2">Loading ComplyAI...</p>
+      <div className="w-64 h-2 bg-gray-200 dark:bg-gray-800 rounded-full overflow-hidden">
         <div 
           className="h-full bg-blue-600 transition-all duration-200 ease-out"
           style={{ width: `${progress}%` }}
@@ -35,26 +35,30 @@ const LoadingIndicator = () => {
   );
 };
 
-// Preload important resources using link preload
-const preloadResources = () => {
-  const resources = [
-    { href: '/favicon.ico', as: 'image' },
-    // Add other critical resources here
+// Implement code splitting with dynamic imports and prefetching
+const App = lazy(() => {
+  // Preload critical paths
+  const preloadLinks = [
+    { href: '/auth?mode=login', as: 'document' },
+    { href: '/auth?mode=register', as: 'document' },
+    { href: '/dashboard', as: 'document' }
   ];
   
-  resources.forEach(({ href, as }) => {
+  preloadLinks.forEach(({ href, as }) => {
     const link = document.createElement('link');
-    link.rel = 'preload';
+    link.rel = 'prefetch';
     link.href = href;
     link.as = as;
     document.head.appendChild(link);
   });
-};
-
-// Implement code splitting with dynamic imports and intelligent chunk loading
-const App = lazy(() => {
-  // Start preloading resources
-  preloadResources();
+  
+  // Preload critical images
+  const preloadImages = ['/lovable-uploads/7b834d06-0777-4c52-ba5b-410d3ee4edaf.png'];
+  
+  preloadImages.forEach((src) => {
+    const img = new Image();
+    img.src = src;
+  });
   
   // Return the import
   return import('./App').then(module => {

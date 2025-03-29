@@ -1,221 +1,175 @@
 
 import React, { useState } from 'react';
-import { ChevronDown, ChevronRight, AlertCircle, CheckCircle, Clock } from 'lucide-react';
-import { Tree, TreeItemIndex, StaticTreeDataProvider } from 'react-complex-tree';
-import 'react-complex-tree/lib/style-modern.css';
+import { 
+  Tree, 
+  UncontrolledTreeEnvironment,
+  StaticTreeDataProvider,
+  TreeItem,
+  TreeItemIndex,
+  TreeItemRenderContext,
+  TreeInformation
+} from 'react-complex-tree';
+import 'react-complex-tree/lib/style.css';
+import { ChevronDown, ChevronRight } from 'lucide-react';
 import StatusBadge from './components/StatusBadge';
 
-// Define the structure for our tree item data
+// Define types for our tree items
 interface TreeItemData {
   title: string;
   status?: 'compliant' | 'non_compliant' | 'in_progress' | 'not_applicable';
   progress?: number;
-  children?: TreeItemIndex[];
+  children?: string[];
 }
 
-// Sample data structure for ISO 27001 controls
-const isoControls: Record<string, TreeItemData> = {
+// Sample ISO 27001 controls tree structure (simplified for demo)
+const isoControlsData: Record<string, TreeItemData> = {
   root: {
     title: 'ISO 27001 Controls',
-    children: ['a5', 'a6', 'a7', 'a8', 'a9', 'a10', 'a11', 'a12', 'a13', 'a14', 'a15', 'a16', 'a17', 'a18'],
+    children: ['section5', 'section6', 'section7', 'section8']
   },
-  a5: {
-    title: 'A.5 Information security policies',
-    children: ['a5.1'],
+  section5: {
+    title: 'Section 5: Information Security Policies',
+    children: ['control5.1']
+  },
+  control5.1: {
+    title: 'Control 5.1: Management direction for information security',
+    status: 'compliant',
+    progress: 100,
+    children: ['control5.1.1', 'control5.1.2']
+  },
+  control5.1.1: {
+    title: 'Control 5.1.1: Policies for information security',
     status: 'compliant',
     progress: 100
   },
-  'a5.1': {
-    title: 'A.5.1 Management direction for information security',
-    children: ['a5.1.1', 'a5.1.2'],
-    status: 'compliant',
-    progress: 100
-  },
-  'a5.1.1': {
-    title: 'A.5.1.1 Policies for information security',
-    status: 'compliant',
-    progress: 100
-  },
-  'a5.1.2': {
-    title: 'A.5.1.2 Review of the policies for information security',
-    status: 'compliant',
-    progress: 100
-  },
-  a6: {
-    title: 'A.6 Organization of information security',
-    children: ['a6.1', 'a6.2'],
+  control5.1.2: {
+    title: 'Control 5.1.2: Review of the policies for information security',
     status: 'in_progress',
     progress: 75
   },
-  'a6.1': {
-    title: 'A.6.1 Internal organization',
-    children: ['a6.1.1', 'a6.1.2', 'a6.1.3', 'a6.1.4', 'a6.1.5'],
-    status: 'in_progress',
-    progress: 80
+  section6: {
+    title: 'Section 6: Organization of Information Security',
+    children: ['control6.1', 'control6.2']
   },
-  'a6.1.1': {
-    title: 'A.6.1.1 Information security roles and responsibilities',
+  control6.1: {
+    title: 'Control 6.1: Internal organization',
+    status: 'in_progress',
+    progress: 60,
+    children: ['control6.1.1', 'control6.1.2']
+  },
+  control6.1.1: {
+    title: 'Control 6.1.1: Information security roles and responsibilities',
     status: 'compliant',
     progress: 100
   },
-  'a6.1.2': {
-    title: 'A.6.1.2 Segregation of duties',
-    status: 'in_progress',
-    progress: 60
-  },
-  'a6.1.3': {
-    title: 'A.6.1.3 Contact with authorities',
-    status: 'in_progress',
-    progress: 70
-  },
-  'a6.1.4': {
-    title: 'A.6.1.4 Contact with special interest groups',
-    status: 'compliant',
-    progress: 100
-  },
-  'a6.1.5': {
-    title: 'A.6.1.5 Information security in project management',
-    status: 'in_progress',
-    progress: 40
-  },
-  'a6.2': {
-    title: 'A.6.2 Mobile devices and teleworking',
-    children: ['a6.2.1', 'a6.2.2'],
-    status: 'non_compliant',
-    progress: 30
-  },
-  'a6.2.1': {
-    title: 'A.6.2.1 Mobile device policy',
+  control6.1.2: {
+    title: 'Control 6.1.2: Segregation of duties',
     status: 'non_compliant',
     progress: 20
   },
-  'a6.2.2': {
-    title: 'A.6.2.2 Teleworking',
+  control6.2: {
+    title: 'Control 6.2: Mobile devices and teleworking',
+    status: 'not_applicable',
+    progress: 0
+  },
+  section7: {
+    title: 'Section 7: Human Resource Security',
+    children: ['control7.1']
+  },
+  control7.1: {
+    title: 'Control 7.1: Prior to employment',
     status: 'in_progress',
-    progress: 40
+    progress: 50
   },
-  // Fix for the error: Use object for a7 instead of string
-  a7: {
-    title: 'A.7 Human resource security',
-    children: [],
-    status: 'not_applicable',
-    progress: 0
+  section8: {
+    title: 'Section 8: Asset Management',
+    children: ['control8.1']
   },
-  a8: {
-    title: 'A.8 Asset management',
-    children: [],
-    status: 'not_applicable',
-    progress: 0
-  },
-  a9: {
-    title: 'A.9 Access control',
-    children: [],
-    status: 'not_applicable',
-    progress: 0
-  },
-  a10: {
-    title: 'A.10 Cryptography',
-    children: [],
-    status: 'not_applicable',
-    progress: 0
-  },
-  a11: {
-    title: 'A.11 Physical and environmental security',
-    children: [],
-    status: 'not_applicable',
-    progress: 0
-  },
-  a12: {
-    title: 'A.12 Operations security',
-    children: [],
-    status: 'not_applicable',
-    progress: 0
-  },
-  a13: {
-    title: 'A.13 Communications security',
-    children: [],
-    status: 'not_applicable',
-    progress: 0
-  },
-  a14: {
-    title: 'A.14 System acquisition, development and maintenance',
-    children: [],
-    status: 'not_applicable',
-    progress: 0
-  },
-  a15: {
-    title: 'A.15 Supplier relationships',
-    children: [],
-    status: 'not_applicable',
-    progress: 0
-  },
-  a16: {
-    title: 'A.16 Information security incident management',
-    children: [],
-    status: 'not_applicable',
-    progress: 0
-  },
-  a17: {
-    title: 'A.17 Information security aspects of business continuity management',
-    children: [],
-    status: 'not_applicable',
-    progress: 0
-  },
-  a18: {
-    title: 'A.18 Compliance',
-    children: [],
-    status: 'not_applicable',
-    progress: 0
+  control8.1: {
+    title: 'Control 8.1: Responsibility for assets',
+    status: 'non_compliant',
+    progress: 15
   }
+};
+
+// Create tree items that react-complex-tree expects
+const createTreeItemsFromData = (data: Record<string, TreeItemData>): Record<TreeItemIndex, TreeItem<TreeItemData>> => {
+  const treeItems: Record<TreeItemIndex, TreeItem<TreeItemData>> = {};
+  
+  Object.entries(data).forEach(([key, value]) => {
+    treeItems[key] = {
+      index: key as TreeItemIndex,
+      data: value,
+      children: value.children || [],
+      isFolder: (value.children && value.children.length > 0) ? true : false
+    };
+  });
+  
+  return treeItems;
 };
 
 const IsoControlsTree = () => {
   const [expandedItems, setExpandedItems] = useState<TreeItemIndex[]>(['root']);
   const [selectedItems, setSelectedItems] = useState<TreeItemIndex[]>([]);
   
-  // Create a data provider with our controls
-  const dataProvider = new StaticTreeDataProvider(
-    isoControls,
-    (item, data) => data.children || []
-  );
-
-  // Render a custom tree item with status indicators
-  const renderItemTitle = ({ title, status }: TreeItemData) => {
-    return (
-      <div className="flex items-center gap-2">
-        <span>{title}</span>
-        {status && <StatusBadge status={status} />}
-      </div>
-    );
-  };
-
-  // Render the arrow icon based on expanded state
-  const renderItemArrow = ({ item, context }: { item: TreeItemIndex, context: any }) => {
-    return context.isExpanded ? (
-      <ChevronDown className="h-4 w-4 text-gray-500" />
-    ) : (
-      <ChevronRight className="h-4 w-4 text-gray-500" />
-    );
-  };
-
+  // Create tree items from our data
+  const treeItems = createTreeItemsFromData(isoControlsData);
+  const dataProvider = new StaticTreeDataProvider(treeItems);
+  
   return (
-    <div className="border rounded-md p-4 bg-white">
-      <h3 className="text-lg font-medium mb-4">ISO 27001 Controls</h3>
-      <Tree
-        treeId="iso-controls-tree"
-        rootItem="root"
-        items={isoControls}
-        dataProvider={dataProvider}
-        expandedItems={expandedItems}
-        selectedItems={selectedItems}
-        onExpandItem={(item) => setExpandedItems([...expandedItems, item])}
-        onCollapseItem={(item) =>
-          setExpandedItems(expandedItems.filter((expandedItem) => expandedItem !== item))
-        }
-        onSelectItems={(items) => setSelectedItems(items)}
-        renderItemTitle={renderItemTitle}
-        renderItemArrow={renderItemArrow}
-      />
+    <div className="mb-6 border rounded-md overflow-auto">
+      <div className="p-4 border-b bg-gray-50">
+        <h3 className="font-medium">ISO 27001 Controls Tree</h3>
+        <p className="text-sm text-gray-500">Browse compliance requirements structure</p>
+      </div>
+      
+      <div className="p-4">
+        <UncontrolledTreeEnvironment
+          dataProvider={dataProvider}
+          getItemTitle={item => item.data.title}
+          viewState={{
+            ['tree-1']: {
+              expandedItems,
+              selectedItems
+            }
+          }}
+          onExpandItem={(item) => {
+            setExpandedItems([...expandedItems, item.index]);
+          }}
+          onCollapseItem={(item) => {
+            setExpandedItems(expandedItems.filter(expandedItemIndex => expandedItemIndex !== item.index));
+          }}
+          onSelectItems={(items) => {
+            setSelectedItems(items);
+          }}
+          canSearch={true}
+          canDragAndDrop={false}
+          canDropOnFolder={false}
+          canReorderItems={false}
+          renderItemArrow={({ item, context }) => {
+            if (treeItems[item.index]?.children && treeItems[item.index]?.children.length === 0) {
+              return null;
+            }
+            
+            return context.isExpanded ? (
+              <ChevronDown size={16} className="mr-1 text-gray-400" />
+            ) : (
+              <ChevronRight size={16} className="mr-1 text-gray-400" />
+            );
+          }}
+          renderItemTitle={({ item, title }) => {
+            const itemData = treeItems[item.index]?.data;
+            return (
+              <div className="flex items-center">
+                <span className="mr-2">{title}</span>
+                {itemData?.status && <StatusBadge status={itemData.status} />}
+              </div>
+            );
+          }}
+        >
+          <Tree treeId="tree-1" rootItem="root" />
+        </UncontrolledTreeEnvironment>
+      </div>
     </div>
   );
 };

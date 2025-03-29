@@ -10,6 +10,13 @@ interface AuthOptimizedProps {
 }
 
 const AuthOptimized: React.FC<AuthOptimizedProps> = ({ initialMode }) => {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  // Allow the AuthForm to update the submission state
+  const handleSubmitChange = (status: boolean) => {
+    setIsSubmitting(status);
+  };
+  
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-[#111] py-12 px-4 sm:px-6 lg:px-8">
       <div className="w-full max-w-md space-y-8">
@@ -33,14 +40,17 @@ const AuthOptimized: React.FC<AuthOptimizedProps> = ({ initialMode }) => {
           
           <Link 
             to="/" 
-            className="inline-flex items-center text-gray-400 hover:text-white transition-colors mb-6"
+            className={`inline-flex items-center text-gray-400 hover:text-white transition-colors mb-6 ${isSubmitting ? 'pointer-events-none opacity-50' : ''}`}
           >
             <ArrowLeft size={16} className="mr-2" />
             Back to Home
           </Link>
           
           <div className="glass-dark rounded-xl p-8 shadow-xl">
-            <AuthForm initialMode={initialMode} />
+            <AuthForm 
+              initialMode={initialMode} 
+              onSubmitStateChange={handleSubmitChange}
+            />
             
             <div className="mt-6 text-center text-sm text-gray-500 pt-4 border-t border-gray-800">
               <p>

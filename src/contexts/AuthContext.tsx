@@ -40,10 +40,49 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [profile, setProfile] = useState<Profile | null>(null);
+  const [authChecked, setAuthChecked] = useState(false);
+
+  // Helper function to safely fetch user profile
+  const fetchUserProfile = (userId: string) => {
+    // Use setTimeout to break potential deadlock
+    setTimeout(async () => {
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', userId)
+          .single();
+
+        if (error) {
+          console.error('Error fetching user profile:', error);
+        } else if (data) {
+          setProfile(data as Profile);
+        }
+      } catch (error) {
+        console.error('Unexpected error fetching user profile:', error);
+      }
+    }, 0);
+  };
 
   useEffect(() => {
-    // Set up auth state listener
-    const fetchSession = async () => {
+    // Set up auth state listener FIRST
+    const { data: authListener } = supabase.auth.onAuthStateChange(
+      (event, newSession) => {
+        console.log(`Auth state changed: ${event}`);
+        setSession(newSession);
+        setUser(newSession?.user || null);
+        
+        // Fetch user profile when auth state changes
+        if (newSession?.user) {
+          fetchUserProfile(newSession.user.id);
+        } else {
+          setProfile(null);
+        }
+      }
+    );
+
+    // THEN check for existing session
+    const checkSession = async () => {
       try {
         const { data, error } = await supabase.auth.getSession();
         
@@ -62,27 +101,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         console.error('Unexpected error fetching session:', error);
       } finally {
         setIsLoading(false);
+        setAuthChecked(true);
       }
     };
 
-    fetchSession();
-
-    // Set up listener for auth state changes
-    const { data: authListener } = supabase.auth.onAuthStateChange(
-      (_event, newSession) => {
-        setSession(newSession);
-        setUser(newSession?.user || null);
-        
-        // Fetch user profile when auth state changes
-        if (newSession?.user) {
-          fetchUserProfile(newSession.user.id);
-        } else {
-          setProfile(null);
-        }
-        
-        setIsLoading(false);
-      }
-    );
+    checkSession();
 
     // Clean up subscription
     return () => {
@@ -90,39 +113,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
   }, []);
 
-  // Fetch user profile from profiles table
-  const fetchUserProfile = async (userId: string) => {
-    try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', userId)
-        .single();
-
-      if (error) {
-        console.error('Error fetching user profile:', error);
-      } else if (data) {
-        setProfile(data as Profile);
-      }
-    } catch (error) {
-      console.error('Unexpected error fetching user profile:', error);
-    }
-  };
-
   const signIn = async (email: string, password: string) => {
+    setIsLoading(true);
     try {
       const response = await supabase.auth.signInWithPassword({
         email,
         password,
       });
+
+      // Profile will be fetched via the auth state change listener
       return response;
     } catch (error) {
       console.error('Error signing in:', error);
       return { error, data: null };
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const signUp = async (email: string, password: string, metadata: any = {}) => {
+    setIsLoading(true);
     try {
       const response = await supabase.auth.signUp({
         email,
@@ -135,14 +145,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } catch (error) {
       console.error('Error signing up:', error);
       return { error, data: null };
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const signOut = async () => {
+    setIsLoading(true);
     try {
       await supabase.auth.signOut();
+      // Auth state change listener will update state
     } catch (error) {
       console.error('Error signing out:', error);
+    } finally {
+      setIsLoading(false);
     }
   };
 

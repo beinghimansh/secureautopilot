@@ -108,8 +108,9 @@ const HeroSection = () => {
               </div>
             </div>
             
+            {/* Use static dashboard image instead of dynamic component that causes errors */}
             <img 
-              src="/lovable-uploads/400fcdce-b265-46c4-a1fc-c2ad19c2c12a.png" 
+              src="/lovable-uploads/7b834d06-0777-4c52-ba5b-410d3ee4edaf.png" 
               alt="ComplyAI Dashboard" 
               className="w-full object-cover"
               loading="eager"
