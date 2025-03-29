@@ -29,6 +29,11 @@ const FrameworkControls: React.FC<FrameworkControlsProps> = ({ frameworkId }) =>
     navigate('/compliance');
   };
   
+  const handleAIGuidance = () => {
+    // In a real app, this would open AI guidance modal or initiate AI assistance
+    console.log('Opening AI guidance for framework:', frameworkId);
+  };
+  
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
@@ -49,11 +54,12 @@ const FrameworkControls: React.FC<FrameworkControlsProps> = ({ frameworkId }) =>
              frameworkId === 'gdpr' ? 'GDPR' : 
              frameworkId === 'hipaa' ? 'HIPAA' : 
              frameworkId === 'pci_dss' ? 'PCI DSS' : 
+             frameworkId === 'iso42001' ? 'ISO 42001' :
              frameworkId}
           </h1>
         </div>
         
-        <AIGuidanceButton />
+        <AIGuidanceButton onClick={handleAIGuidance} />
       </div>
       
       <Tabs 
