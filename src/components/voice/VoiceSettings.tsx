@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
@@ -7,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Button } from '@/components/ui/button';
 import { Volume2, Settings } from 'lucide-react';
 import { toast } from 'sonner';
-import voiceService, { availableVoices, UserVoicePreference } from '@/services/voiceService';
+import voiceService, { availableVoices, UserVoicePreference } from '@/services/voice';
 
 interface VoiceSettingsProps {
   onSettingsChange?: (preferences: UserVoicePreference) => void;
@@ -22,7 +21,6 @@ const VoiceSettings: React.FC<VoiceSettingsProps> = ({ onSettingsChange }) => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
-  // Load user preferences on component mount
   useEffect(() => {
     const loadPreferences = async () => {
       setLoading(true);

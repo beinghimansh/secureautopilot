@@ -5,7 +5,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { GraduationCap, Search, Volume2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import voiceService, { VoiceTrainingSession } from '@/services/voiceService';
+// Update the import to use the new module
+import voiceService, { VoiceTrainingSession } from '@/services/voice';
 import AudioPlayer from './AudioPlayer';
 
 interface VoiceTrainingListProps {

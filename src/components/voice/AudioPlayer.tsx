@@ -1,8 +1,7 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { Play, Pause, Volume2, VolumeX, SkipBack, SkipForward, Download } from 'lucide-react';
 import { Slider } from '@/components/ui/slider';
-import voiceService, { UserVoicePreference } from '@/services/voiceService';
+import voiceService, { UserVoicePreference } from '@/services/voice';
 
 interface AudioPlayerProps {
   audioUrl: string;
@@ -23,7 +22,6 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ audioUrl, title, onPlayStateC
   const progressBarRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // Load user preferences
     const loadPreferences = async () => {
       const prefs = await voiceService.getUserVoicePreference();
       if (prefs) {
@@ -39,11 +37,9 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ audioUrl, title, onPlayStateC
     const audio = audioRef.current;
     if (!audio) return;
 
-    // Set initial volume and playback rate
     audio.volume = volume;
     audio.playbackRate = playbackRate;
 
-    // Setup audio event listeners
     const setAudioData = () => {
       setDuration(audio.duration);
     };
@@ -62,7 +58,6 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ audioUrl, title, onPlayStateC
     audio.addEventListener('timeupdate', setAudioTime);
     audio.addEventListener('ended', handlePlaybackEnded);
 
-    // Auto-play if enabled in preferences
     if (preferences?.auto_play) {
       audio.play()
         .then(() => {
@@ -132,7 +127,6 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ audioUrl, title, onPlayStateC
     setPlaybackRate(rate);
     audio.playbackRate = rate;
     
-    // Save the playback rate preference
     if (preferences) {
       voiceService.saveUserVoicePreference({
         ...preferences,
@@ -165,7 +159,6 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ audioUrl, title, onPlayStateC
   };
 
   const handleDownload = () => {
-    // Create a temporary anchor element to trigger download
     const a = document.createElement('a');
     a.href = audioUrl;
     a.download = `${title.replace(/\s+/g, '_')}.mp3`;
@@ -174,7 +167,6 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ audioUrl, title, onPlayStateC
     document.body.removeChild(a);
   };
 
-  // Format time in MM:SS
   const formatTime = (timeInSeconds: number) => {
     if (isNaN(timeInSeconds)) return '00:00';
     
@@ -187,7 +179,6 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ audioUrl, title, onPlayStateC
     <div className="w-full bg-card rounded-lg border shadow-sm p-4">
       <audio ref={audioRef} src={audioUrl} preload="metadata" />
       
-      {/* Title and Download button */}
       <div className="flex justify-between items-center mb-3">
         <h3 className="text-sm font-medium truncate max-w-[80%]">{title}</h3>
         <button 
@@ -199,7 +190,6 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ audioUrl, title, onPlayStateC
         </button>
       </div>
       
-      {/* Progress bar */}
       <div className="mb-3">
         <Slider 
           value={[currentTime]}
@@ -215,7 +205,6 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ audioUrl, title, onPlayStateC
         </div>
       </div>
       
-      {/* Controls */}
       <div className="flex items-center justify-between mt-2 space-x-2">
         <div className="flex items-center space-x-1">
           <button 

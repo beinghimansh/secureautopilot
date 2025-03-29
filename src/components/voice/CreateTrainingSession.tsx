@@ -10,7 +10,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Switch } from '@/components/ui/switch';
 import { toast } from 'sonner';
 import { GraduationCap, Volume2 } from 'lucide-react';
-import voiceService, { availableVoices, VoiceTrainingSession } from '@/services/voiceService';
+// Update the import to use the new module
+import voiceService, { availableVoices, VoiceTrainingSession } from '@/services/voice';
 import AudioPlayer from './AudioPlayer';
 import { supabase } from '@/integrations/supabase/client';
 

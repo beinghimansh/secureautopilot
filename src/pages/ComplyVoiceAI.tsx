@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import Navbar from '@/components/layout/Navbar';
 import Sidebar from '@/components/layout/Sidebar';
@@ -12,7 +11,7 @@ import VoiceTrainingList from '@/components/voice/VoiceTrainingList';
 import CreateTrainingSession from '@/components/voice/CreateTrainingSession';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
-import { UserVoicePreference, VoiceSummary, VoiceTrainingSession } from '@/services/voiceService';
+import { UserVoicePreference, VoiceSummary, VoiceTrainingSession } from '@/services/voice';
 
 const ComplyVoiceAI = () => {
   const [activeTab, setActiveTab] = useState('summaries');

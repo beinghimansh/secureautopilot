@@ -9,7 +9,8 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
 import { Mic, Volume2 } from 'lucide-react';
-import voiceService, { availableVoices, VoiceSummary } from '@/services/voiceService';
+// Update the import to use the new module
+import voiceService, { availableVoices, VoiceSummary } from '@/services/voice';
 import AudioPlayer from './AudioPlayer';
 import { supabase } from '@/integrations/supabase/client';
 import { FrameworkType } from '@/types/database.types';

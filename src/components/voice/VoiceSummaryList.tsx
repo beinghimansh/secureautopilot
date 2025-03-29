@@ -6,7 +6,8 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { FrameworkType } from '@/types/database.types';
-import voiceService, { VoiceSummary } from '@/services/voiceService';
+// Update the import to use the new module
+import voiceService, { VoiceSummary } from '@/services/voice';
 import AudioPlayer from './AudioPlayer';
 
 interface VoiceSummaryListProps {
