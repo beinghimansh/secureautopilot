@@ -8,6 +8,7 @@ import OrganizationStep from './OrganizationStep';
 import DataInfrastructureStep from './DataInfrastructureStep';
 import SecurityRiskStep from './SecurityRiskStep';
 import ReviewStep from './ReviewStep';
+import { motion } from 'framer-motion';
 
 interface FormValues {
   companyName: string;
@@ -36,6 +37,11 @@ interface PolicyFormWrapperProps {
   riskAppetiteOptions: string[];
 }
 
+const fadeVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.4 } }
+};
+
 const PolicyFormWrapper: React.FC<PolicyFormWrapperProps> = ({
   frameworkName,
   currentStep,
@@ -51,40 +57,81 @@ const PolicyFormWrapper: React.FC<PolicyFormWrapperProps> = ({
   securityControlOptions,
   riskAppetiteOptions
 }) => {
+  const isNextDisabled = () => {
+    switch (currentStep) {
+      case 1:
+        return !formValues.companyName || !formValues.industry || !formValues.companySize;
+      case 2:
+        return !formValues.dataTypes;
+      case 3:
+        return formValues.securityControls.length === 0 || !formValues.riskAppetite;
+      default:
+        return false;
+    }
+  };
+
   const renderStepContent = () => {
     switch (currentStep) {
       case 1:
         return (
-          <OrganizationStep 
-            formValues={formValues} 
-            handleInputChange={handleInputChange}
-            industries={industries}
-            companySizes={companySizes}
-          />
+          <motion.div
+            key="step1"
+            variants={fadeVariants}
+            initial="hidden"
+            animate="visible"
+          >
+            <OrganizationStep 
+              formValues={formValues} 
+              handleInputChange={handleInputChange}
+              industries={industries}
+              companySizes={companySizes}
+            />
+          </motion.div>
         );
       case 2:
         return (
-          <DataInfrastructureStep 
-            formValues={formValues} 
-            handleInputChange={handleInputChange} 
-          />
+          <motion.div
+            key="step2"
+            variants={fadeVariants}
+            initial="hidden"
+            animate="visible"
+          >
+            <DataInfrastructureStep 
+              formValues={formValues} 
+              handleInputChange={handleInputChange} 
+            />
+          </motion.div>
         );
       case 3:
         return (
-          <SecurityRiskStep 
-            formValues={formValues} 
-            handleInputChange={handleInputChange}
-            handleCheckboxChange={handleCheckboxChange}
-            securityControlOptions={securityControlOptions}
-            riskAppetiteOptions={riskAppetiteOptions}
-          />
+          <motion.div
+            key="step3"
+            variants={fadeVariants}
+            initial="hidden"
+            animate="visible"
+          >
+            <SecurityRiskStep 
+              formValues={formValues} 
+              handleInputChange={handleInputChange}
+              handleCheckboxChange={handleCheckboxChange}
+              securityControlOptions={securityControlOptions}
+              riskAppetiteOptions={riskAppetiteOptions}
+            />
+          </motion.div>
         );
       case 4:
         return (
-          <ReviewStep 
-            formValues={formValues} 
-            frameworkName={frameworkName} 
-          />
+          <motion.div
+            key="step4"
+            variants={fadeVariants}
+            initial="hidden"
+            animate="visible"
+          >
+            <ReviewStep 
+              formValues={formValues} 
+              frameworkName={frameworkName} 
+            />
+          </motion.div>
         );
       default:
         return null;
@@ -92,23 +139,32 @@ const PolicyFormWrapper: React.FC<PolicyFormWrapperProps> = ({
   };
 
   return (
-    <Card>
+    <Card className="shadow-md hover:shadow-lg transition-shadow duration-300">
       <CardContent className="p-6">
-        <div className="text-center mb-6">
+        <motion.div 
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+          className="text-center mb-6"
+        >
           <h1 className="text-2xl font-bold">{frameworkName} Policy Generator</h1>
           <p className="text-gray-600">
             AI will generate customized policies for your organization based on the {frameworkName} framework
           </p>
-        </div>
+        </motion.div>
         
         <PolicyGeneratorSteps currentStep={currentStep} />
         
         <form onSubmit={handleSubmit}>
           {error && (
-            <div className="mb-4 p-3 bg-red-100 border border-red-200 text-red-800 rounded-md flex items-start">
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="mb-4 p-3 bg-red-100 border border-red-200 text-red-800 rounded-md flex items-start"
+            >
               <AlertCircle size={20} className="mr-2 mt-0.5 flex-shrink-0" />
               <p>{error}</p>
-            </div>
+            </motion.div>
           )}
           
           {renderStepContent()}
@@ -130,6 +186,7 @@ const PolicyFormWrapper: React.FC<PolicyFormWrapperProps> = ({
               <Button 
                 type="button" 
                 onClick={nextStep}
+                disabled={isNextDisabled()}
               >
                 Next
               </Button>

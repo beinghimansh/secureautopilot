@@ -3,6 +3,7 @@ import React from 'react';
 import { Loader2, ArrowRight } from 'lucide-react';
 import { DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import Button from '@/components/common/Button';
+import { motion } from 'framer-motion';
 
 interface PolicyFormData {
   companyName: string;
@@ -26,6 +27,18 @@ interface PolicyGeneratorFormProps {
   onClose: () => void;
 }
 
+const formItemVariants = {
+  hidden: { opacity: 0, y: 10 },
+  visible: (i: number) => ({ 
+    opacity: 1, 
+    y: 0, 
+    transition: { 
+      delay: i * 0.05,
+      duration: 0.3 
+    } 
+  })
+};
+
 const PolicyGeneratorForm: React.FC<PolicyGeneratorFormProps> = ({
   frameworkId,
   policyFormData,
@@ -42,39 +55,59 @@ const PolicyGeneratorForm: React.FC<PolicyGeneratorFormProps> = ({
     frameworkId === 'hipaa' ? 'HIPAA' : 
     frameworkId === 'pci_dss' ? 'PCI DSS' : 'Compliance';
 
+  // Validation checks
+  const isFormValid = () => {
+    return (
+      policyFormData.companyName.trim() !== '' &&
+      policyFormData.industry !== '' &&
+      policyFormData.companySize !== '' &&
+      policyFormData.dataTypes.trim() !== ''
+    );
+  };
+
   return (
     <DialogContent className="max-w-3xl">
       <DialogHeader>
-        <DialogTitle>{frameworkName} Policy Generator</DialogTitle>
+        <DialogTitle className="text-xl">{frameworkName} Policy Generator</DialogTitle>
         <DialogDescription>
           Fill in the details below to generate a customized {frameworkName} policy
         </DialogDescription>
       </DialogHeader>
       
-      <div className="grid gap-4 py-3">
-        <div>
+      <div className="grid gap-4 py-3 max-h-[70vh] overflow-y-auto pr-2">
+        <motion.div
+          custom={0}
+          variants={formItemVariants}
+          initial="hidden"
+          animate="visible"
+        >
           <label className="block text-sm font-medium mb-1" htmlFor="companyName">
             Company Name <span className="text-red-500">*</span>
           </label>
           <input
             id="companyName"
             name="companyName"
-            className="w-full p-2 border border-gray-300 rounded-md"
+            className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
             value={policyFormData.companyName}
             onChange={handlePolicyFormChange}
             placeholder="e.g., Acme Corporation"
             required
           />
-        </div>
+        </motion.div>
         
-        <div>
+        <motion.div
+          custom={1}
+          variants={formItemVariants}
+          initial="hidden"
+          animate="visible"
+        >
           <label className="block text-sm font-medium mb-1" htmlFor="industry">
             Industry <span className="text-red-500">*</span>
           </label>
           <select
             id="industry"
             name="industry"
-            className="w-full p-2 border border-gray-300 rounded-md"
+            className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
             value={policyFormData.industry}
             onChange={handlePolicyFormChange}
             required
@@ -89,16 +122,21 @@ const PolicyGeneratorForm: React.FC<PolicyGeneratorFormProps> = ({
             <option value="Government">Government</option>
             <option value="Professional Services">Professional Services</option>
           </select>
-        </div>
+        </motion.div>
         
-        <div>
+        <motion.div
+          custom={2}
+          variants={formItemVariants}
+          initial="hidden"
+          animate="visible"
+        >
           <label className="block text-sm font-medium mb-1" htmlFor="companySize">
             Company Size <span className="text-red-500">*</span>
           </label>
           <select
             id="companySize"
             name="companySize"
-            className="w-full p-2 border border-gray-300 rounded-md"
+            className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
             value={policyFormData.companySize}
             onChange={handlePolicyFormChange}
             required
@@ -111,79 +149,104 @@ const PolicyGeneratorForm: React.FC<PolicyGeneratorFormProps> = ({
             <option value="501-1000 employees">501-1000 employees</option>
             <option value="1000+ employees">1000+ employees</option>
           </select>
-        </div>
+        </motion.div>
         
-        <div>
+        <motion.div
+          custom={3}
+          variants={formItemVariants}
+          initial="hidden"
+          animate="visible"
+        >
           <label className="block text-sm font-medium mb-1" htmlFor="businessLocation">
             Primary Business Location
           </label>
           <input
             id="businessLocation"
             name="businessLocation"
-            className="w-full p-2 border border-gray-300 rounded-md"
+            className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
             value={policyFormData.businessLocation}
             onChange={handlePolicyFormChange}
             placeholder="e.g., United States"
           />
-        </div>
+        </motion.div>
         
-        <div>
+        <motion.div
+          custom={4}
+          variants={formItemVariants}
+          initial="hidden"
+          animate="visible"
+        >
           <label className="block text-sm font-medium mb-1" htmlFor="dataTypes">
             Data Types Processed <span className="text-red-500">*</span>
           </label>
           <textarea
             id="dataTypes"
             name="dataTypes"
-            className="w-full p-2 border border-gray-300 rounded-md min-h-[80px]"
+            className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all min-h-[80px]"
             value={policyFormData.dataTypes}
             onChange={handlePolicyFormChange}
             placeholder="e.g., Personal customer data, Financial information, Healthcare records"
             required
           />
-        </div>
+        </motion.div>
         
-        <div>
+        <motion.div
+          custom={5}
+          variants={formItemVariants}
+          initial="hidden"
+          animate="visible"
+        >
           <label className="block text-sm font-medium mb-1" htmlFor="infrastructureDetails">
             Infrastructure Details
           </label>
           <textarea
             id="infrastructureDetails"
             name="infrastructureDetails"
-            className="w-full p-2 border border-gray-300 rounded-md min-h-[80px]"
+            className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all min-h-[80px]"
             value={policyFormData.infrastructureDetails}
             onChange={handlePolicyFormChange}
             placeholder="e.g., Cloud services used, on-premises infrastructure, BYOD policies"
           />
-        </div>
+        </motion.div>
         
-        <div>
+        <motion.div
+          custom={6}
+          variants={formItemVariants}
+          initial="hidden"
+          animate="visible"
+        >
           <label className="block text-sm font-medium mb-2">
             Security Controls in Place
           </label>
           <div className="grid grid-cols-2 gap-2">
-            {['Access Control', 'Encryption', 'Firewalls', 'Anti-virus', 'Multi-factor Authentication', 'Backup Systems', 'Incident Response', 'Physical Security'].map(control => (
+            {['Access Control', 'Encryption', 'Firewalls', 'Anti-virus', 'Multi-factor Authentication', 'Backup Systems', 'Incident Response', 'Physical Security', 'Vulnerability Management', 'SIEM Solution'].map(control => (
               <div key={control} className="flex items-center">
                 <input
                   type="checkbox"
                   id={`control-${control}`}
                   checked={policyFormData.securityControls.includes(control)}
                   onChange={() => handleSecurityControlChange(control)}
-                  className="mr-2"
+                  className="mr-2 h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                 />
-                <label htmlFor={`control-${control}`}>{control}</label>
+                <label htmlFor={`control-${control}`} className="text-sm">{control}</label>
               </div>
             ))}
           </div>
-        </div>
+        </motion.div>
         
-        <div>
+        <motion.div
+          custom={7}
+          variants={formItemVariants}
+          initial="hidden"
+          animate="visible"
+        >
           <label className="block text-sm font-medium mb-1" htmlFor="riskAppetite">
             Risk Appetite
           </label>
           <select
             id="riskAppetite"
             name="riskAppetite"
-            className="w-full p-2 border border-gray-300 rounded-md"
+            className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
             value={policyFormData.riskAppetite}
             onChange={handlePolicyFormChange}
           >
@@ -191,17 +254,17 @@ const PolicyGeneratorForm: React.FC<PolicyGeneratorFormProps> = ({
             <option value="Moderate">Moderate</option>
             <option value="High">High (Risk Tolerant)</option>
           </select>
-        </div>
+        </motion.div>
       </div>
       
       <DialogFooter>
-        <Button variant="outline" onClick={onClose}>
+        <Button variant="outline" onClick={onClose} disabled={generatingPolicy}>
           Cancel
         </Button>
         <Button 
           onClick={handleGeneratePolicy}
           isLoading={generatingPolicy}
-          disabled={generatingPolicy}
+          disabled={generatingPolicy || !isFormValid()}
           leftIcon={generatingPolicy ? <Loader2 className="animate-spin" size={16} /> : <ArrowRight size={16} />}
         >
           {generatingPolicy ? 'Generating Policy...' : 'Generate Policy'}

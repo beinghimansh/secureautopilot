@@ -34,11 +34,21 @@ export default function AuthForm({ initialMode = 'login' }: AuthFormProps) {
     
     try {
       if (mode === 'register') {
+        // Parse name into first and last name
+        const nameParts = name.trim().split(' ');
+        const firstName = nameParts[0] || '';
+        const lastName = nameParts.slice(1).join(' ') || '';
+        
         await signUp(email, password, {
-          first_name: name.split(' ')[0],
-          last_name: name.split(' ')[1] || '',
+          first_name: firstName,
+          last_name: lastName,
           email,
-          company_name: companyName
+          // Pass company_name as metadata (not part of the Profile type)
+          // Instead we'll store it in raw_user_meta_data
+        }, {
+          data: {
+            company_name: companyName
+          }
         });
         toast.success("Account created successfully!");
       } else {

@@ -1,8 +1,6 @@
 
-import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-
-const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
+import OpenAI from "https://deno.land/x/openai@v4.24.0/mod.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -16,49 +14,56 @@ serve(async (req) => {
   }
 
   try {
-    if (!openAIApiKey) {
-      console.error("OpenAI API Key not configured");
-      throw new Error("OPENAI_API_KEY is not configured in the environment variables");
+    const openaiApiKey = Deno.env.get('OPENAI_API_KEY');
+    if (!openaiApiKey) {
+      console.error("OpenAI API key not found");
+      throw new Error('OPENAI_API_KEY is missing in environment variables');
     }
 
-    console.log("Testing OpenAI API connection with key starting with:", openAIApiKey.substring(0, 5) + "...");
-    
-    // Use a simpler request to test connectivity - no need for full content generation
-    const response = await fetch('https://api.openai.com/v1/models', {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${openAIApiKey}`,
-        'Content-Type': 'application/json',
-      },
+    const openai = new OpenAI({
+      apiKey: openaiApiKey
     });
 
-    console.log("OpenAI API Status:", response.status);
-    
-    if (!response.ok) {
-      const errorData = await response.json();
-      console.error("OpenAI API Error:", errorData);
-      throw new Error(`OpenAI API error: ${JSON.stringify(errorData)}`);
+    console.log("Testing OpenAI API connection with key starting with:", openaiApiKey.substring(0, 4) + "...");
+
+    const requestBody = await req.json();
+    const { prompt, options = {} } = requestBody;
+
+    if (!prompt) {
+      throw new Error("Prompt is required");
     }
 
-    const data = await response.json();
+    const model = options.model || 'gpt-4o-mini';
+    const temperature = options.temperature || 0.7;
+    const max_tokens = options.max_tokens || 1000;
+
+    console.log(`Processing request with model: ${model}, temp: ${temperature}`);
+
+    const response = await openai.chat.completions.create({
+      model,
+      messages: [{ role: "user", content: prompt }],
+      temperature,
+      max_tokens,
+    });
+
+    console.log("OpenAI API Status:", 200);
     console.log("OpenAI API Response received successfully");
-    
-    return new Response(JSON.stringify({
-      success: true,
-      message: "OpenAI API is working correctly",
-      models: data.data.slice(0, 3).map(model => model.id) // Just return first 3 models for verification
-    }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
 
-  } catch (error) {
-    console.error('OpenAI Test Error:', error);
-    return new Response(JSON.stringify({ 
-      success: false, 
-      error: error.message 
-    }), {
-      status: 500,
+    return new Response(JSON.stringify(response), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
+  } catch (error) {
+    console.error('OpenAI API Error:', error);
+    
+    return new Response(
+      JSON.stringify({
+        error: error.message || 'An unknown error occurred while processing the request',
+        status: 'error'
+      }),
+      {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      }
+    );
   }
 });

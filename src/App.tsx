@@ -40,7 +40,7 @@ const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       staleTime: 60 * 1000, // 1 minute
-      gcTime: 5 * 60 * 1000, // 5 minutes (renamed from cacheTime in newer versions)
+      gcTime: 5 * 60 * 1000, // 5 minutes
       retry: 1,
       refetchOnWindowFocus: false,
     },
@@ -134,6 +134,15 @@ function App() {
                 element={
                   <ProtectedRoute>
                     <FrameworkRequirements />
+                  </ProtectedRoute>
+                } 
+              />
+              {/* Add additional route for backward compatibility */}
+              <Route 
+                path="/compliance/:frameworkId/requirements" 
+                element={
+                  <ProtectedRoute>
+                    <Navigate to={location => `/compliance/frameworks/${location.pathname.split('/')[2]}`} replace />
                   </ProtectedRoute>
                 } 
               />
