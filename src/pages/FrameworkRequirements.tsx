@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, lazy, Suspense } from 'react';
 import Navbar from '@/components/layout/Navbar';
 import Sidebar from '@/components/layout/Sidebar';
@@ -65,19 +64,29 @@ const FrameworkRequirements = () => {
 
   const handleGenerateWithAI = async (prompt: string) => {
     setIsGenerating(true);
+    setAiResponse(null);
     
     try {
       console.log('Generating AI response for prompt:', prompt);
       
-      // In a real implementation, we would call the AI service
-      const response = await completeWithAI(prompt, {
+      const enhancedPrompt = `As a SOC 2 compliance expert, provide detailed guidance for the following request: ${prompt}. 
+      Focus on practical implementation, specific controls, and evidence collection requirements for a service organization.`;
+      
+      const response = await completeWithAI(enhancedPrompt, {
         model: 'gpt-4o-mini',
         temperature: 0.7,
+        max_tokens: 2000
       });
       
       console.log('Generated AI response:', response);
-      setAiResponse(response?.content || 'No response received from AI service');
-      toast.success('AI guidance generated');
+      
+      if (response?.content && response.content.trim().length > 50) {
+        setAiResponse(response.content);
+        toast.success('AI guidance generated successfully');
+      } else {
+        toast.warning('Received a very short or empty response');
+        setAiResponse('No detailed guidance could be generated. Please try a more specific query.');
+      }
     } catch (error) {
       console.error('Error generating AI guidance:', error);
       toast.error('Failed to generate AI guidance');
@@ -194,9 +203,10 @@ const FrameworkRequirements = () => {
                     <OpenAIIntegration 
                       onGenerateContent={handleGenerateWithAI}
                       isLoading={isGenerating}
-                      placeholder="Ask AI about this framework or control..."
-                      headingText="AI Assistance"
+                      placeholder="Ask AI about SOC 2 requirements..."
+                      headingText="SOC 2 AI Assistance"
                       frameworkId={frameworkId}
+                      aiResponse={aiResponse}
                     />
                     
                     <div className="mt-4 space-y-2">

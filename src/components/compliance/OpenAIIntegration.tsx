@@ -1,9 +1,11 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { 
   Bot,
   Loader2,
-  Zap
+  Zap,
+  Copy,
+  RefreshCw
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
@@ -16,6 +18,7 @@ interface OpenAIIntegrationProps {
   initialPrompt?: string;
   headingText?: string;
   frameworkId?: string;
+  aiResponse?: string | null;
 }
 
 const OpenAIIntegration: React.FC<OpenAIIntegrationProps> = ({
@@ -24,11 +27,12 @@ const OpenAIIntegration: React.FC<OpenAIIntegrationProps> = ({
   placeholder = "Ask AI for guidance...",
   promptContext,
   initialPrompt,
-  headingText = "AI Assistance"
+  headingText = "AI Assistance",
+  frameworkId,
+  aiResponse
 }) => {
-  const [prompt, setPrompt] = React.useState(initialPrompt || '');
-  const [response, setResponse] = React.useState<string | null>(null);
-  const [error, setError] = React.useState<string | null>(null);
+  const [prompt, setPrompt] = useState(initialPrompt || '');
+  const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -36,17 +40,7 @@ const OpenAIIntegration: React.FC<OpenAIIntegrationProps> = ({
     
     try {
       setError(null);
-      setResponse(null);
-      
-      // Call the API
       await onGenerateContent(prompt);
-      
-      // For demonstration, we'll simulate a response from the API
-      // In a real implementation, the onGenerateContent would return the response
-      const simulatedResponse = `Here's guidance related to your question: "${prompt}"\n\nThis framework requires careful implementation of controls and evidence collection. To properly address your specific question, I recommend focusing on documentation and implementation guidelines for the specific control area mentioned.`;
-      
-      setResponse(simulatedResponse);
-      toast.success('AI guidance generated');
     } catch (err: any) {
       console.error('Error generating AI content:', err);
       setError(err.message || 'Failed to generate AI response');
@@ -54,8 +48,11 @@ const OpenAIIntegration: React.FC<OpenAIIntegrationProps> = ({
     }
   };
 
-  const handleClearResponse = () => {
-    setResponse(null);
+  const handleCopyResponse = () => {
+    if (aiResponse) {
+      navigator.clipboard.writeText(aiResponse);
+      toast.success('Response copied to clipboard');
+    }
   };
 
   return (
@@ -65,30 +62,28 @@ const OpenAIIntegration: React.FC<OpenAIIntegrationProps> = ({
         <h3 className="font-medium text-blue-700">{headingText}</h3>
       </div>
       
-      {response ? (
+      {aiResponse ? (
         <div className="space-y-3">
           <div className="bg-white p-4 rounded-md border border-blue-200 text-sm text-gray-700 whitespace-pre-wrap">
-            {response}
+            {aiResponse}
           </div>
           <div className="flex justify-between">
             <Button 
               variant="outline"
               size="sm"
-              onClick={handleClearResponse}
+              onClick={() => setPrompt('')}
               className="text-blue-600 border-blue-200"
             >
+              <RefreshCw className="mr-2 h-4 w-4" />
               Ask another question
             </Button>
             <Button 
               variant="outline"
               size="sm"
-              onClick={() => {
-                // Copy response to clipboard
-                navigator.clipboard.writeText(response);
-                toast.success('Copied to clipboard');
-              }}
+              onClick={handleCopyResponse}
               className="text-blue-600 border-blue-200"
             >
+              <Copy className="mr-2 h-4 w-4" />
               Copy response
             </Button>
           </div>
@@ -133,11 +128,20 @@ const OpenAIIntegration: React.FC<OpenAIIntegrationProps> = ({
         </form>
       )}
       
-      {!response && (
+      {!aiResponse && (
         <div className="mt-4 flex flex-wrap gap-2">
-          <AIGuidanceButton text="How do I implement this control?" onClick={(text) => setPrompt(text)} />
-          <AIGuidanceButton text="What evidence is required?" onClick={(text) => setPrompt(text)} />
-          <AIGuidanceButton text="Generate implementation guidelines" onClick={(text) => setPrompt(text)} />
+          <AIGuidanceButton 
+            text="How do I implement SOC 2 controls?" 
+            onClick={(text) => setPrompt(text)} 
+          />
+          <AIGuidanceButton 
+            text="What evidence is required for SOC 2?" 
+            onClick={(text) => setPrompt(text)} 
+          />
+          <AIGuidanceButton 
+            text="Generate implementation guidelines" 
+            onClick={(text) => setPrompt(text)} 
+          />
         </div>
       )}
     </div>
