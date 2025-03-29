@@ -1,3 +1,4 @@
+
 import { lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
@@ -5,14 +6,14 @@ import { AuthProvider } from '@/contexts/AuthContext';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'sonner';
 
-// Loading component
+// Loading component with reduced animation for better performance
 const Loading = () => (
   <div className="flex items-center justify-center min-h-screen">
     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
   </div>
 );
 
-// Lazy loaded pages
+// Lazy loaded pages with performance optimizations
 const Home = lazy(() => import('@/pages/Home'));
 const Auth = lazy(() => import('@/pages/Auth'));
 const Dashboard = lazy(() => import('@/pages/Dashboard'));

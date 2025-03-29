@@ -5,17 +5,23 @@ import { toast } from 'sonner';
 import Button from '../common/Button';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '../common/Card';
 import { FadeIn } from '../common/Transitions';
+import { useAuth } from '@/contexts/AuthContext';
 
 type AuthMode = 'login' | 'register';
 
-export default function AuthForm() {
-  const [mode, setMode] = useState<AuthMode>('login');
+interface AuthFormProps {
+  initialMode?: AuthMode;
+}
+
+export default function AuthForm({ initialMode = 'login' }: AuthFormProps) {
+  const [mode, setMode] = useState<AuthMode>(initialMode);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
   const [companyName, setCompanyName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   
+  const { signIn, signUp } = useAuth();
   const navigate = useNavigate();
 
   const toggleMode = () => {
@@ -27,20 +33,22 @@ export default function AuthForm() {
     setIsLoading(true);
     
     try {
-      // Simulating authentication for demo
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
       if (mode === 'register') {
-        // In a real app, this would create a user in the database
+        await signUp(email, password, {
+          first_name: name.split(' ')[0],
+          last_name: name.split(' ')[1] || '',
+          email,
+          company_name: companyName
+        });
         toast.success("Account created successfully!");
-        setMode('login');
       } else {
-        // In a real app, this would validate login credentials
+        await signIn(email, password);
         toast.success("Login successful!");
         navigate('/dashboard');
       }
-    } catch (error) {
-      toast.error("Authentication failed. Please try again.");
+    } catch (error: any) {
+      console.error("Auth error:", error);
+      toast.error(error.message || "Authentication failed. Please try again.");
     } finally {
       setIsLoading(false);
     }
