@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -58,7 +59,7 @@ const PolicyViewerDialog: React.FC<PolicyViewerDialogProps> = ({
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col bg-white">
-        <div className="flex justify-between items-center mb-4 bg-white border-b pb-3">
+        <div className="flex justify-between items-center mb-4">
           <DialogTitle className="text-xl">
             Policy Viewer
             {policies[selectedPolicyIndex]?.company && (
@@ -75,16 +76,16 @@ const PolicyViewerDialog: React.FC<PolicyViewerDialogProps> = ({
           </button>
         </div>
 
-        <div className="grid grid-cols-3 gap-4 flex-grow overflow-hidden bg-white">
-          <div className="col-span-1 border-r pr-4 overflow-auto bg-white shadow-sm rounded-lg">
-            <div className="font-medium mb-2 p-2 bg-gray-50 rounded-t-lg">Available Policies</div>
-            <div className="space-y-2 p-2">
+        <div className="grid grid-cols-3 gap-4 flex-grow overflow-hidden">
+          <div className="col-span-1 border-r pr-4 overflow-auto bg-white">
+            <div className="font-medium mb-2">Available Policies</div>
+            <div className="space-y-2">
               {policies.map((policy, index) => (
                 <button
                   key={index}
                   className={`w-full text-left p-2 rounded-md transition-colors ${
                     selectedPolicyIndex === index
-                      ? 'bg-blue-100 text-blue-800 font-medium'
+                      ? 'bg-blue-100 text-blue-800'
                       : 'hover:bg-gray-100'
                   }`}
                   onClick={() => setSelectedPolicyIndex(index)}
@@ -95,10 +96,12 @@ const PolicyViewerDialog: React.FC<PolicyViewerDialogProps> = ({
             </div>
           </div>
 
-          <div className="col-span-2 overflow-auto bg-white shadow-sm rounded-lg">
+          <div className="col-span-2 overflow-auto">
             <div className="bg-white rounded-md border border-gray-200 overflow-auto h-full p-4">
               <div className="prose prose-sm max-w-none markdown-content">
-                <ReactMarkdown>
+                <ReactMarkdown components={{
+                  p: ({node, ...props}) => <p className="mb-4" {...props} />
+                }}>
                   {policies[selectedPolicyIndex]?.content || ''}
                 </ReactMarkdown>
               </div>

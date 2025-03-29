@@ -2,7 +2,7 @@
 import type { Config } from "tailwindcss";
 
 export default {
-	darkMode: ["class", '.dark-theme'],
+	darkMode: ["class"],
 	content: [
 		"./pages/**/*.{ts,tsx}",
 		"./components/**/*.{ts,tsx}",
@@ -20,7 +20,7 @@ export default {
 		},
 		extend: {
 			fontFamily: {
-				sans: ['Inter', 'system-ui', 'sans-serif'],
+				sans: ['Inter', 'sans-serif'],
 			},
 			colors: {
 				border: 'hsl(var(--border))',
@@ -102,10 +102,6 @@ export default {
 				'premium-lg': '0 4px 6px rgba(0, 0, 0, 0.05), 0 10px 15px rgba(0, 0, 0, 0.05)',
 				'premium-xl': '0 10px 20px rgba(0, 0, 0, 0.06), 0 20px 25px rgba(0, 0, 0, 0.06)',
 				'premium-2xl': '0 25px 50px rgba(0, 0, 0, 0.1)',
-				'apple': '0 8px 30px rgba(0, 0, 0, 0.12), 0 4px 8px rgba(0, 0, 0, 0.06)',
-				'apple-hover': '0 10px 40px rgba(0, 0, 0, 0.15), 0 6px 12px rgba(0, 0, 0, 0.08)',
-				'apple-dark': '0 8px 30px rgba(0, 0, 0, 0.6), 0 4px 8px rgba(0, 0, 0, 0.3)',
-				'apple-dark-hover': '0 10px 40px rgba(0, 0, 0, 0.8), 0 6px 12px rgba(0, 0, 0, 0.5)',
 			},
 			keyframes: {
 				'accordion-down': {
@@ -132,51 +128,11 @@ export default {
 						transform: 'translateY(-5px)',
 					},
 				},
-				'slide-up': {
-					'0%': {
-						opacity: '0',
-						transform: 'translateY(20px)'
-					},
-					'100%': {
-						opacity: '1',
-						transform: 'translateY(0)'
-					}
-				},
-				'slide-down': {
-					'0%': {
-						opacity: '0',
-						transform: 'translateY(-20px)'
-					},
-					'100%': {
-						opacity: '1',
-						transform: 'translateY(0)'
-					}
-				},
-				'fade-in': {
-					'0%': {
-						opacity: '0'
-					},
-					'100%': {
-						opacity: '1'
-					}
-				},
-				'fade-out': {
-					'0%': {
-						opacity: '1'
-					},
-					'100%': {
-						opacity: '0'
-					}
-				},
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
 				'accordion-up': 'accordion-up 0.2s ease-out',
 				'float': 'float 3s ease-in-out infinite',
-				'slide-up': 'slide-up 0.6s cubic-bezier(0.22, 1, 0.36, 1)',
-				'slide-down': 'slide-down 0.6s cubic-bezier(0.22, 1, 0.36, 1)',
-				'fade-in': 'fade-in 0.3s ease-out',
-				'fade-out': 'fade-out 0.3s ease-out',
 			}
 		}
 	},

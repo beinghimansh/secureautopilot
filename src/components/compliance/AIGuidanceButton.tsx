@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import Button from '@/components/common/Button';
 import { Lightbulb } from 'lucide-react';
 
@@ -17,7 +17,7 @@ const AIGuidanceButton: React.FC<AIGuidanceButtonProps> = ({
   return (
     <Button
       onClick={onClick}
-      className={`bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md transition-all flex items-center justify-center ${className}`}
+      className={`bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md transition-all ${className}`}
       isLoading={isLoading}
       leftIcon={<Lightbulb size={16} />}
     >

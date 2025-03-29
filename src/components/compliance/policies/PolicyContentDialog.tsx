@@ -47,7 +47,7 @@ const PolicyContentDialog: React.FC<PolicyContentDialogProps> = ({
   return (
     <Dialog open={showPolicyContent} onOpenChange={setShowPolicyContent}>
       <DialogContent className="max-w-4xl w-full h-[80vh] p-0 bg-white">
-        <DialogHeader className="px-6 py-4 border-b bg-white">
+        <DialogHeader className="px-6 py-4 border-b">
           <div className="flex items-center justify-between">
             <div>
               <DialogTitle className="text-xl">{selectedPolicy.name || 'Policy Document'}</DialogTitle>
@@ -69,8 +69,8 @@ const PolicyContentDialog: React.FC<PolicyContentDialogProps> = ({
           </div>
         </DialogHeader>
 
-        <Tabs defaultValue="policy" className="w-full h-full flex flex-col bg-white">
-          <div className="px-6 pt-4 border-b bg-white">
+        <Tabs defaultValue="policy" className="w-full h-full flex flex-col">
+          <div className="px-6 pt-4 border-b">
             <TabsList className="bg-gray-100">
               <TabsTrigger value="policy" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">
                 Policy Document
@@ -98,8 +98,8 @@ const PolicyContentDialog: React.FC<PolicyContentDialogProps> = ({
             </TabsList>
           </div>
 
-          <div className="flex-1 overflow-hidden bg-white">
-            <TabsContent value="policy" className="h-full m-0 data-[state=active]:flex flex-col bg-white">
+          <div className="flex-1 overflow-hidden">
+            <TabsContent value="policy" className="h-full m-0 data-[state=active]:flex flex-col">
               <ScrollArea className="flex-1">
                 <div className="px-6 py-4 bg-white">
                   <div className="prose max-w-none">

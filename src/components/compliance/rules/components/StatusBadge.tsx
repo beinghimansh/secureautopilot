@@ -74,4 +74,5 @@ const StatusBadge: React.FC<StatusBadgeProps> = ({
   );
 };
 
+export { getStatusText, getStatusColor, getStatusIcon };
 export default StatusBadge;
