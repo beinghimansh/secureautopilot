@@ -81,6 +81,11 @@ const OpenAIAssistant: React.FC<OpenAIAssistantProps> = ({
 
   const displayResponse = aiResponse ? formatAIResponse(aiResponse) : null;
 
+  // New function to handle resetting the prompt and preparing for a new question
+  const handleAskAnotherQuestion = () => {
+    setPrompt(''); // Clear the prompt
+  };
+
   return (
     <div className="bg-blue-50 p-5 rounded-lg border border-blue-100 mb-6 shadow-sm">
       <div className="flex items-center mb-4">
@@ -99,7 +104,7 @@ const OpenAIAssistant: React.FC<OpenAIAssistantProps> = ({
             <Button 
               variant="outline"
               size="sm"
-              onClick={() => setPrompt('')}
+              onClick={handleAskAnotherQuestion}
               className="text-blue-600 border-blue-200"
             >
               <RefreshCw className="mr-2 h-4 w-4" />
