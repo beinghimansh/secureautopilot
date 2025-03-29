@@ -1,3 +1,4 @@
+
 import { lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useParams } from 'react-router-dom';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
@@ -10,21 +11,6 @@ const Loading = () => (
   <div className="flex items-center justify-center min-h-screen">
     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
   </div>
-);
-
-// Create a separate routes component for public pages to avoid lazy loading
-const PublicPages = () => (
-  <>
-    <Route path="/" element={<Home />} />
-    <Route path="/features" element={<Features />} />
-    <Route path="/pricing" element={<Pricing />} />
-    <Route path="/about" element={<About />} />
-    <Route path="/blog" element={<Blog />} />
-    <Route path="/documentation" element={<Documentation />} />
-    <Route path="/support" element={<Support />} />
-    <Route path="/security" element={<Security />} />
-    <Route path="/auth" element={<Auth />} />
-  </>
 );
 
 // Lazy loaded pages with performance optimizations
@@ -83,8 +69,16 @@ function App() {
         <BrowserRouter>
           <Toaster position="top-right" />
           <Routes>
-            {/* Public routes - directly loaded without Suspense */}
-            <PublicPages />
+            {/* Public routes - directly rendered */}
+            <Route path="/" element={<Home />} />
+            <Route path="/features" element={<Features />} />
+            <Route path="/pricing" element={<Pricing />} />
+            <Route path="/about" element={<About />} />
+            <Route path="/blog" element={<Blog />} />
+            <Route path="/documentation" element={<Documentation />} />
+            <Route path="/support" element={<Support />} />
+            <Route path="/security" element={<Security />} />
+            <Route path="/auth" element={<Auth />} />
             
             {/* Protected routes - loaded with Suspense */}
             <Route 
