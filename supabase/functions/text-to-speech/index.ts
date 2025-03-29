@@ -58,19 +58,33 @@ serve(async (req) => {
     // Check if the response is successful
     if (!response.ok) {
       let errorMessage;
-      const contentType = response.headers.get('content-type');
-      
-      if (contentType && contentType.includes('application/json')) {
-        // Try to parse as JSON if it's JSON content
-        const errorData = await response.json();
-        errorMessage = errorData.detail?.message || errorData.detail || errorData.error || `API Error (${response.status})`;
-      } else {
-        // If it's not JSON, just get the status
-        errorMessage = `ElevenLabs API Error: Status ${response.status}`;
+      try {
+        // Try to parse as JSON if possible
+        const contentType = response.headers.get('content-type');
+        if (contentType && contentType.includes('application/json')) {
+          const errorData = await response.json();
+          errorMessage = errorData.detail?.message || errorData.detail || errorData.error || `API Error (${response.status})`;
+        } else {
+          // If it's not JSON, just get the status and text for debugging
+          const responseText = await response.text();
+          errorMessage = `ElevenLabs API Error: Status ${response.status}, Response: ${responseText.substring(0, 100)}...`;
+        }
+      } catch (parseError) {
+        // Fallback if parsing fails
+        errorMessage = `ElevenLabs API Error: Status ${response.status}, unable to parse response`;
       }
       
       console.error('ElevenLabs API error:', errorMessage);
       throw new Error(errorMessage);
+    }
+
+    // Check content type to make sure we got audio
+    const contentType = response.headers.get('content-type');
+    if (!contentType || !contentType.includes('audio/')) {
+      const textResponse = await response.text();
+      console.error('Unexpected content type from ElevenLabs:', contentType);
+      console.error('Response preview:', textResponse.substring(0, 200));
+      throw new Error(`Unexpected response format: ${contentType}`);
     }
 
     // Get audio data and convert to base64

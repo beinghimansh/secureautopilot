@@ -41,7 +41,7 @@ const speechSynthesisService = {
         }),
       });
 
-      // Check for non-JSON responses first
+      // First check for non-JSON responses
       const contentType = response.headers.get('content-type');
       if (!contentType || !contentType.includes('application/json')) {
         const textResponse = await response.text();
@@ -62,27 +62,33 @@ const speechSynthesisService = {
         throw new Error('No audio content received from the service');
       }
 
-      const binaryString = atob(data.audioContent);
-      const bytes = new Uint8Array(binaryString.length);
-      for (let i = 0; i < binaryString.length; i++) {
-        bytes[i] = binaryString.charCodeAt(i);
+      // Process the base64 audio
+      try {
+        const binaryString = atob(data.audioContent);
+        const bytes = new Uint8Array(binaryString.length);
+        for (let i = 0; i < binaryString.length; i++) {
+          bytes[i] = binaryString.charCodeAt(i);
+        }
+        const audioBlob = new Blob([bytes], { type: 'audio/mpeg' });
+
+        const audioUrl = URL.createObjectURL(audioBlob);
+
+        const wordCount = text.split(/\s+/).length;
+        const estimatedDuration = Math.round(wordCount * 60 / 150);
+        
+        console.log('Speech generated successfully');
+
+        return {
+          success: true,
+          audioUrl,
+          audioBlob,
+          audioBase64: data.audioContent,
+          duration: estimatedDuration,
+        };
+      } catch (blobError) {
+        console.error('Error processing audio data:', blobError);
+        throw new Error('Failed to process audio data: ' + blobError.message);
       }
-      const audioBlob = new Blob([bytes], { type: 'audio/mpeg' });
-
-      const audioUrl = URL.createObjectURL(audioBlob);
-
-      const wordCount = text.split(/\s+/).length;
-      const estimatedDuration = Math.round(wordCount * 60 / 150);
-      
-      console.log('Speech generated successfully');
-
-      return {
-        success: true,
-        audioUrl,
-        audioBlob,
-        audioBase64: data.audioContent,
-        duration: estimatedDuration,
-      };
     } catch (error) {
       console.error('Error generating speech:', error);
       return {

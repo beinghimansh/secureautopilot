@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
@@ -188,7 +189,7 @@ const VoiceSettings: React.FC<VoiceSettingsProps> = ({ onSettingsChange }) => {
             <SelectTrigger id="voice-select">
               <SelectValue placeholder="Select a voice" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="bg-white z-50 max-h-72">
               {availableVoices.map(voice => (
                 <SelectItem key={voice.voice_id} value={voice.voice_id}>
                   {voice.name} {voice.category ? `(${voice.category})` : ''}
@@ -234,7 +235,7 @@ const VoiceSettings: React.FC<VoiceSettingsProps> = ({ onSettingsChange }) => {
             <SelectTrigger id="speed-select">
               <SelectValue placeholder="Select speed" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="bg-white z-50">
               <SelectItem value="0.5">0.5x (Slow)</SelectItem>
               <SelectItem value="0.75">0.75x</SelectItem>
               <SelectItem value="1">1x (Normal)</SelectItem>

@@ -18,15 +18,22 @@ export async function POST(request: Request) {
       }
     );
     
-    // Always check for non-JSON responses
+    // Handle non-JSON responses better
     const contentType = response.headers.get('content-type');
     if (!contentType || !contentType.includes('application/json')) {
-      const errorText = await response.text();
+      // Attempt to get text response for better debugging
+      let errorText = '';
+      try {
+        errorText = await response.text();
+      } catch (e) {
+        errorText = 'Could not read response body';
+      }
       console.error('Non-JSON response from function:', errorText.substring(0, 200));
       return new Response(
         JSON.stringify({ 
           success: false, 
-          error: `Invalid response format from API: ${contentType || 'unknown'}, status: ${response.status}` 
+          error: `Invalid response format from API: ${contentType || 'unknown'}, status: ${response.status}`,
+          debug: errorText.substring(0, 500)
         }),
         { status: 500, headers: { 'Content-Type': 'application/json' } }
       );
