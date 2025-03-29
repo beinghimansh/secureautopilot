@@ -39,15 +39,6 @@ const Header = () => {
           
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-6">
-            <Link to="/features" className="text-gray-300 hover:text-white transition-colors">
-              Features
-            </Link>
-            <Link to="/pricing" className="text-gray-300 hover:text-white transition-colors">
-              Pricing
-            </Link>
-            <Link to="/about" className="text-gray-300 hover:text-white transition-colors">
-              About
-            </Link>
             <div className="flex items-center space-x-3">
               <Link to="/auth?mode=login" className="text-gray-300 hover:text-white transition-colors">
                 Sign In
@@ -64,6 +55,7 @@ const Header = () => {
           <button 
             className="md:hidden text-gray-300 hover:text-white"
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            aria-label="Toggle mobile menu"
           >
             {isMobileMenuOpen ? (
               <X size={24} />
@@ -78,28 +70,7 @@ const Header = () => {
       {isMobileMenuOpen && (
         <div className="md:hidden absolute top-full left-0 right-0 bg-[#111]/95 backdrop-blur-xl border-b border-gray-800 shadow-lg">
           <div className="container mx-auto px-4 py-5 flex flex-col space-y-4">
-            <Link 
-              to="/features" 
-              className="text-gray-300 hover:text-white py-2 transition-colors"
-              onClick={() => setIsMobileMenuOpen(false)}
-            >
-              Features
-            </Link>
-            <Link 
-              to="/pricing" 
-              className="text-gray-300 hover:text-white py-2 transition-colors"
-              onClick={() => setIsMobileMenuOpen(false)}
-            >
-              Pricing
-            </Link>
-            <Link 
-              to="/about" 
-              className="text-gray-300 hover:text-white py-2 transition-colors"
-              onClick={() => setIsMobileMenuOpen(false)}
-            >
-              About
-            </Link>
-            <div className="flex flex-col space-y-3 pt-2 border-t border-gray-800">
+            <div className="flex flex-col space-y-3 pt-2">
               <Link 
                 to="/auth?mode=login" 
                 className="text-gray-300 hover:text-white py-2 transition-colors"

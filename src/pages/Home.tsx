@@ -7,6 +7,9 @@ import Loading from '@/components/common/Loading';
 const HomeContent = lazy(() => import('@/components/home/Home'));
 
 const HomePage = () => {
+  // Log when page renders to help with debugging
+  console.log('Home page rendered');
+  
   return (
     <Suspense fallback={<Loading />}>
       <HomeContent />
