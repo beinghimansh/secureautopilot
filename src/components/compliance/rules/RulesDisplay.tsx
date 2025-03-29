@@ -1,30 +1,20 @@
 
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
 import RulesList from '@/components/compliance/rules/RulesList';
 import RuleDetails from '@/components/compliance/rules/RuleDetails';
 import IsoControlsTree from '@/components/compliance/rules/IsoControlsTree';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-
-interface Rule {
-  id: number | string;
-  number: string;
-  content: string;
-  status?: 'compliant' | 'non_compliant' | 'in_progress' | 'not_applicable';
-  notes?: string;
-  description?: string;
-  requirement?: string;
-}
+import { ComplianceRule } from '@/components/compliance/types/complianceTypes';
 
 interface RulesDisplayProps {
   frameworkId: string;
 }
 
 const RulesDisplay: React.FC<RulesDisplayProps> = ({ frameworkId }) => {
-  const [selectedRule, setSelectedRule] = useState<Rule | null>(null);
+  const [selectedRule, setSelectedRule] = useState<ComplianceRule | null>(null);
   const [implementationNotes, setImplementationNotes] = useState<string>('');
-  const [rules, setRules] = useState<Rule[]>([]);
+  const [rules, setRules] = useState<ComplianceRule[]>([]);
   const [isTreeView, setIsTreeView] = useState<boolean>(
     frameworkId === 'iso27001' || frameworkId === 'soc2'
   );
@@ -149,7 +139,7 @@ const RulesDisplay: React.FC<RulesDisplayProps> = ({ frameworkId }) => {
     }
   };
 
-  const handleRuleClick = (rule: Rule) => {
+  const handleRuleClick = (rule: ComplianceRule) => {
     setSelectedRule(rule);
   };
 
@@ -160,7 +150,7 @@ const RulesDisplay: React.FC<RulesDisplayProps> = ({ frameworkId }) => {
   const handleControlSelect = (control: any) => {
     const ruleId = typeof control.id === 'string' ? control.id : parseInt(control.id);
     
-    const rule: Rule = {
+    const rule: ComplianceRule = {
       id: ruleId,
       number: control.number || control.id,
       content: control.title,

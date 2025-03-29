@@ -1,7 +1,7 @@
 
 import React, { useState, useRef } from 'react';
 import { Card, CardContent } from '@/components/common/Card';
-import { Bot, Loader2 } from 'lucide-react';
+import { Bot, Loader2, Download } from 'lucide-react';
 import Button from '@/components/common/Button';
 import { toast } from 'sonner';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -77,6 +77,21 @@ const OpenAIIntegration: React.FC<OpenAIIntegrationProps> = ({
     }
   };
 
+  const handleDownloadResponse = () => {
+    if (!response) return;
+    
+    const blob = new Blob([response], { type: 'text/markdown' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `ai-compliance-response-${new Date().toISOString().split('T')[0]}.md`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    toast.success('Response downloaded');
+  };
+
   return (
     <Card>
       <CardContent className="p-5">
@@ -94,11 +109,21 @@ const OpenAIIntegration: React.FC<OpenAIIntegrationProps> = ({
           <div className="mb-5 bg-gray-50 rounded-lg border border-gray-200 p-4">
             <ScrollArea className="h-[300px] pr-4">
               <div className="prose prose-sm max-w-none">
-                <ReactMarkdown>
+                <ReactMarkdown className="markdown-content">
                   {response}
                 </ReactMarkdown>
               </div>
             </ScrollArea>
+            <div className="flex justify-end mt-3 border-t pt-3">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleDownloadResponse}
+                leftIcon={<Download size={16} />}
+              >
+                Download Response
+              </Button>
+            </div>
           </div>
         )}
 

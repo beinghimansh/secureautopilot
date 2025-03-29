@@ -17,20 +17,10 @@ import { toast } from 'sonner';
 import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { supabase } from '@/integrations/supabase/client';
-
-interface Rule {
-  id: number | string;
-  number: string;
-  content: string;
-  status?: 'compliant' | 'non_compliant' | 'in_progress' | 'not_applicable';
-  notes?: string;
-  documents?: any[];
-  description?: string;
-  requirement?: string;
-}
+import { ComplianceRule } from '@/components/compliance/types/complianceTypes';
 
 interface RuleDetailsProps {
-  rule: Rule;
+  rule: ComplianceRule;
   implementationNotes: string;
   onNotesChange: (content: string) => void;
   onSaveNotes: () => Promise<void>;
@@ -43,7 +33,7 @@ const RuleDetails: React.FC<RuleDetailsProps> = ({
   onSaveNotes 
 }) => {
   const [isEditing, setIsEditing] = useState(false);
-  const [status, setStatus] = useState<Rule['status']>(rule?.status || 'in_progress');
+  const [status, setStatus] = useState<ComplianceRule['status']>(rule?.status || 'in_progress');
   const [isSaving, setIsSaving] = useState(false);
   
   // Update local state when selected rule changes
@@ -53,7 +43,7 @@ const RuleDetails: React.FC<RuleDetailsProps> = ({
     }
   }, [rule]);
 
-  const handleStatusChange = async (newStatus: Rule['status']) => {
+  const handleStatusChange = async (newStatus: ComplianceRule['status']) => {
     setStatus(newStatus);
     
     // Update status in database if it's connected
@@ -61,7 +51,7 @@ const RuleDetails: React.FC<RuleDetailsProps> = ({
       const { error } = await supabase
         .from('implementation_notes')
         .update({ status: newStatus })
-        .eq('control_id', rule.id.toString());
+        .eq('requirement_id', rule.id.toString());
         
       if (error) throw error;
     } catch (error) {
@@ -302,6 +292,52 @@ const RuleDetails: React.FC<RuleDetailsProps> = ({
       </CardContent>
     </Card>
   );
+};
+
+// Helper functions for status
+const getStatusIcon = (status?: string) => {
+  switch (status) {
+    case 'compliant':
+      return <CheckCircle size={20} className="text-green-600" />;
+    case 'non_compliant':
+      return <AlertCircle size={20} className="text-red-600" />;
+    case 'in_progress':
+      return <Clock size={20} className="text-yellow-600" />;
+    case 'not_applicable':
+      return <HelpCircle size={20} className="text-gray-600" />;
+    default:
+      return <HelpCircle size={20} className="text-gray-600" />;
+  }
+};
+
+const getStatusColor = (status?: string) => {
+  switch (status) {
+    case 'compliant':
+      return 'bg-green-100 text-green-800';
+    case 'non_compliant':
+      return 'bg-red-100 text-red-800';
+    case 'in_progress':
+      return 'bg-yellow-100 text-yellow-800';
+    case 'not_applicable':
+      return 'bg-gray-100 text-gray-800';
+    default:
+      return 'bg-gray-100 text-gray-800';
+  }
+};
+
+const getStatusText = (status?: string) => {
+  switch (status) {
+    case 'compliant':
+      return 'Compliant';
+    case 'non_compliant':
+      return 'Non-Compliant';
+    case 'in_progress':
+      return 'In Progress';
+    case 'not_applicable':
+      return 'Not Applicable';
+    default:
+      return 'Not Started';
+  }
 };
 
 export default RuleDetails;

@@ -274,6 +274,47 @@ export type Database = {
           },
         ]
       }
+      implementation_notes: {
+        Row: {
+          content: string | null
+          created_at: string | null
+          id: string
+          last_updated_by: string | null
+          organization_id: string | null
+          requirement_id: string | null
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          content?: string | null
+          created_at?: string | null
+          id?: string
+          last_updated_by?: string | null
+          organization_id?: string | null
+          requirement_id?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          content?: string | null
+          created_at?: string | null
+          id?: string
+          last_updated_by?: string | null
+          organization_id?: string | null
+          requirement_id?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "implementation_notes_requirement_id_fkey"
+            columns: ["requirement_id"]
+            isOneToOne: false
+            referencedRelation: "soc2_requirements"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       integrations: {
         Row: {
           config: Json
@@ -445,6 +486,36 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      soc2_requirements: {
+        Row: {
+          control_number: string
+          created_at: string | null
+          description: string
+          id: string
+          requirement: string | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          control_number: string
+          created_at?: string | null
+          description: string
+          id?: string
+          requirement?: string | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          control_number?: string
+          created_at?: string | null
+          description?: string
+          id?: string
+          requirement?: string | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: []
       }
       tasks: {
         Row: {
