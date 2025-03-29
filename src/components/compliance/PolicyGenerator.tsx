@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom'; // Add this import
-import PolicyGeneratorSteps from './generator/PolicyGeneratorSteps';
+import { useNavigate } from 'react-router-dom';
+import { PolicyGeneratorSteps } from './generator/PolicyGeneratorSteps';
 import OrganizationStep from './generator/OrganizationStep';
 import DataInfrastructureStep from './generator/DataInfrastructureStep';
 import SecurityRiskStep from './generator/SecurityRiskStep';
@@ -20,7 +20,7 @@ interface PolicyGeneratorProps {
 }
 
 const PolicyGenerator: React.FC<PolicyGeneratorProps> = ({ frameworkId, onComplete }) => {
-  const navigate = useNavigate(); // Add this
+  const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(1);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isCompleted, setIsCompleted] = useState(false);
@@ -59,12 +59,12 @@ const PolicyGenerator: React.FC<PolicyGeneratorProps> = ({ frameworkId, onComple
   };
   
   const handleBackToFrameworks = () => {
-    navigate('/compliance'); // Use navigate to go back to compliance page
+    navigate('/compliance');
   };
   
   const renderStep = () => {
     if (isCompleted) {
-      return <GenerationSuccess onViewPolicies={onComplete} />;
+      return <GenerationSuccess onComplete={onComplete} />;
     }
     
     if (isGenerating) {
@@ -73,13 +73,13 @@ const PolicyGenerator: React.FC<PolicyGeneratorProps> = ({ frameworkId, onComple
     
     switch (currentStep) {
       case 1:
-        return <OrganizationStep onComplete={(data) => handleStepComplete(1, data)} />;
+        return <OrganizationStep onStepComplete={(data) => handleStepComplete(1, data)} />;
       case 2:
-        return <DataInfrastructureStep onComplete={(data) => handleStepComplete(2, data)} />;
+        return <DataInfrastructureStep onStepComplete={(data) => handleStepComplete(2, data)} />;
       case 3:
-        return <SecurityRiskStep onComplete={(data) => handleStepComplete(3, data)} />;
+        return <SecurityRiskStep onStepComplete={(data) => handleStepComplete(3, data)} />;
       case 4:
-        return <ReviewStep formData={formData} onComplete={() => handleStepComplete(4, {})} />;
+        return <ReviewStep data={formData} onStepComplete={() => handleStepComplete(4, {})} />;
       default:
         return null;
     }

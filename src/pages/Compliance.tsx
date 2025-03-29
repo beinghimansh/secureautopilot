@@ -17,6 +17,7 @@ const frameworkNames: Record<string, string> = {
   'gdpr': 'GDPR',
   'hipaa': 'HIPAA',
   'pci_dss': 'PCI DSS',
+  'iso42001': 'ISO 42001',
 };
 
 const CompliancePage = () => {
@@ -93,7 +94,7 @@ const CompliancePage = () => {
               <ComplianceHeader />
               
               <Tabs defaultValue="frameworks" className="mb-6">
-                <TabsList className="mb-4 bg-white shadow border border-gray-200">
+                <TabsList className="mb-4 bg-gray-100 shadow border border-gray-200">
                   <TabsTrigger 
                     value="frameworks" 
                     className="data-[state=active]:bg-blue-600 data-[state=active]:text-white font-medium"

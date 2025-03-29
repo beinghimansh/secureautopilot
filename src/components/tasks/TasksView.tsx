@@ -131,13 +131,13 @@ const TasksView = () => {
         <h2 className="text-2xl font-bold mb-2">Compliance Tasks</h2>
         
         <div className="flex mb-6 overflow-x-auto">
-          <div className="inline-flex p-1 bg-white border border-gray-200 rounded-lg shadow-sm">
+          <div className="inline-flex p-1 bg-gray-100 border border-gray-200 rounded-lg shadow-sm">
             <button 
               onClick={() => setFilter('all')} 
               className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
                 filter === 'all' 
                   ? 'bg-blue-600 text-white shadow-sm' 
-                  : 'text-gray-600 hover:bg-gray-100'
+                  : 'text-gray-700 hover:bg-gray-200'
               }`}
             >
               All
@@ -147,7 +147,7 @@ const TasksView = () => {
               className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
                 filter === 'pending' 
                   ? 'bg-blue-600 text-white shadow-sm' 
-                  : 'text-gray-600 hover:bg-gray-100'
+                  : 'text-gray-700 hover:bg-gray-200'
               }`}
             >
               Pending
@@ -157,7 +157,7 @@ const TasksView = () => {
               className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
                 filter === 'completed' 
                   ? 'bg-blue-600 text-white shadow-sm' 
-                  : 'text-gray-600 hover:bg-gray-100'
+                  : 'text-gray-700 hover:bg-gray-200'
               }`}
             >
               Completed
@@ -167,7 +167,7 @@ const TasksView = () => {
               className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
                 filter === 'overdue' 
                   ? 'bg-blue-600 text-white shadow-sm' 
-                  : 'text-gray-600 hover:bg-gray-100'
+                  : 'text-gray-700 hover:bg-gray-200'
               }`}
             >
               Overdue

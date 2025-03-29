@@ -130,48 +130,47 @@ const FrameworkSelector: React.FC<FrameworkSelectorProps> = ({ onSelectFramework
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3 }}
+            className="flex"
           >
-            <Card>
-              <CardContent className="p-6">
-                <div className="flex flex-col h-full">
-                  <div className="mb-4 flex items-center">
-                    <div className={`${getBackgroundColor(framework.color)} p-3 rounded-lg text-white`}>
-                      <Shield size={24} />
-                    </div>
-                    <div className="ml-4">
-                      <h3 className="text-lg font-medium">{framework.name}</h3>
-                      <p className="text-gray-600 text-sm">{framework.description}</p>
-                    </div>
+            <Card className="flex flex-col w-full h-full">
+              <CardContent className="p-6 flex flex-col h-full">
+                <div className="mb-4 flex items-center">
+                  <div className={`${getBackgroundColor(framework.color)} p-3 rounded-lg text-white`}>
+                    <Shield size={24} />
                   </div>
+                  <div className="ml-4">
+                    <h3 className="text-lg font-medium">{framework.name}</h3>
+                    <p className="text-gray-600 text-sm">{framework.description}</p>
+                  </div>
+                </div>
 
-                  <div className="mt-auto">
-                    {!isLoading && hasGeneratedPolicies[framework.id] ? (
-                      <div className="grid grid-cols-2 gap-3 mt-4">
-                        <button
-                          onClick={() => navigateToFrameworkRequirements(framework.id)}
-                          className="flex items-center justify-center gap-2 py-2 px-4 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-md transition-colors"
-                        >
-                          <Settings size={16} />
-                          <span>Manage</span>
-                        </button>
-                        <button
-                          onClick={() => onSelectFramework(framework.id)}
-                          className="flex items-center justify-center gap-2 py-2 px-4 bg-green-50 hover:bg-green-100 text-green-700 rounded-md transition-colors"
-                        >
-                          <RefreshCw size={16} />
-                          <span>Review</span>
-                        </button>
-                      </div>
-                    ) : (
+                <div className="mt-auto pt-4">
+                  {!isLoading && hasGeneratedPolicies[framework.id] ? (
+                    <div className="grid grid-cols-2 gap-3">
+                      <button
+                        onClick={() => navigateToFrameworkRequirements(framework.id)}
+                        className="flex items-center justify-center gap-2 py-2 px-4 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-md transition-colors"
+                      >
+                        <Settings size={16} />
+                        <span>Manage</span>
+                      </button>
                       <button
                         onClick={() => onSelectFramework(framework.id)}
-                        className="mt-4 flex items-center justify-center gap-2 py-2 px-4 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-md transition-colors w-full"
+                        className="flex items-center justify-center gap-2 py-2 px-4 bg-green-50 hover:bg-green-100 text-green-700 rounded-md transition-colors"
                       >
-                        <span>Get Started</span>
-                        <ArrowRight size={16} />
+                        <RefreshCw size={16} />
+                        <span>Review</span>
                       </button>
-                    )}
-                  </div>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => onSelectFramework(framework.id)}
+                      className="w-full flex items-center justify-center gap-2 py-2 px-4 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-md transition-colors"
+                    >
+                      <span>Get Started</span>
+                      <ArrowRight size={16} />
+                    </button>
+                  )}
                 </div>
               </CardContent>
             </Card>
