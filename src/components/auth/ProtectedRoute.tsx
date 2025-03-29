@@ -8,21 +8,14 @@ import { toast } from 'sonner';
 type ProtectedRouteProps = {
   children: React.ReactNode;
   requiredRole?: UserRole[];
-  requireAdmin?: boolean;
 };
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ 
   children, 
-  requiredRole,
-  requireAdmin
+  requiredRole 
 }) => {
   const { user, profile, isLoading } = useAuth();
   const navigate = useNavigate();
-  
-  // Correctly type the effectiveRequiredRole
-  const effectiveRequiredRole = requireAdmin 
-    ? ['super_admin', 'company_admin'] as UserRole[] 
-    : requiredRole;
 
   useEffect(() => {
     // Only show the toast message if we're not loading and user is not authenticated
@@ -32,11 +25,11 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     }
     
     // Check role-based access if specified and user is authenticated
-    if (!isLoading && user && profile && effectiveRequiredRole && !effectiveRequiredRole.includes(profile.role)) {
+    if (!isLoading && user && profile && requiredRole && !requiredRole.includes(profile.role)) {
       toast.error('You do not have permission to access this page');
       navigate('/dashboard');
     }
-  }, [user, profile, isLoading, navigate, effectiveRequiredRole]);
+  }, [user, profile, isLoading, navigate, requiredRole]);
 
   // Show loading state
   if (isLoading) {
@@ -53,7 +46,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   }
 
   // Role-based access check
-  if (effectiveRequiredRole && profile && !effectiveRequiredRole.includes(profile.role)) {
+  if (requiredRole && profile && !requiredRole.includes(profile.role)) {
     return <Navigate to="/dashboard" replace />;
   }
 

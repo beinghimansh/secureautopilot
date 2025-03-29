@@ -4,15 +4,18 @@
 
 import voiceService, { 
   availableVoices,
-} from './voice';
-
-export type { 
   VoiceSummary,
   VoiceTrainingSession,
   UserVoicePreference,
   ElevenLabsVoice
 } from './voice';
 
-export { availableVoices };
+export { 
+  availableVoices,
+  VoiceSummary,
+  VoiceTrainingSession,
+  UserVoicePreference,
+  ElevenLabsVoice
+};
 
 export default voiceService;
