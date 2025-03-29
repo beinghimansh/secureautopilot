@@ -1,32 +1,78 @@
 
 import React from 'react';
-import { Check, FileText } from 'lucide-react';
-import { Card, CardContent } from '@/components/common/Card';
+import { motion } from 'framer-motion';
+import { CheckCircle, AlertCircle } from 'lucide-react';
 import Button from '@/components/common/Button';
 
 interface GenerationSuccessProps {
   frameworkName: string;
   onComplete: () => void;
+  wordCount?: number | null;
 }
 
-const GenerationSuccess: React.FC<GenerationSuccessProps> = ({ frameworkName, onComplete }) => {
+const GenerationSuccess: React.FC<GenerationSuccessProps> = ({ 
+  frameworkName, 
+  onComplete,
+  wordCount
+}) => {
+  const isShortPolicy = wordCount !== null && wordCount < 200;
+
   return (
-    <Card>
-      <CardContent className="p-8">
-        <div className="flex flex-col items-center justify-center py-10">
-          <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
-            <Check size={32} className="text-green-600" />
+    <div className="min-h-[400px] w-full flex flex-col items-center justify-center p-8">
+      <motion.div
+        initial={{ scale: 0 }}
+        animate={{ scale: 1 }}
+        transition={{ duration: 0.5, type: 'spring' }}
+        className="mb-6"
+      >
+        {isShortPolicy ? (
+          <div className="flex items-center">
+            <CheckCircle className="w-20 h-20 text-amber-500" />
+            <AlertCircle className="w-12 h-12 text-amber-400 -ml-4 -mt-10" />
           </div>
-          <h2 className="text-2xl font-bold mb-2">Generation Complete!</h2>
-          <p className="text-gray-600 text-center mb-6">
-            Your {frameworkName} compliance package has been successfully generated.
-          </p>
-          <Button leftIcon={<FileText size={16} />} onClick={onComplete}>
-            View Your Generated Policies
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
+        ) : (
+          <CheckCircle className="w-20 h-20 text-green-500" />
+        )}
+      </motion.div>
+
+      <motion.h2
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2, duration: 0.4 }}
+        className="text-2xl font-bold text-center mb-3"
+      >
+        {isShortPolicy ? 'Policy Generated With Warning' : 'Policy Generated Successfully!'}
+      </motion.h2>
+
+      <motion.p
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.4, duration: 0.4 }}
+        className="text-gray-600 text-center mb-4 max-w-md"
+      >
+        {isShortPolicy ? (
+          <>
+            Your {frameworkName} policy has been generated, but it contains only approximately {wordCount} words, 
+            which is less than the recommended minimum of 200 words. You may want to enhance it manually.
+          </>
+        ) : (
+          <>
+            Your {frameworkName} policy has been successfully generated and saved.
+            {wordCount && ` It contains approximately ${wordCount} words.`}
+          </>
+        )}
+      </motion.p>
+
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.6, duration: 0.4 }}
+      >
+        <Button onClick={onComplete}>
+          {isShortPolicy ? 'View Policy (Needs Enhancement)' : 'View Policy'}
+        </Button>
+      </motion.div>
+    </div>
   );
 };
 

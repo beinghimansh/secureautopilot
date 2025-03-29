@@ -36,7 +36,7 @@ serve(async (req) => {
 
     // Create a detailed and comprehensive prompt using all available form fields
     const comprehensivePrompt = `
-    You are an expert compliance auditor and policy writer. Create a HIGHLY DETAILED and COMPREHENSIVE ${frameworkType || 'compliance'} policy document for "${companyName || 'the organization'}", a ${industry || ''} company with ${companySize || ''} employees.
+    You are an expert compliance auditor and policy writer with extensive experience. Create a HIGHLY DETAILED and COMPREHENSIVE ${frameworkType || 'compliance'} policy document for "${companyName || 'the organization'}", a ${industry || ''} company with ${companySize || ''} employees.
 
     Company Context:
     - Company Name: ${companyName || 'The organization'}
@@ -48,25 +48,28 @@ serve(async (req) => {
     - Security Controls: ${Array.isArray(securityControls) ? securityControls.join(', ') : securityControls || 'Standard security controls'}
     - Risk Appetite: ${riskAppetite || 'Moderate'}
 
-    REQUIREMENTS:
-    1. The policy document MUST be extremely comprehensive, with AT LEAST 1500 words.
-    2. Include a proper policy structure with sections including:
-       - Introduction and Purpose
-       - Scope and Applicability
-       - Detailed Policy Statements
-       - Roles and Responsibilities
-       - Implementation Guidelines
-       - Compliance Monitoring
-       - Review and Update Procedures
+    STRICT REQUIREMENTS:
+    1. The policy document MUST be EXTREMELY COMPREHENSIVE, with AT LEAST 3000 WORDS.
+    2. Include a proper policy structure with the following sections (each must be detailed with substantial content):
+       - Executive Summary (minimum 300 words)
+       - Introduction and Purpose (minimum 300 words)
+       - Scope and Applicability (minimum 300 words)
+       - Detailed Policy Statements (minimum 800 words)
+       - Implementation Guidelines (minimum 400 words)
+       - Roles and Responsibilities (minimum 400 words)
+       - Compliance Monitoring and Auditing (minimum 300 words)
+       - Incident Response Procedures (minimum 300 words)
+       - Review and Update Process (minimum 200 words)
        - Appendices as needed
-    3. For EACH policy section, provide AT LEAST 3 substantive paragraphs with specific and actionable policy statements.
+    3. For EACH policy section, provide AT LEAST 4-5 substantive paragraphs with specific and actionable policy statements.
     4. Make frequent reference to the company name (${companyName || 'the organization'}) throughout the document.
     5. Provide highly specific implementation measures tailored to a ${industry || ''} company.
     6. Reference relevant industry-specific compliance requirements and best practices.
-    7. IMPORTANT: Each main section should have multiple subsections with detailed content.
+    7. IMPORTANT: Each main section must have multiple subsections with detailed content.
     8. Format the content using markdown for readability.
     9. Ensure the policy is professionally written and suitable for a formal compliance document.
     10. The document MUST be comprehensive enough to serve as a primary compliance policy document.
+    11. ENSURE the policy contains specific, actionable controls and measures - NOT generic statements.
 
     ${prompt || ''}
     `
@@ -75,14 +78,23 @@ serve(async (req) => {
 
     const response = await openai.chat.completions.create({
       model: options?.model || "gpt-4o",
-      messages: [{ role: "system", content: comprehensivePrompt }],
-      max_tokens: options?.max_tokens || 4000,
+      messages: [
+        { role: "system", content: "You are a compliance expert specialized in creating detailed policy documents. Your primary goal is to be thorough and comprehensive." },
+        { role: "user", content: comprehensivePrompt }
+      ],
+      max_tokens: options?.max_tokens || 8000,
       temperature: options?.temperature || 0.7
     })
 
     const generatedPolicy = response.choices[0].message.content
+    const wordCount = generatedPolicy.split(/\s+/).length
 
     console.log("Generated policy. Length:", generatedPolicy.length)
+    console.log("Approximate word count:", wordCount)
+    
+    if (wordCount < 2000) {
+      console.warn("WARNING: Generated policy is shorter than expected. Minimum word count was 3000 words but only got", wordCount)
+    }
 
     // Create a more detailed version of a risk assessment based on the company context
     const riskAssessmentPrompt = `
@@ -102,23 +114,27 @@ serve(async (req) => {
     - Data Types: ${dataTypes || 'Customer and business data'}
     - Current Security Controls: ${Array.isArray(securityControls) ? securityControls.join(', ') : securityControls || 'Standard security controls'}
     
-    The document should be at least 1000 words in length and formatted in markdown.
+    The document should be at least 1500 words in length and formatted in markdown.
     `
 
     const riskResponse = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
+      model: "gpt-4o",
       messages: [{ role: "system", content: riskAssessmentPrompt }],
-      max_tokens: 2500,
+      max_tokens: 4000,
       temperature: 0.7
     })
 
     const riskAssessment = riskResponse.choices[0].message.content
+    const riskWordCount = riskAssessment.split(/\s+/).length
+    console.log("Risk assessment word count:", riskWordCount)
 
     return new Response(
       JSON.stringify({
         policy_content: generatedPolicy,
         risk_assessment: riskAssessment,
-        framework_type: frameworkType || 'general'
+        framework_type: frameworkType || 'general',
+        word_count: wordCount,
+        risk_word_count: riskWordCount
       }),
       {
         headers: {

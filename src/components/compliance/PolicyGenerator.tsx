@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -73,8 +74,10 @@ const PolicyGenerator: React.FC<PolicyGeneratorProps> = ({ frameworkId, onComple
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(1);
   const [generating, setGenerating] = useState(false);
+  const [generationProgress, setGenerationProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [generationSuccess, setGenerationSuccess] = useState(false);
+  const [wordCount, setWordCount] = useState<number | null>(null);
   const [formValues, setFormValues] = useState<FormValues>({
     companyName: '',
     industry: '',
@@ -152,6 +155,7 @@ const PolicyGenerator: React.FC<PolicyGeneratorProps> = ({ frameworkId, onComple
     try {
       setGenerating(true);
       setError(null);
+      setGenerationProgress(10); // Start progress
       
       const { data: sessionData } = await supabase.auth.getSession();
       const userId = sessionData?.session?.user?.id;
@@ -159,6 +163,7 @@ const PolicyGenerator: React.FC<PolicyGeneratorProps> = ({ frameworkId, onComple
       // Store the company profile data
       try {
         console.log("Storing company profile data...");
+        setGenerationProgress(20);
         const { error: companyError } = await supabase
           .from('company_profiles')
           .upsert({
@@ -183,8 +188,10 @@ const PolicyGenerator: React.FC<PolicyGeneratorProps> = ({ frameworkId, onComple
         console.error("Failed to store company profile:", profileError);
       }
       
+      setGenerationProgress(30);
+      
       // Generate a custom prompt based on framework type and form values
-      const customPrompt = `Generate a comprehensive ${frameworkName} compliance policy for ${formValues.companyName}.`;
+      const customPrompt = `Generate a comprehensive ${frameworkName} compliance policy for ${formValues.companyName}. This policy should meet or exceed industry standards and regulatory requirements.`;
       
       // Send all form data to OpenAI via our service
       const formData = {
@@ -200,15 +207,29 @@ const PolicyGenerator: React.FC<PolicyGeneratorProps> = ({ frameworkId, onComple
       };
       
       console.log("Sending data to OpenAI:", formData);
+      setGenerationProgress(50);
       
       // Call the OpenAI service with all form data
       const generatedContent = await generateCompliancePolicy(customPrompt, formData, {
         model: 'gpt-4o',
-        max_tokens: 4000,
+        max_tokens: 8000, // Increase token limit for more comprehensive output
         temperature: 0.7
       });
       
-      console.log("Policy generated, content length:", generatedContent?.policy_content?.length || 0);
+      setGenerationProgress(80);
+      
+      const contentLength = generatedContent?.policy_content?.length || 0;
+      const approximateWordCount = generatedContent?.policy_content ? 
+                                  generatedContent.policy_content.split(/\s+/).length : 0;
+      
+      console.log("Policy generated, content length:", contentLength);
+      console.log("Approximate word count:", approximateWordCount);
+      setWordCount(approximateWordCount);
+      
+      if (approximateWordCount < 200) {
+        console.warn("WARNING: Generated policy is shorter than expected minimum of 200 words");
+        // Continue anyway but log the warning
+      }
       
       if (!generatedContent || !generatedContent.policy_content) {
         throw new Error("Failed to generate policy content");
@@ -241,7 +262,13 @@ const PolicyGenerator: React.FC<PolicyGeneratorProps> = ({ frameworkId, onComple
         }
       }
       
+      setGenerationProgress(100);
       toast.success(`${frameworkName} Policy has been generated successfully for ${formValues.companyName}!`);
+      
+      if (approximateWordCount < 200) {
+        toast.warning("The generated policy is shorter than expected. You may want to regenerate or enhance it manually.");
+      }
+      
       setGenerationSuccess(true);
       
       setTimeout(() => {
@@ -265,11 +292,15 @@ const PolicyGenerator: React.FC<PolicyGeneratorProps> = ({ frameworkId, onComple
   };
 
   if (generating) {
-    return <GenerationProgress frameworkName={frameworkName} />;
+    return <GenerationProgress frameworkName={frameworkName} progress={generationProgress} />;
   }
 
   if (generationSuccess) {
-    return <GenerationSuccess frameworkName={frameworkName} onComplete={onComplete} />;
+    return <GenerationSuccess 
+      frameworkName={frameworkName} 
+      onComplete={onComplete} 
+      wordCount={wordCount}
+    />;
   }
 
   return (
