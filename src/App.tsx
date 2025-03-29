@@ -1,4 +1,3 @@
-
 import { lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
@@ -137,12 +136,11 @@ function App() {
                   </ProtectedRoute>
                 } 
               />
-              {/* Add additional route for backward compatibility */}
               <Route 
                 path="/compliance/:frameworkId/requirements" 
                 element={
                   <ProtectedRoute>
-                    <Navigate to={location => `/compliance/frameworks/${location.pathname.split('/')[2]}`} replace />
+                    <Navigate to={`/compliance/frameworks/:frameworkId`} replace />
                   </ProtectedRoute>
                 } 
               />

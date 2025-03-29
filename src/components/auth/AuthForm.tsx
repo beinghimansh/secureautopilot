@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -43,12 +42,7 @@ export default function AuthForm({ initialMode = 'login' }: AuthFormProps) {
           first_name: firstName,
           last_name: lastName,
           email,
-          // Pass company_name as metadata (not part of the Profile type)
-          // Instead we'll store it in raw_user_meta_data
-        }, {
-          data: {
-            company_name: companyName
-          }
+          company_name: companyName // Include company_name in the metadata object directly
         });
         toast.success("Account created successfully!");
       } else {
