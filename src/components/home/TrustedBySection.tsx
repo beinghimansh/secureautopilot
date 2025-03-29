@@ -5,13 +5,13 @@ import { motion } from 'framer-motion';
 const TrustedBySection = () => {
   const scrollRef = useRef<HTMLDivElement>(null);
   
-  // Updated companies with their actual logos
+  // Updated companies with the correct uploaded logos
   const companies = [
-    { name: "Lovable", logo: "/lovable-uploads/cbef0aa7-95c6-496d-abea-c166b9b5d671.png" },
-    { name: "Anthropic", logo: "/lovable-uploads/b82d4ddd-fd36-4351-8525-73a13622172e.png" },
-    { name: "Supabase", logo: "/lovable-uploads/a7d3c7b1-1a44-4be2-a9cd-6293dd730b01.png" },
-    { name: "Sentry", logo: "/lovable-uploads/7b834d06-0777-4c52-ba5b-410d3ee4edaf.png" },
-    { name: "ElevenLabs", logo: "/lovable-uploads/64f07aad-11b3-444c-9c93-17c0285a1585.png" },
+    { name: "Lovable", logo: "/lovable-uploads/93f20c7f-257e-4bdc-be46-d4352552a182.png" },
+    { name: "Anthropic", logo: "/lovable-uploads/51ea23ec-28c5-49cb-bf43-1890a1474a7d.png" },
+    { name: "Supabase", logo: "/lovable-uploads/9b9e3827-6d9e-4a52-b89b-14db11753724.png" },
+    { name: "Sentry", logo: "/lovable-uploads/3a0dd26f-f0a9-4782-a5ca-ad156230d379.png" },
+    { name: "ElevenLabs", logo: "/lovable-uploads/1b63f431-0fd1-4b26-9a4c-decca5319d4f.png" },
     { name: "EQT Ventures", logo: "/lovable-uploads/90284a2c-e980-47c3-bbd2-6ccc022d722f.png" },
   ];
   

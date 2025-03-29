@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import Header from './Header';
 import HeroSection from './HeroSection';
@@ -11,6 +11,11 @@ import MessageCarousel from './MessageCarousel';
 
 const Home = () => {
   const { user } = useAuth();
+
+  // Scroll to top when component mounts
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
 
   // Reorganized component order as per requirements
   return (
