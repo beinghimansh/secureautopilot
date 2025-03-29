@@ -6,8 +6,6 @@ import {
   StaticTreeDataProvider,
   TreeItem,
   TreeItemIndex,
-  TreeItemRenderContext,
-  TreeInformation
 } from 'react-complex-tree';
 import 'react-complex-tree/lib/style.css';
 import { ChevronDown, ChevronRight } from 'lucide-react';
@@ -31,18 +29,18 @@ const isoControlsData: Record<string, TreeItemData> = {
     title: 'Section 5: Information Security Policies',
     children: ['control5.1']
   },
-  control5.1: {
+  control5_1: {
     title: 'Control 5.1: Management direction for information security',
     status: 'compliant',
     progress: 100,
     children: ['control5.1.1', 'control5.1.2']
   },
-  control5.1.1: {
+  'control5.1.1': {
     title: 'Control 5.1.1: Policies for information security',
     status: 'compliant',
     progress: 100
   },
-  control5.1.2: {
+  'control5.1.2': {
     title: 'Control 5.1.2: Review of the policies for information security',
     status: 'in_progress',
     progress: 75
@@ -51,23 +49,23 @@ const isoControlsData: Record<string, TreeItemData> = {
     title: 'Section 6: Organization of Information Security',
     children: ['control6.1', 'control6.2']
   },
-  control6.1: {
+  'control6.1': {
     title: 'Control 6.1: Internal organization',
     status: 'in_progress',
     progress: 60,
     children: ['control6.1.1', 'control6.1.2']
   },
-  control6.1.1: {
+  'control6.1.1': {
     title: 'Control 6.1.1: Information security roles and responsibilities',
     status: 'compliant',
     progress: 100
   },
-  control6.1.2: {
+  'control6.1.2': {
     title: 'Control 6.1.2: Segregation of duties',
     status: 'non_compliant',
     progress: 20
   },
-  control6.2: {
+  'control6.2': {
     title: 'Control 6.2: Mobile devices and teleworking',
     status: 'not_applicable',
     progress: 0
@@ -76,7 +74,7 @@ const isoControlsData: Record<string, TreeItemData> = {
     title: 'Section 7: Human Resource Security',
     children: ['control7.1']
   },
-  control7.1: {
+  'control7.1': {
     title: 'Control 7.1: Prior to employment',
     status: 'in_progress',
     progress: 50
@@ -85,7 +83,7 @@ const isoControlsData: Record<string, TreeItemData> = {
     title: 'Section 8: Asset Management',
     children: ['control8.1']
   },
-  control8.1: {
+  'control8.1': {
     title: 'Control 8.1: Responsibility for assets',
     status: 'non_compliant',
     progress: 15
@@ -114,7 +112,9 @@ const IsoControlsTree = () => {
   
   // Create tree items from our data
   const treeItems = createTreeItemsFromData(isoControlsData);
-  const dataProvider = new StaticTreeDataProvider(treeItems);
+  const dataProvider = new StaticTreeDataProvider(treeItems, {
+    getItemTitle: (item) => item.data.title,
+  });
   
   return (
     <div className="mb-6 border rounded-md overflow-auto">
