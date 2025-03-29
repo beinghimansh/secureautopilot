@@ -1,0 +1,6 @@
+
+{
+  "imports": {
+    "https://deno.land/x/openai@v4.24.0/": "https://deno.land/x/openai@v4.24.0/"
+  }
+}
