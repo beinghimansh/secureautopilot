@@ -1,4 +1,3 @@
-
 import { lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useParams } from 'react-router-dom';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
@@ -17,6 +16,14 @@ import Support from '@/pages/Support';
 import Security from '@/pages/Security';
 import Auth from '@/pages/Auth';
 import NotFound from '@/pages/NotFound';
+import Integrations from '@/pages/Integrations';
+import Roadmap from '@/pages/Roadmap';
+import Privacy from '@/pages/Privacy';
+import Terms from '@/pages/Terms';
+import Cookies from '@/pages/Cookies';
+import Careers from '@/pages/Careers';
+import Contact from '@/pages/Contact';
+import Customers from '@/pages/Customers';
 
 // Loading component with reduced animation for better performance
 const Loading = () => (
@@ -43,7 +50,7 @@ const SuperAdminSetup = lazy(() => import('@/pages/SuperAdminSetup'));
 const CloudSecurity = lazy(() => import('@/pages/CloudSecurity'));
 const DataSources = lazy(() => import('@/pages/DataSources'));
 const Notifications = lazy(() => import('@/pages/Notifications'));
-const ComplyVoiceAI = lazy(() => import('@/pages/ComplyVoiceAI')); // Add new ComplyVoiceAI page
+const ComplyVoiceAI = lazy(() => import('@/pages/ComplyVoiceAI'));
 
 // Redirect component for legacy URLs
 const RedirectToFramework = () => {
@@ -80,6 +87,14 @@ function App() {
             <Route path="/support" element={<Support />} />
             <Route path="/security" element={<Security />} />
             <Route path="/auth" element={<Auth />} />
+            <Route path="/integrations" element={<Integrations />} />
+            <Route path="/roadmap" element={<Roadmap />} />
+            <Route path="/privacy" element={<Privacy />} />
+            <Route path="/terms" element={<Terms />} />
+            <Route path="/cookies" element={<Cookies />} />
+            <Route path="/careers" element={<Careers />} />
+            <Route path="/contact" element={<Contact />} />
+            <Route path="/customers" element={<Customers />} />
             
             {/* Protected routes - loaded with Suspense */}
             <Route 
@@ -262,7 +277,6 @@ function App() {
                 </Suspense>
               } 
             />
-            {/* Add new ComplyVoiceAI route */}
             <Route 
               path="/voice-ai" 
               element={

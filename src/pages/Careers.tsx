@@ -2,55 +2,32 @@
 import React from 'react';
 import PublicPageLayout from '@/components/layout/PublicPageLayout';
 import { motion } from 'framer-motion';
-import { BriefcaseBusiness, GraduationCap, Globe, Coffee, Users, ArrowRight } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 
 const Careers = () => {
-  const benefits = [
+  const positions = [
     {
-      title: "Remote-First Culture",
-      description: "Work from anywhere in the world with flexible hours that fit your lifestyle.",
-      icon: <Globe className="h-6 w-6 text-blue-400" />
-    },
-    {
-      title: "Continuous Learning",
-      description: "Education stipend and dedicated time for learning new skills and technologies.",
-      icon: <GraduationCap className="h-6 w-6 text-purple-400" />
-    },
-    {
-      title: "Work-Life Balance",
-      description: "Unlimited PTO, mental health days, and no meetings on Fridays.",
-      icon: <Coffee className="h-6 w-6 text-orange-400" />
-    },
-    {
-      title: "Team Retreats",
-      description: "Bi-annual company retreats to connect, collaborate, and celebrate together.",
-      icon: <Users className="h-6 w-6 text-green-400" />
-    }
-  ];
-
-  const openPositions = [
-    {
-      title: "Senior Frontend Developer",
-      department: "Engineering",
-      location: "Remote",
-      type: "Full-time"
-    },
-    {
-      title: "AI Research Scientist",
-      department: "AI & Machine Learning",
-      location: "Remote",
-      type: "Full-time"
-    },
-    {
-      title: "Compliance Subject Matter Expert",
+      title: "Compliance Specialist",
       department: "Product",
       location: "Remote",
       type: "Full-time"
     },
     {
-      title: "Growth Marketing Manager",
-      department: "Marketing",
+      title: "AI Research Engineer",
+      department: "Engineering",
+      location: "San Francisco",
+      type: "Full-time"
+    },
+    {
+      title: "Customer Success Manager",
+      department: "Customer Success",
       location: "Remote",
+      type: "Full-time"
+    },
+    {
+      title: "Security Engineer",
+      department: "Engineering",
+      location: "New York",
       type: "Full-time"
     }
   ];
@@ -67,63 +44,71 @@ const Careers = () => {
           <div className="text-center max-w-3xl mx-auto mb-16">
             <h1 className="text-4xl font-bold tracking-tight mb-4 text-white">Join Our Team</h1>
             <p className="text-xl text-gray-400">
-              Help us revolutionize the way businesses handle compliance and unlock their potential.
+              Be part of our mission to simplify compliance management for businesses worldwide.
             </p>
           </div>
 
-          <div className="mb-20">
-            <h2 className="text-2xl font-bold text-white mb-8 text-center">Why Work With Us</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-              {benefits.map((benefit, index) => (
-                <motion.div
-                  key={benefit.title}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, delay: index * 0.1 }}
-                  className="bg-[#1d1d1f] rounded-xl p-6 border border-gray-800"
-                >
-                  <div className="mb-4">
-                    {benefit.icon}
-                  </div>
-                  <h3 className="text-lg font-bold mb-2 text-white">{benefit.title}</h3>
-                  <p className="text-gray-400">{benefit.description}</p>
-                </motion.div>
-              ))}
-            </div>
-          </div>
+          <div className="max-w-4xl mx-auto">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+              className="bg-[#1d1d1f] rounded-xl p-8 mb-16 border border-gray-800"
+            >
+              <h2 className="text-2xl font-bold mb-4 text-white">Why Work With Us</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <h3 className="text-lg font-semibold mb-2 text-blue-400">Innovation</h3>
+                  <p className="text-gray-400">
+                    Work on cutting-edge AI technology that is transforming how businesses handle compliance.
+                  </p>
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold mb-2 text-blue-400">Impact</h3>
+                  <p className="text-gray-400">
+                    Make a real difference by helping organizations maintain security and build trust.
+                  </p>
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold mb-2 text-blue-400">Growth</h3>
+                  <p className="text-gray-400">
+                    Join a rapidly growing company with plenty of opportunities for professional development.
+                  </p>
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold mb-2 text-blue-400">Flexibility</h3>
+                  <p className="text-gray-400">
+                    Enjoy remote-friendly policies and a healthy work-life balance.
+                  </p>
+                </div>
+              </div>
+            </motion.div>
 
-          <div>
-            <div className="flex items-center justify-between mb-8">
-              <h2 className="text-2xl font-bold text-white">Open Positions</h2>
-              <a href="#" className="text-blue-400 hover:text-blue-300 transition-colors">
-                View all positions
-              </a>
-            </div>
-            
+            <h2 className="text-2xl font-bold mb-6 text-white">Open Positions</h2>
             <div className="space-y-4">
-              {openPositions.map((position, index) => (
+              {positions.map((position, index) => (
                 <motion.div
                   key={position.title}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.5, delay: index * 0.1 }}
-                  className="bg-[#1d1d1f] rounded-xl p-6 border border-gray-800 hover:border-blue-500/30 transition-all duration-300 flex items-center justify-between"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: 0.3 + (index * 0.1) }}
+                  className="bg-[#1d1d1f] rounded-lg p-6 border border-gray-800 hover:border-blue-500/30 transition-all duration-300"
                 >
-                  <div>
-                    <div className="flex items-center mb-2">
-                      <BriefcaseBusiness className="h-5 w-5 text-blue-400 mr-2" />
-                      <h3 className="text-lg font-bold text-white">{position.title}</h3>
-                    </div>
-                    <div className="flex items-center text-sm text-gray-400">
-                      <span className="mr-4">{position.department}</span>
-                      <span className="mr-4">•</span>
-                      <span className="mr-4">{position.location}</span>
-                      <span className="mr-4">•</span>
-                      <span>{position.type}</span>
-                    </div>
+                  <h3 className="text-xl font-bold mb-2 text-white">{position.title}</h3>
+                  <div className="flex flex-wrap gap-3 mb-4">
+                    <span className="inline-block px-3 py-1 bg-blue-900/20 text-blue-400 rounded-full text-sm font-medium">
+                      {position.department}
+                    </span>
+                    <span className="inline-block px-3 py-1 bg-purple-900/20 text-purple-400 rounded-full text-sm font-medium">
+                      {position.location}
+                    </span>
+                    <span className="inline-block px-3 py-1 bg-green-900/20 text-green-400 rounded-full text-sm font-medium">
+                      {position.type}
+                    </span>
                   </div>
-                  <button className="text-blue-400 hover:text-blue-300 transition-colors">
-                    <ArrowRight className="h-5 w-5" />
+                  <button className="text-blue-400 hover:text-blue-300 flex items-center text-sm font-medium">
+                    View details
+                    <ArrowRight className="ml-1 h-4 w-4" />
                   </button>
                 </motion.div>
               ))}

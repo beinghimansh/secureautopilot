@@ -14,73 +14,43 @@ const Terms = () => {
           className="container mx-auto px-4 md:px-6"
         >
           <div className="max-w-4xl mx-auto">
-            <h1 className="text-4xl font-bold tracking-tight mb-8 text-white">Terms of Service</h1>
+            <h1 className="text-4xl font-bold mb-8 text-white">Terms of Service</h1>
             
-            <div className="prose prose-lg prose-invert max-w-none">
-              <p className="text-gray-400">Last updated: June 1, 2024</p>
+            <div className="prose prose-lg prose-invert">
+              <p className="text-gray-300">
+                By accessing or using the ComplyAI platform, you agree to be bound by these Terms of Service and all applicable laws and regulations. If you do not agree with any of these terms, you are prohibited from using or accessing this platform.
+              </p>
               
-              <div className="my-8 space-y-6 text-gray-300">
-                <p>
-                  Welcome to ComplyAI. Please read these Terms of Service carefully before using our platform.
-                </p>
-                
-                <h2 className="text-2xl font-bold text-white mt-10 mb-4">Acceptance of Terms</h2>
-                
-                <p>
-                  By accessing or using the Service, you agree to be bound by these Terms. If you disagree with any part of the terms, you may not access the Service.
-                </p>
-                
-                <h2 className="text-2xl font-bold text-white mt-10 mb-4">Subscriptions</h2>
-                
-                <p>
-                  Some parts of the Service are billed on a subscription basis. You will be billed in advance on a recurring basis, depending on the type of subscription plan you select.
-                </p>
-                
-                <p>
-                  You may cancel your subscription renewal either through your online account management page or by contacting our customer support team. You will not receive a refund for the fees you already paid for your current subscription period, and you will continue to have access to the Service through the end of your current subscription period.
-                </p>
-                
-                <h2 className="text-2xl font-bold text-white mt-10 mb-4">Content</h2>
-                
-                <p>
-                  Our Service allows you to post, link, store, share and otherwise make available certain information, text, graphics, videos, or other material. You are responsible for the content that you post to the Service, including its legality, reliability, and appropriateness.
-                </p>
-                
-                <h2 className="text-2xl font-bold text-white mt-10 mb-4">Accounts</h2>
-                
-                <p>
-                  When you create an account with us, you guarantee that the information you provide us is accurate, complete, and current at all times. Inaccurate, incomplete, or obsolete information may result in the immediate termination of your account on the Service.
-                </p>
-                
-                <p>
-                  You are responsible for maintaining the confidentiality of your account and password, including but not limited to the restriction of access to your computer and/or account. You agree to accept responsibility for any and all activities or actions that occur under your account and/or password.
-                </p>
-                
-                <h2 className="text-2xl font-bold text-white mt-10 mb-4">Intellectual Property</h2>
-                
-                <p>
-                  The Service and its original content, features, and functionality are and will remain the exclusive property of ComplyAI and its licensors. The Service is protected by copyright, trademark, and other laws of both the United States and foreign countries. Our trademarks and trade dress may not be used in connection with any product or service without the prior written consent of ComplyAI.
-                </p>
-                
-                <h2 className="text-2xl font-bold text-white mt-10 mb-4">Termination</h2>
-                
-                <p>
-                  We may terminate or suspend your account and bar access to the Service immediately, without prior notice or liability, under our sole discretion, for any reason whatsoever and without limitation, including but not limited to a breach of the Terms.
-                </p>
-                
-                <h2 className="text-2xl font-bold text-white mt-10 mb-4">Contact Us</h2>
-                
-                <p>
-                  If you have any questions about these Terms, please contact us at:
-                </p>
-                
-                <p className="text-gray-300">
-                  ComplyAI<br />
-                  123 Compliance Street<br />
-                  San Francisco, CA 94107<br />
-                  Email: legal@complyai.com
-                </p>
-              </div>
+              <h2 className="text-2xl font-semibold mt-8 mb-4 text-white">Use License</h2>
+              <p className="text-gray-300">
+                Permission is granted to temporarily access the materials on ComplyAI's platform for personal, non-commercial transitory viewing only. This is the grant of a license, not a transfer of title, and under this license you may not:
+              </p>
+              <ul className="list-disc pl-6 text-gray-300 space-y-2">
+                <li>Modify or copy the materials</li>
+                <li>Use the materials for any commercial purpose</li>
+                <li>Attempt to decompile or reverse engineer any software contained on ComplyAI's platform</li>
+                <li>Remove any copyright or other proprietary notations from the materials</li>
+                <li>Transfer the materials to another person or "mirror" the materials on any other server</li>
+              </ul>
+              
+              <h2 className="text-2xl font-semibold mt-8 mb-4 text-white">Disclaimer</h2>
+              <p className="text-gray-300">
+                The materials on ComplyAI's platform are provided on an 'as is' basis. ComplyAI makes no warranties, expressed or implied, and hereby disclaims and negates all other warranties including, without limitation, implied warranties or conditions of merchantability, fitness for a particular purpose, or non-infringement of intellectual property or other violation of rights.
+              </p>
+              
+              <h2 className="text-2xl font-semibold mt-8 mb-4 text-white">Limitations</h2>
+              <p className="text-gray-300">
+                In no event shall ComplyAI or its suppliers be liable for any damages (including, without limitation, damages for loss of data or profit, or due to business interruption) arising out of the use or inability to use the materials on ComplyAI's platform, even if ComplyAI or a ComplyAI authorized representative has been notified orally or in writing of the possibility of such damage.
+              </p>
+              
+              <h2 className="text-2xl font-semibold mt-8 mb-4 text-white">Contact Information</h2>
+              <p className="text-gray-300">
+                If you have any questions about these Terms, please contact us at legal@complyai.com.
+              </p>
+              
+              <p className="text-gray-400 mt-8">
+                Last updated: July 15, 2024
+              </p>
             </div>
           </div>
         </motion.div>

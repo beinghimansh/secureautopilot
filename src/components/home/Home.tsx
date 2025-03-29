@@ -7,7 +7,6 @@ import FeatureHighlights from './FeatureHighlights';
 import CTASection from './CTASection';
 import Footer from './Footer';
 import TrustedBySection from './TrustedBySection';
-import ComplianceFrameworks from './ComplianceFrameworks';
 import MessageCarousel from './MessageCarousel';
 
 const Home = () => {
@@ -19,10 +18,9 @@ const Home = () => {
       <Header />
       <main>
         <HeroSection />
-        <ComplianceFrameworks />
+        <MessageCarousel />
         <TrustedBySection />
         <FeatureHighlights />
-        <MessageCarousel />
         <CTASection />
       </main>
       <Footer />
