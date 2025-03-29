@@ -1,8 +1,15 @@
+
 import React from 'react';
 import Navbar from '@/components/layout/Navbar';
 import { PageTransition } from '@/components/common/Transitions';
 import { Check, Shield, FileText, Lock, Zap } from 'lucide-react';
 import Footer from '@/components/home/Footer';
+
+interface FeatureCardProps {
+  title: string;
+  description: string;
+  icon: React.ReactNode;
+}
 
 const Features = () => {
   return (
@@ -112,7 +119,7 @@ const Features = () => {
   );
 };
 
-const FeatureCard = ({ title, description, icon }) => {
+const FeatureCard: React.FC<FeatureCardProps> = ({ title, description, icon }) => {
   return (
     <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
       <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center mb-4">

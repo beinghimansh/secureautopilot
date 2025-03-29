@@ -10,7 +10,7 @@ import Footer from './Footer';
 const Home = () => {
   const { user } = useAuth();
 
-  // Simplified component without unnecessary effects and transitions
+  // Simplified component without unnecessary effects and transitions for faster rendering
   return (
     <div className="min-h-screen overflow-x-hidden bg-[#111]">
       <Header />

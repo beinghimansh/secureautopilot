@@ -6,6 +6,18 @@ import { AuthProvider } from '@/contexts/AuthContext';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'sonner';
 
+// Import static public pages directly to avoid suspense loading
+import Home from '@/pages/Home';
+import Features from '@/pages/Features';
+import Pricing from '@/pages/Pricing';
+import About from '@/pages/About';
+import Blog from '@/pages/Blog';
+import Documentation from '@/pages/Documentation';
+import Support from '@/pages/Support';
+import Security from '@/pages/Security';
+import Auth from '@/pages/Auth';
+import NotFound from '@/pages/NotFound';
+
 // Loading component with reduced animation for better performance
 const Loading = () => (
   <div className="flex items-center justify-center min-h-screen">
@@ -14,13 +26,10 @@ const Loading = () => (
 );
 
 // Lazy loaded pages with performance optimizations
-const Home = lazy(() => import('@/pages/Home'));
-const Auth = lazy(() => import('@/pages/Auth'));
 const Dashboard = lazy(() => import('@/pages/Dashboard'));
 const Tasks = lazy(() => import('@/pages/Tasks'));
 const Reports = lazy(() => import('@/pages/Reports'));
 const Settings = lazy(() => import('@/pages/Settings'));
-const NotFound = lazy(() => import('@/pages/NotFound'));
 const Compliance = lazy(() => import('@/pages/Compliance'));
 const FrameworkRequirements = lazy(() => import('@/pages/FrameworkRequirements'));
 const Policies = lazy(() => import('@/pages/Policies'));
@@ -34,15 +43,6 @@ const SuperAdminSetup = lazy(() => import('@/pages/SuperAdminSetup'));
 const CloudSecurity = lazy(() => import('@/pages/CloudSecurity'));
 const DataSources = lazy(() => import('@/pages/DataSources'));
 const Notifications = lazy(() => import('@/pages/Notifications'));
-const Features = lazy(() => import('@/pages/Features'));
-const Pricing = lazy(() => import('@/pages/Pricing'));
-const About = lazy(() => import('@/pages/About'));
-
-// New pages
-const Blog = lazy(() => import('@/pages/Blog'));
-const Documentation = lazy(() => import('@/pages/Documentation'));
-const Support = lazy(() => import('@/pages/Support'));
-const Security = lazy(() => import('@/pages/Security'));
 
 // Redirect component for legacy URLs
 const RedirectToFramework = () => {
@@ -69,7 +69,7 @@ function App() {
         <BrowserRouter>
           <Toaster position="top-right" />
           <Routes>
-            {/* Public routes - directly rendered */}
+            {/* Public routes - directly rendered without Suspense for maximum speed */}
             <Route path="/" element={<Home />} />
             <Route path="/features" element={<Features />} />
             <Route path="/pricing" element={<Pricing />} />
