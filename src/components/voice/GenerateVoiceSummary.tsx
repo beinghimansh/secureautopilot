@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -9,7 +8,6 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
 import { Mic, Volume2 } from 'lucide-react';
-// Update the import to use the new module
 import voiceService, { availableVoices, VoiceSummary } from '@/services/voice';
 import AudioPlayer from './AudioPlayer';
 import { supabase } from '@/integrations/supabase/client';
@@ -57,7 +55,6 @@ const GenerateVoiceSummary: React.FC<GenerateVoiceSummaryProps> = ({
   const watchVoiceId = watch('voice_id');
   const watchSummaryText = watch('summary_text');
   
-  // Fetch user profile and initialize form data
   useEffect(() => {
     const fetchUserData = async () => {
       const { data: { session } } = await supabase.auth.getSession();
@@ -72,10 +69,9 @@ const GenerateVoiceSummary: React.FC<GenerateVoiceSummaryProps> = ({
         if (profileData) {
           setUserProfile(profileData);
           
-          // Load user voice preference
           const prefs = await voiceService.getUserVoicePreference();
-          if (prefs && prefs.preferred_voice_id) {
-            setValue('voice_id', prefs.preferred_voice_id);
+          if (prefs && prefs.voice_id) {
+            setValue('voice_id', prefs.voice_id);
           }
         }
       }
@@ -84,12 +80,10 @@ const GenerateVoiceSummary: React.FC<GenerateVoiceSummaryProps> = ({
     fetchUserData();
   }, [setValue]);
   
-  // Fetch frameworks and policies
   useEffect(() => {
     const fetchData = async () => {
       if (!userProfile?.organization_id) return;
       
-      // Fetch frameworks
       const { data: frameworksData } = await supabase
         .from('compliance_frameworks')
         .select('*')
@@ -99,7 +93,6 @@ const GenerateVoiceSummary: React.FC<GenerateVoiceSummaryProps> = ({
         setFrameworks(frameworksData);
       }
       
-      // Fetch policies
       const { data: policiesData } = await supabase
         .from('policies')
         .select('*')
@@ -159,7 +152,6 @@ const GenerateVoiceSummary: React.FC<GenerateVoiceSummaryProps> = ({
           onGenerated(result);
         }
         
-        // Reset form
         setValue('title', '');
         setValue('summary_text', '');
         setPreviewAudio(null);

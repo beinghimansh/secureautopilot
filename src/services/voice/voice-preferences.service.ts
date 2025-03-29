@@ -29,10 +29,10 @@ const voicePreferencesService = {
     try {
       // Make sure required fields are set with default values
       const preferenceData = {
-        voice_id: availableVoices[0].voice_id,  // Updated field name from preferred_voice_id
+        voice_id: availableVoices[0].voice_id,
         playback_speed: 1.0,
         auto_play: false,
-        language: 'en',                         // Added default language
+        language: 'en',
         ...preferences
       };
 

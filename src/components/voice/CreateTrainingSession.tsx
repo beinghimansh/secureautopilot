@@ -66,8 +66,8 @@ const CreateTrainingSession: React.FC<CreateTrainingSessionProps> = ({ onCreated
           
           // Load user voice preference
           const prefs = await voiceService.getUserVoicePreference();
-          if (prefs && prefs.preferred_voice_id) {
-            setValue('voice_id', prefs.preferred_voice_id);
+          if (prefs && prefs.voice_id) {
+            setValue('voice_id', prefs.voice_id);
           }
         }
       }
