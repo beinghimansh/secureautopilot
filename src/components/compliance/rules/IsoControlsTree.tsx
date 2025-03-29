@@ -272,7 +272,7 @@ const IsoControlsTree: React.FC<IsoControlsTreeProps> = ({
           {Object.keys(treeData).length > 0 && (
             <Tree
               treeId={treeId}
-              data={treeData}
+              items={treeData}
               rootItem="root"
               defaultInteractionMode="click"
               renderItem={({ item, depth, children, title, context, arrow }) => (

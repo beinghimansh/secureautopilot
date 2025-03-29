@@ -125,7 +125,7 @@ const RulesDisplay: React.FC<RulesDisplayProps> = ({ frameworkId }) => {
       
       console.log('Saving notes for rule:', ruleId, 'Content:', implementationNotes, 'Status:', selectedRule.status);
       
-      // First try updating
+      // First try updating - FIX HERE: removed the 'returning' option which was causing the error
       const { data, error } = await supabase
         .from('implementation_notes')
         .upsert(
@@ -136,8 +136,7 @@ const RulesDisplay: React.FC<RulesDisplayProps> = ({ frameworkId }) => {
             updated_at: new Date().toISOString()
           },
           { 
-            onConflict: 'requirement_id',
-            returning: 'minimal' 
+            onConflict: 'requirement_id' 
           }
         );
 
