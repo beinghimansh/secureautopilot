@@ -34,9 +34,19 @@ serve(async (req) => {
       throw new Error('ELEVENLABS_API_KEY is not configured. Please set it in your Supabase secrets.');
     }
 
-    // Generate speech from text using ElevenLabs API
+    // Call the ElevenLabs API directly with proper headers and format
     const apiUrl = `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`;
     console.log(`Calling ElevenLabs API at: ${apiUrl}`);
+
+    // Log the request details for debugging
+    console.log(`Request payload: ${JSON.stringify({
+      text: text.substring(0, 50) + '...',
+      model_id: ttsModel,
+      voice_settings: {
+        stability: 0.5,
+        similarity_boost: 0.75,
+      }
+    })}`);
 
     const response = await fetch(apiUrl, {
       method: 'POST',
@@ -55,32 +65,33 @@ serve(async (req) => {
       }),
     });
 
-    // First check the response status
+    // Enhanced error handling
     if (!response.ok) {
-      let errorText;
+      console.error(`ElevenLabs API error: Status ${response.status}`);
+      
+      // Try to extract meaningful error information
       const contentType = response.headers.get('content-type');
+      let errorDetail = '';
       
       try {
         if (contentType && contentType.includes('application/json')) {
-          // Try to parse as JSON if possible
-          const errorData = await response.json();
-          errorText = errorData.detail?.message || errorData.detail || errorData.error || `API Error (${response.status})`;
+          const errorJson = await response.json();
+          errorDetail = JSON.stringify(errorJson);
+          console.error('Error details:', errorDetail);
         } else {
-          // If it's not JSON, get the text for debugging
-          errorText = await response.text();
-          errorText = `ElevenLabs API Error: Status ${response.status}, Response: ${errorText.substring(0, 100)}...`;
+          const errorText = await response.text();
+          errorDetail = errorText.substring(0, 200);
+          console.error('Error response:', errorDetail);
         }
       } catch (parseError) {
-        // Fallback if parsing fails
-        errorText = `ElevenLabs API Error: Status ${response.status}, unable to parse response`;
+        errorDetail = `Failed to parse error response: ${parseError.message}`;
+        console.error(errorDetail);
       }
       
-      console.error('ElevenLabs API error:', errorText);
-      
       return new Response(
         JSON.stringify({ 
           success: false, 
-          error: errorText 
+          error: `ElevenLabs API error (${response.status}): ${errorDetail}` 
         }),
         { 
           status: 400, 
@@ -89,17 +100,26 @@ serve(async (req) => {
       );
     }
 
-    // Verify we got audio content
+    // Verify content type is audio
     const contentType = response.headers.get('content-type');
+    console.log(`Response content type: ${contentType}`);
+    
     if (!contentType || !contentType.includes('audio/')) {
-      const textResponse = await response.text();
-      console.error('Unexpected content type from ElevenLabs:', contentType);
-      console.error('Response preview:', textResponse.substring(0, 200));
+      let responsePreview = '';
+      try {
+        const textResponse = await response.text();
+        responsePreview = textResponse.substring(0, 200);
+      } catch (e) {
+        responsePreview = 'Unable to read response body';
+      }
+      
+      console.error('Unexpected content type:', contentType);
+      console.error('Response preview:', responsePreview);
       
       return new Response(
         JSON.stringify({ 
           success: false, 
-          error: `Unexpected response format: ${contentType || 'unknown'}`
+          error: `Received non-audio response: ${contentType || 'unknown content type'}` 
         }),
         { 
           status: 400, 
@@ -108,33 +128,34 @@ serve(async (req) => {
       );
     }
 
-    // Get audio data and convert to base64
+    // Convert audio to base64
     const audioBuffer = await response.arrayBuffer();
     const base64Audio = btoa(String.fromCharCode(...new Uint8Array(audioBuffer)));
-
-    console.log('Speech generation successful, returning audio data');
     
+    console.log('Speech generation successful, audio size:', audioBuffer.byteLength);
+
     return new Response(
-      JSON.stringify({ 
-        success: true, 
+      JSON.stringify({
+        success: true,
         audioContent: base64Audio,
         format: 'mp3'
       }),
-      {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      },
+      { 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+      }
     );
   } catch (error) {
     console.error('Error in text-to-speech function:', error);
+    
     return new Response(
       JSON.stringify({ 
         success: false, 
-        error: error.message 
+        error: `Speech generation failed: ${error.message}` 
       }),
-      {
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      },
+      { 
+        status: 400, 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+      }
     );
   }
 });

@@ -41,12 +41,35 @@ const speechSynthesisService = {
         }),
       });
 
-      // First check for non-JSON responses
+      // Check if response is ok first
+      if (!response.ok) {
+        console.error(`API responded with status: ${response.status}`);
+        // Try to get more detailed error info
+        try {
+          const errorData = await response.json();
+          throw new Error(errorData.error || `API error (${response.status})`);
+        } catch (jsonError) {
+          // If we can't parse JSON, try to get text
+          try {
+            const errorText = await response.text();
+            throw new Error(`API error (${response.status}): ${errorText.substring(0, 100)}`);
+          } catch (textError) {
+            throw new Error(`API error (${response.status}): Could not parse response`);
+          }
+        }
+      }
+
+      // Check content type
       const contentType = response.headers.get('content-type');
       if (!contentType || !contentType.includes('application/json')) {
-        const textResponse = await response.text();
-        console.error('Non-JSON response received:', textResponse.substring(0, 200));
-        throw new Error(`Received invalid response format: ${contentType || 'unknown'}`);
+        console.error('Non-JSON response received:', contentType);
+        let errorText = 'Unknown format';
+        try {
+          errorText = await response.text();
+        } catch (e) {
+          // Ignore if we can't get text
+        }
+        throw new Error(`Received invalid response format: ${contentType || 'unknown'}, preview: ${errorText.substring(0, 50)}`);
       }
 
       const data = await response.json();

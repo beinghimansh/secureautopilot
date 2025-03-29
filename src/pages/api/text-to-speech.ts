@@ -6,17 +6,71 @@ export async function POST(request: Request) {
   try {
     console.log(`Calling text-to-speech function with voiceId: ${voiceId}, language: ${language || 'en'}, text length: ${text.length}`);
     
+    // Make sure the URL and auth is correctly formatted
+    const supabaseUrl = 'https://kqccayfzcxuadkzohgzs.supabase.co/functions/v1/text-to-speech';
+    const supabaseKey = process.env.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtxY2NheWZ6Y3h1YWRrem9oZ3pzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDMxMDU0NzQsImV4cCI6MjA1ODY4MTQ3NH0.voJsuUs1noG3SGq97VSIFhuVXC0SK-Z99CjJMRlY3I0';
+    
+    console.log(`Making request to: ${supabaseUrl}`);
+    
     const response = await fetch(
-      'https://kqccayfzcxuadkzohgzs.supabase.co/functions/v1/text-to-speech',
+      supabaseUrl,
       {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${process.env.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtxY2NheWZ6Y3h1YWRrem9oZ3pzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDMxMDU0NzQsImV4cCI6MjA1ODY4MTQ3NH0.voJsuUs1noG3SGq97VSIFhuVXC0SK-Z99CjJMRlY3I0'}`,
+          'Authorization': `Bearer ${supabaseKey}`,
         },
         body: JSON.stringify({ text, voiceId, model, language }),
       }
     );
+    
+    // Improved error handling for the response
+    if (!response.ok) {
+      console.error(`Supabase function error: Status ${response.status}`);
+      
+      // Try to extract meaningful error information
+      const contentType = response.headers.get('content-type');
+      let errorDetail = '';
+      
+      try {
+        if (contentType && contentType.includes('application/json')) {
+          const errorJson = await response.json();
+          errorDetail = JSON.stringify(errorJson);
+          console.error('Error details:', errorDetail);
+          
+          return new Response(
+            JSON.stringify({ 
+              success: false, 
+              error: errorJson.error || `API error (${response.status})` 
+            }),
+            { status: response.status, headers: { 'Content-Type': 'application/json' } }
+          );
+        } else {
+          const errorText = await response.text();
+          errorDetail = errorText.substring(0, 200);
+          console.error('Error response:', errorDetail);
+          
+          return new Response(
+            JSON.stringify({ 
+              success: false, 
+              error: `Received invalid response format: ${contentType || 'unknown'}, status: ${response.status}` 
+            }),
+            { status: 500, headers: { 'Content-Type': 'application/json' } }
+          );
+        }
+      } catch (parseError) {
+        errorDetail = `Failed to parse error response: ${parseError.message}`;
+        console.error(errorDetail);
+        
+        return new Response(
+          JSON.stringify({ 
+            success: false, 
+            error: `API response error: ${errorDetail}` 
+          }),
+          { status: 500, headers: { 'Content-Type': 'application/json' } }
+        );
+      }
+    }
     
     // Handle non-JSON responses better
     const contentType = response.headers.get('content-type');
