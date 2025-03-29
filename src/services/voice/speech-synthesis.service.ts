@@ -33,10 +33,12 @@ const speechSynthesisService = {
         }),
       });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        console.error('Text-to-speech API error:', errorData);
-        throw new Error(errorData.error || 'Failed to generate speech');
+      // Check for non-JSON responses first
+      const contentType = response.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        const textResponse = await response.text();
+        console.error('Non-JSON response received:', textResponse.substring(0, 200));
+        throw new Error(`Received invalid response format: ${contentType || 'unknown'}`);
       }
 
       const data = await response.json();
@@ -44,6 +46,12 @@ const speechSynthesisService = {
       if (!data.success) {
         console.error('Text-to-speech API returned error:', data.error);
         throw new Error(data.error || 'Failed to generate speech');
+      }
+
+      // Check if audioContent exists
+      if (!data.audioContent) {
+        console.error('No audio content in response:', data);
+        throw new Error('No audio content received from the service');
       }
 
       const binaryString = atob(data.audioContent);

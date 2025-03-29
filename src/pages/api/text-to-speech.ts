@@ -18,12 +18,17 @@ export async function POST(request: Request) {
       }
     );
     
-    if (!response.ok) {
-      const errorData = await response.json();
-      console.error('Text-to-speech function error:', errorData);
+    // Check if the response is JSON
+    const contentType = response.headers.get('content-type');
+    if (!contentType || !contentType.includes('application/json')) {
+      const errorText = await response.text();
+      console.error('Non-JSON response from function:', errorText.substring(0, 200));
       return new Response(
-        JSON.stringify({ success: false, error: errorData.error || 'Failed to generate speech' }),
-        { status: response.status, headers: { 'Content-Type': 'application/json' } }
+        JSON.stringify({ 
+          success: false, 
+          error: `Invalid response format: ${contentType || 'unknown'}, status: ${response.status}` 
+        }),
+        { status: 500, headers: { 'Content-Type': 'application/json' } }
       );
     }
     
@@ -35,7 +40,7 @@ export async function POST(request: Request) {
   } catch (error) {
     console.error('Error calling text-to-speech function:', error);
     return new Response(
-      JSON.stringify({ success: false, error: 'Internal server error' }),
+      JSON.stringify({ success: false, error: `Internal server error: ${error.message}` }),
       { status: 500, headers: { 'Content-Type': 'application/json' } }
     );
   }

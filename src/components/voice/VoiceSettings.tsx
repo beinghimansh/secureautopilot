@@ -5,7 +5,7 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
-import { Volume2, Settings } from 'lucide-react';
+import { Volume2, Settings, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import voiceService, { availableVoices, UserVoicePreference } from '@/services/voice';
 
@@ -22,6 +22,8 @@ const VoiceSettings: React.FC<VoiceSettingsProps> = ({ onSettingsChange }) => {
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [testingVoice, setTestingVoice] = useState(false);
+  const [audioInstance, setAudioInstance] = useState<HTMLAudioElement | null>(null);
 
   useEffect(() => {
     const loadPreferences = async () => {
@@ -42,6 +44,14 @@ const VoiceSettings: React.FC<VoiceSettingsProps> = ({ onSettingsChange }) => {
     };
     
     loadPreferences();
+
+    // Cleanup audio instances on unmount
+    return () => {
+      if (audioInstance) {
+        audioInstance.pause();
+        audioInstance.src = '';
+      }
+    };
   }, []);
 
   const handleVoiceChange = (voiceId: string) => {
@@ -73,6 +83,7 @@ const VoiceSettings: React.FC<VoiceSettingsProps> = ({ onSettingsChange }) => {
       if (result && onSettingsChange) {
         onSettingsChange(result);
       }
+      toast.success('Voice preferences saved successfully');
     } catch (error) {
       console.error('Error saving preferences:', error);
       toast.error('Failed to save voice preferences');
@@ -87,28 +98,56 @@ const VoiceSettings: React.FC<VoiceSettingsProps> = ({ onSettingsChange }) => {
       return;
     }
     
-    const voiceId = preferences.voice_id || preferences.preferred_voice_id;
-    const voiceName = voiceService.getVoiceNameById(voiceId!);
-    const testText = `This is a test of the ${voiceName} voice. Your current playback speed is set to ${preferences.playback_speed}x.`;
+    // Stop any currently playing audio
+    if (audioInstance) {
+      audioInstance.pause();
+      audioInstance.src = '';
+    }
+    
+    setTestingVoice(true);
     
     try {
-      console.log(`Testing voice with ID: ${voiceId}, text: ${testText}`);
-      const result = await voiceService.generateSpeech(testText, voiceId!);
+      const voiceId = preferences.voice_id || preferences.preferred_voice_id;
+      const voiceName = voiceService.getVoiceNameById(voiceId!);
+      const testText = `This is a test of the ${voiceName} voice. Your current playback speed is set to ${preferences.playback_speed}x.`;
+      
+      console.log(`Testing voice with ID: ${voiceId}, language: ${preferences.language || 'en'}, text: ${testText}`);
+      const result = await voiceService.generateSpeech(testText, voiceId!, undefined, preferences.language);
       
       if (result.success && result.audioUrl) {
         const audio = new Audio(result.audioUrl);
         if (preferences.playback_speed) {
           audio.playbackRate = preferences.playback_speed;
         }
-        audio.play();
+        
+        setAudioInstance(audio);
+        
+        audio.onended = () => {
+          setTestingVoice(false);
+        };
+        
+        audio.onerror = (e) => {
+          console.error('Audio playback error:', e);
+          toast.error('Error playing test audio');
+          setTestingVoice(false);
+        };
+        
+        audio.play().catch(error => {
+          console.error('Failed to play audio:', error);
+          toast.error('Failed to play audio');
+          setTestingVoice(false);
+        });
+        
         toast.success('Test voice played successfully');
       } else {
         console.error('Speech generation failed:', result.error);
         toast.error(`Failed to generate test speech: ${result.error || 'Unknown error'}`);
+        setTestingVoice(false);
       }
     } catch (error) {
       console.error('Error testing voice:', error);
-      toast.error('Failed to test voice');
+      toast.error(`Failed to test voice: ${error.message || 'Unknown error'}`);
+      setTestingVoice(false);
     }
   };
 
@@ -160,9 +199,19 @@ const VoiceSettings: React.FC<VoiceSettingsProps> = ({ onSettingsChange }) => {
             size="sm" 
             className="mt-2"
             onClick={handleTestVoice}
+            disabled={testingVoice}
           >
-            <Volume2 className="mr-2 h-4 w-4" />
-            Test Voice
+            {testingVoice ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Testing...
+              </>
+            ) : (
+              <>
+                <Volume2 className="mr-2 h-4 w-4" />
+                Test Voice
+              </>
+            )}
           </Button>
         </div>
         
