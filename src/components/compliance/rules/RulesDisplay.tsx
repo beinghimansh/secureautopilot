@@ -7,8 +7,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Loader2, Save, ArrowLeft, ChevronLeft } from 'lucide-react';
+import { Loader2, Save, ArrowLeft, ChevronLeft, ChevronDown, ChevronRight, XCircle, CheckCircle, Clock } from 'lucide-react';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
+import { getRulesByFramework } from './RulesData';
 
 interface RulesDisplayProps {
   ruleId?: string | null;
@@ -28,6 +29,7 @@ const RulesDisplay: React.FC<RulesDisplayProps> = ({
   const [saving, setSaving] = useState(false);
   const [localRules, setLocalRules] = useState<any[]>([]);
   const [showRulesList, setShowRulesList] = useState(true);
+  const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     if (frameworkId) {
@@ -54,43 +56,54 @@ const RulesDisplay: React.FC<RulesDisplayProps> = ({
 
   const fetchRulesForFramework = async (frameworkId: string) => {
     try {
-      // Since there's no compliance_rules table, let's use an existing table or mock data
-      // For demo purposes, we'll use mock data instead of querying a non-existent table
-      const mockRules = [
-        {
-          id: '1',
-          control_id: 'A.1.1',
-          title: 'Information Security Policy',
-          description: 'A policy for information security should be defined and approved by management.',
-          status: 'in_progress',
-          notes: 'Working on drafting the initial policy document.'
-        },
-        {
-          id: '2',
-          control_id: 'A.1.2',
-          title: 'Review of the Information Security Policy',
-          description: 'The information security policy should be reviewed at planned intervals.',
-          status: 'not_started',
-          notes: ''
-        },
-        {
-          id: '3',
-          control_id: 'A.2.1',
-          title: 'Asset Management',
-          description: 'All assets should be clearly identified and an inventory of all important assets drawn up and maintained.',
-          status: 'completed',
-          notes: 'Asset inventory has been completed and documented.'
+      // Use the imported function to get rules by framework
+      const frameworkRules = getRulesByFramework(frameworkId);
+      
+      if (frameworkRules.length > 0) {
+        setLocalRules(frameworkRules);
+        
+        // If setRules was provided, update the parent component
+        if (setRules) {
+          setRules(frameworkRules);
         }
-      ];
-      
-      setLocalRules(mockRules);
-      
-      // If setRules was provided, update the parent component
-      if (setRules) {
-        setRules(mockRules);
+        
+        console.log('Fetched rules for framework:', frameworkId);
+      } else {
+        // Fallback to mock data if needed
+        const mockRules = [
+          {
+            id: '1',
+            control_id: 'A.1.1',
+            title: 'Information Security Policy',
+            description: 'A policy for information security should be defined and approved by management.',
+            status: 'in_progress',
+            notes: 'Working on drafting the initial policy document.'
+          },
+          {
+            id: '2',
+            control_id: 'A.1.2',
+            title: 'Review of the Information Security Policy',
+            description: 'The information security policy should be reviewed at planned intervals.',
+            status: 'not_started',
+            notes: ''
+          },
+          {
+            id: '3',
+            control_id: 'A.2.1',
+            title: 'Asset Management',
+            description: 'All assets should be clearly identified and an inventory of all important assets drawn up and maintained.',
+            status: 'completed',
+            notes: 'Asset inventory has been completed and documented.'
+          }
+        ];
+        
+        setLocalRules(mockRules);
+        
+        // If setRules was provided, update the parent component
+        if (setRules) {
+          setRules(mockRules);
+        }
       }
-      
-      console.log('Fetched rules for framework:', frameworkId);
     } catch (error) {
       console.error('Unexpected error:', error);
       toast.error('Failed to load compliance rules');
@@ -141,36 +154,106 @@ const RulesDisplay: React.FC<RulesDisplayProps> = ({
     setSelectedRule(null);
   };
 
+  const toggleCategory = (categoryId: string) => {
+    setExpandedCategories(prev => ({
+      ...prev,
+      [categoryId]: !prev[categoryId]
+    }));
+  };
+
+  const getStatusIcon = (status?: string) => {
+    switch (status) {
+      case 'compliant':
+        return <CheckCircle size={16} className="text-green-600" />;
+      case 'non_compliant':
+        return <XCircle size={16} className="text-red-600" />;
+      case 'in_progress':
+        return <Clock size={16} className="text-yellow-600" />;
+      default:
+        return null;
+    }
+  };
+
+  const renderClausesList = (rule: any) => {
+    if (!rule.clauses || rule.clauses.length === 0) return null;
+
+    const isExpanded = expandedCategories[String(rule.id)];
+    
+    return (
+      <div className="ml-4 mt-2">
+        <button
+          onClick={() => toggleCategory(String(rule.id))}
+          className="flex items-center text-sm font-medium text-gray-700 hover:text-gray-900 mb-2"
+        >
+          {isExpanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+          <span className="ml-1">Sub-controls ({rule.clauses.length})</span>
+        </button>
+        
+        {isExpanded && (
+          <div className="space-y-2 pl-4 border-l-2 border-gray-200">
+            {rule.clauses.map((clause: any) => (
+              <div 
+                key={clause.id}
+                className="p-3 border rounded-md hover:bg-gray-50 cursor-pointer transition-colors"
+                onClick={() => {
+                  setSelectedRule(clause);
+                  setImplementationNotes(clause.notes || null);
+                  setShowRulesList(false);
+                }}
+              >
+                <div className="flex justify-between items-center">
+                  <div className="flex items-center">
+                    <span className="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded mr-2">
+                      {clause.number}
+                    </span>
+                    <span className="font-medium text-sm">{clause.content}</span>
+                  </div>
+                  <span className="flex items-center">
+                    {getStatusIcon(clause.status)}
+                    <span className="ml-2 text-xs px-2 py-1 rounded-full bg-gray-100">
+                      {clause.status || 'not_started'}
+                    </span>
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  };
+
   if (showRulesList || (!selectedRule && localRules.length > 0)) {
     return (
       <div className="p-4 bg-white rounded-lg border border-gray-200 shadow-sm">
         <h3 className="text-lg font-medium mb-4">Select a control to view details</h3>
         <div className="space-y-2">
           {localRules.map(rule => (
-            <div 
-              key={rule.id}
-              className="p-3 border rounded-md hover:bg-gray-50 cursor-pointer transition-colors"
-              onClick={() => {
-                setSelectedRule(rule);
-                setImplementationNotes(rule.notes || null);
-                setShowRulesList(false);
-              }}
-            >
-              <div className="flex justify-between items-center">
-                <div>
-                  <span className="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded mr-2">
-                    {rule.control_id}
+            <div key={rule.id} className="mb-4">
+              <div 
+                className="p-3 border rounded-md hover:bg-gray-50 cursor-pointer transition-colors"
+                onClick={() => {
+                  setSelectedRule(rule);
+                  setImplementationNotes(rule.notes || null);
+                  setShowRulesList(false);
+                }}
+              >
+                <div className="flex justify-between items-center">
+                  <div>
+                    <span className="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded mr-2">
+                      {rule.number || rule.control_id}
+                    </span>
+                    <span className="font-medium">{rule.content || rule.title}</span>
+                  </div>
+                  <span className="flex items-center">
+                    {getStatusIcon(rule.status)}
+                    <span className="ml-2 text-xs px-2 py-1 rounded-full bg-gray-100">
+                      {rule.status || 'not_started'}
+                    </span>
                   </span>
-                  <span className="font-medium">{rule.title}</span>
                 </div>
-                <span className={`text-xs px-2 py-1 rounded-full ${
-                  rule.status === 'completed' ? 'bg-green-100 text-green-800' :
-                  rule.status === 'in_progress' ? 'bg-blue-100 text-blue-800' :
-                  'bg-gray-100 text-gray-800'
-                }`}>
-                  {rule.status}
-                </span>
               </div>
+              {rule.clauses && rule.clauses.length > 0 && renderClausesList(rule)}
             </div>
           ))}
         </div>

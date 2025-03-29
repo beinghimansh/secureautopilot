@@ -38,7 +38,7 @@ export interface TreeItem {
   number?: string;
 }
 
-// Add new interface for SOC2 Control Clause
+// Added interface for SOC2 Control Clause
 export interface Soc2ControlClause {
   id: number;
   number: string;
@@ -46,4 +46,15 @@ export interface Soc2ControlClause {
   description: string;
   requirement: string;
   status?: 'compliant' | 'non_compliant' | 'in_progress' | 'not_applicable';
+}
+
+// Define detailed SOC2 control categories
+export interface Soc2DetailedControlClause {
+  id: number;
+  number: string;
+  content: string;
+  description: string;
+  requirement: string;
+  status?: 'compliant' | 'non_compliant' | 'in_progress' | 'not_applicable';
+  clauses?: Soc2DetailedControlClause[];
 }
