@@ -3,10 +3,10 @@ import React, { useState, useRef, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent } from '@/components/common/Card';
 import Button from '@/components/common/Button';
-import { Robot, Send, Loader, AlertCircle, CheckCircle, Copy } from 'lucide-react';
+import { Bot, Send, Loader, AlertCircle, CheckCircle, Copy } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
-import { AIGuidanceButton } from './AIGuidanceButton';
+import AIGuidanceButton from './AIGuidanceButton';
 import ReactMarkdown from 'react-markdown';
 
 interface OpenAIIntegrationProps {
@@ -108,7 +108,7 @@ const OpenAIIntegration: React.FC<OpenAIIntegrationProps> = ({
     <Card className={`${isEmbedded ? 'border border-blue-200 shadow-md' : ''}`}>
       <CardContent className="p-4">
         <div className="flex items-center mb-4">
-          <Robot className="text-blue-600 mr-2" size={20} />
+          <Bot className="text-blue-600 mr-2" size={20} />
           <h3 className="text-lg font-medium">{headingText}</h3>
         </div>
         

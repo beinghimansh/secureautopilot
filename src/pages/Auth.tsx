@@ -10,7 +10,7 @@ import { ArrowLeft } from 'lucide-react';
 
 const AuthPage = () => {
   const [searchParams] = useSearchParams();
-  const { user, loading: authLoading } = useAuth();
+  const { user, isLoading: authLoading } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [isLoading, setIsLoading] = useState(true);

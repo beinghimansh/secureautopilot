@@ -166,9 +166,10 @@ const FrameworkRequirements = () => {
                     transition={{ duration: 0.4, delay: 0.2 }}
                   >
                     <OpenAIIntegration 
-                      title={`Ask about ${frameworkName}`}
-                      description={`Get AI guidance specific to ${frameworkName} requirements`}
-                      placeholder={`Ask anything about implementing ${frameworkName} in your organization...`}
+                      frameworkId={frameworkId}
+                      promptContext={`You are a compliance expert specializing in ${frameworkName}. Provide implementation guidance and best practices.`}
+                      initialPrompt={`What are the key requirements for ${frameworkName} compliance?`}
+                      headingText={`Ask about ${frameworkName}`}
                     />
                   </motion.div>
                 </div>

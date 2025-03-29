@@ -50,7 +50,7 @@ const FrameworkControls: React.FC<FrameworkControlsProps> = ({ frameworkId }) =>
                 Filter
               </Button>
               <Button
-                variant="primary"
+                variant="default"
                 onClick={() => setShowAIGuidance(!showAIGuidance)}
                 size="sm"
               >

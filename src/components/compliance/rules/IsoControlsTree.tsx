@@ -1,8 +1,9 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { Tree, MultiBackend, getBackendOptions } from 'react-complex-tree';
+import { Tree } from 'react-complex-tree';
 import 'react-complex-tree/lib/style-modern.css';
 import { DndProvider } from 'react-dnd';
+import { HTML5Backend } from 'react-dnd-html5-backend';
 import { ComplianceRule } from '@/components/compliance/types/complianceTypes';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -261,7 +262,7 @@ const IsoControlsTree: React.FC<IsoControlsTreeProps> = ({
 
   return (
     <div className="border border-gray-200 rounded-lg overflow-hidden bg-white">
-      <DndProvider backend={MultiBackend} options={getBackendOptions()}>
+      <DndProvider backend={HTML5Backend}>
         <div className="p-2 bg-gray-50 border-b border-gray-200">
           <h3 className="font-medium">
             {frameworkId === 'soc2' ? 'SOC 2 Controls' : 'ISO 27001 Controls'}
@@ -270,25 +271,24 @@ const IsoControlsTree: React.FC<IsoControlsTreeProps> = ({
         <div className="max-h-[calc(100vh-250px)] overflow-auto p-2">
           {Object.keys(treeData).length > 0 && (
             <Tree
-              tree={treeId}
+              data={treeData}
               rootItem="root"
-              treeData={{ [treeId]: { items: treeData } }}
-              defaultInteractionMode="clickItemToExpand"
-              canDrag={() => false}
-              canDropAt={() => false}
-              canReorderItems={false}
-              isItemExpanded={(itemId) => expandedItems.includes(itemId)}
-              onExpandItem={(itemId) => setExpandedItems([...expandedItems, itemId])}
-              onCollapseItem={(itemId) => 
-                setExpandedItems(expandedItems.filter(id => id !== itemId))
-              }
-              isItemSelected={(itemId) => {
-                if (!selectedRuleId) return false;
-                const controlId = `control-${selectedRuleId}`;
-                return itemId === controlId;
-              }}
-              onSelectItems={handleSelectItem}
-              renderItemArrow={renderers.renderItemArrow}
+              treeId={treeId}
+              defaultInteractionMode="click"
+              renderItem={({ item, depth, children, title, context, arrow }) => (
+                <div className={`tree-item ${context.isSelected ? 'bg-blue-100' : ''} p-1 flex items-center`}>
+                  {arrow}
+                  <div className="ml-1">
+                    {renderers.renderItemTitle({
+                      title: item.data.title,
+                      isSection: item.data.isSection,
+                      depth
+                    })}
+                  </div>
+                  {children}
+                </div>
+              )}
+              renderItemArrow={({ item, context }) => renderers.renderItemArrow({ item, context })}
               renderItemTitle={({ title, item }) => 
                 renderers.renderItemTitle({
                   title,
@@ -296,6 +296,13 @@ const IsoControlsTree: React.FC<IsoControlsTreeProps> = ({
                   depth: 0
                 })
               }
+              expandedItems={expandedItems}
+              onExpandItem={(itemId) => setExpandedItems([...expandedItems, itemId])}
+              onCollapseItem={(itemId) => 
+                setExpandedItems(expandedItems.filter(id => id !== itemId))
+              }
+              selectedItems={selectedRuleId ? [`control-${selectedRuleId}`] : []}
+              onSelectItems={handleSelectItem}
             />
           )}
         </div>
