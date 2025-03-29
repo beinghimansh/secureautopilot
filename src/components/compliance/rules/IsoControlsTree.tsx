@@ -271,9 +271,9 @@ const IsoControlsTree: React.FC<IsoControlsTreeProps> = ({
         <div className="max-h-[calc(100vh-250px)] overflow-auto p-2">
           {Object.keys(treeData).length > 0 && (
             <Tree
+              treeId={treeId}
               data={treeData}
               rootItem="root"
-              treeId={treeId}
               defaultInteractionMode="click"
               renderItem={({ item, depth, children, title, context, arrow }) => (
                 <div className={`tree-item ${context.isSelected ? 'bg-blue-100' : ''} p-1 flex items-center`}>

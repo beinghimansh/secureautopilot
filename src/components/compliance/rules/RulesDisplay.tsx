@@ -80,6 +80,7 @@ const RulesDisplay: React.FC<RulesDisplayProps> = ({ frameworkId }) => {
           }
 
           if (data) {
+            console.log('Notes found:', data);
             setImplementationNotes(data.content || '');
             
             // Update status if available
@@ -98,8 +99,10 @@ const RulesDisplay: React.FC<RulesDisplayProps> = ({ frameworkId }) => {
               .maybeSingle();
               
             if (!oldError && oldData) {
+              console.log('Old notes found:', oldData);
               setImplementationNotes(oldData.content || '');
             } else {
+              console.log('No notes found for rule:', ruleId);
               setImplementationNotes('');
             }
           }
@@ -120,6 +123,8 @@ const RulesDisplay: React.FC<RulesDisplayProps> = ({ frameworkId }) => {
     try {
       const ruleId = typeof selectedRule.id === 'string' ? selectedRule.id : selectedRule.id.toString();
       
+      console.log('Saving notes for rule:', ruleId, 'Content:', implementationNotes, 'Status:', selectedRule.status);
+      
       // First try updating
       const { data, error } = await supabase
         .from('implementation_notes')
@@ -130,19 +135,23 @@ const RulesDisplay: React.FC<RulesDisplayProps> = ({ frameworkId }) => {
             status: selectedRule.status || 'in_progress',
             updated_at: new Date().toISOString()
           },
-          { onConflict: 'requirement_id' }
+          { 
+            onConflict: 'requirement_id',
+            returning: 'minimal' 
+          }
         );
 
       if (error) {
-        toast.error('Failed to save notes');
         console.error('Error saving notes:', error);
+        toast.error('Failed to save notes: ' + error.message);
         return;
       }
 
+      console.log('Notes saved successfully');
       toast.success('Implementation notes saved successfully');
-    } catch (err) {
-      toast.error('An error occurred while saving');
+    } catch (err: any) {
       console.error('Error saving implementation notes:', err);
+      toast.error('An error occurred while saving: ' + (err.message || 'Unknown error'));
     } finally {
       setIsSaving(false);
     }
