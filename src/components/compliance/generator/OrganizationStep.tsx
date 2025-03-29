@@ -66,10 +66,10 @@ const OrganizationStep: React.FC<OrganizationStepProps> = ({
             value={formValues.industry} 
             onValueChange={(value) => handleSelectChange('industry', value)}
           >
-            <SelectTrigger id="industry">
+            <SelectTrigger id="industry" className="w-full bg-white">
               <SelectValue placeholder="Select an industry" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent position="popper" className="w-full bg-white z-50">
               {industries.map((industry) => (
                 <SelectItem key={industry} value={industry}>
                   {industry}
@@ -87,10 +87,10 @@ const OrganizationStep: React.FC<OrganizationStepProps> = ({
             value={formValues.companySize} 
             onValueChange={(value) => handleSelectChange('companySize', value)}
           >
-            <SelectTrigger id="companySize">
+            <SelectTrigger id="companySize" className="w-full bg-white">
               <SelectValue placeholder="Select company size" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent position="popper" className="w-full bg-white z-50">
               {companySizes.map((size) => (
                 <SelectItem key={size} value={size}>
                   {size}

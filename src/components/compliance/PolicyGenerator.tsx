@@ -14,58 +14,6 @@ import { Card, CardContent } from '@/components/ui/card';
 import { motion } from 'framer-motion';
 import { useFrameworkName } from './hooks/useFrameworkName';
 
-// Define the props interfaces for each step component
-interface OrganizationStepProps {
-  formValues: {
-    companyName: string;
-    industry: string;
-    companySize: string;
-    businessLocation: string;
-  };
-  handleInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => void;
-  industries: string[];
-  companySizes: string[];
-}
-
-interface DataInfrastructureStepProps {
-  formValues: {
-    dataTypes: string;
-    infrastructureDetails: string;
-  };
-  handleInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
-}
-
-interface SecurityRiskStepProps {
-  formValues: {
-    securityControls: string[];
-    riskAppetite: string;
-  };
-  handleInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => void;
-  handleCheckboxChange: (controlName: string) => void;
-  securityControlOptions: string[];
-  riskAppetiteOptions: string[];
-}
-
-interface ReviewStepProps {
-  formValues: {
-    companyName: string;
-    industry: string;
-    companySize: string;
-    businessLocation: string;
-    dataTypes: string;
-    infrastructureDetails: string;
-    securityControls: string[];
-    riskAppetite: string;
-  };
-  frameworkName: string;
-}
-
-interface GenerationSuccessProps {
-  frameworkName: string;
-  onComplete: () => void;
-  wordCount?: number;
-}
-
 interface PolicyGeneratorProps {
   frameworkId: string;
   onComplete?: () => void;
@@ -133,6 +81,8 @@ const PolicyGenerator: React.FC<PolicyGeneratorProps> = ({ frameworkId, onComple
   const handleComplete = () => {
     if (onComplete) {
       onComplete();
+    } else {
+      navigate('/compliance');
     }
   };
 

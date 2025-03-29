@@ -1,7 +1,7 @@
 
 import React from 'react';
-import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface SecurityRiskStepProps {
@@ -39,24 +39,25 @@ const SecurityRiskStep: React.FC<SecurityRiskStepProps> = ({
       <div>
         <h3 className="text-lg font-medium mb-4">Security & Risk Management</h3>
         <p className="text-sm text-gray-500 mb-6">
-          Details about your organization's security controls and risk management approach.
+          Information about your security controls and risk management approach.
         </p>
       </div>
       
-      <div className="space-y-6">
+      <div className="space-y-4">
         <div className="grid gap-2">
-          <Label className="flex items-center">
-            Security Controls Currently in Place <span className="text-red-500 ml-1">*</span>
+          <Label className="flex items-center mb-2">
+            Security Controls in Place <span className="text-red-500 ml-1">*</span>
           </Label>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {securityControlOptions.map((control) => (
-              <div key={control} className="flex items-center space-x-2">
-                <Checkbox
+              <div key={control} className="flex items-start space-x-2">
+                <Checkbox 
                   id={`control-${control}`}
                   checked={formValues.securityControls.includes(control)}
                   onCheckedChange={() => handleCheckboxChange(control)}
+                  className="mt-1"
                 />
-                <Label
+                <Label 
                   htmlFor={`control-${control}`}
                   className="text-sm font-normal cursor-pointer"
                 >
@@ -66,7 +67,7 @@ const SecurityRiskStep: React.FC<SecurityRiskStepProps> = ({
             ))}
           </div>
           <p className="text-sm text-gray-500 mt-1">
-            Select all security controls that your organization currently has in place.
+            Select all security controls that are implemented in your organization.
           </p>
         </div>
         
@@ -78,20 +79,21 @@ const SecurityRiskStep: React.FC<SecurityRiskStepProps> = ({
             value={formValues.riskAppetite} 
             onValueChange={(value) => handleSelectChange('riskAppetite', value)}
           >
-            <SelectTrigger id="riskAppetite">
-              <SelectValue placeholder="Select risk appetite level" />
+            <SelectTrigger id="riskAppetite" className="w-full bg-white">
+              <SelectValue placeholder="Select risk appetite" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent position="popper" className="w-full bg-white z-50">
               {riskAppetiteOptions.map((option) => (
                 <SelectItem key={option} value={option}>
                   {option === 'Low' ? 'Low (Risk Averse)' : 
-                   option === 'High' ? 'High (Risk Tolerant)' : option}
+                   option === 'Moderate' ? 'Moderate' : 
+                   'High (Risk Tolerant)'}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
           <p className="text-sm text-gray-500">
-            Your organization's general approach to risk in security and compliance matters.
+            Your organization's overall appetite for risk.
           </p>
         </div>
       </div>
