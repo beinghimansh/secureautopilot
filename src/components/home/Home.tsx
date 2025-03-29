@@ -1,21 +1,22 @@
 
 import React from 'react';
-import { useAuth } from '@/contexts/AuthContext';
 import Header from './Header';
 import HeroSection from './HeroSection';
 import FeatureHighlights from './FeatureHighlights';
+import FeaturesSection from './FeaturesSection';
 import CTASection from './CTASection';
+import SocialProof from './SocialProof';
 import Footer from './Footer';
 
 const Home = () => {
-  const { user } = useAuth();
-
   return (
-    <div className="min-h-screen overflow-x-hidden">
+    <div className="min-h-screen bg-gradient-to-b from-gray-900 to-black text-white overflow-hidden">
       <Header />
       <main>
         <HeroSection />
         <FeatureHighlights />
+        <FeaturesSection />
+        <SocialProof />
         <CTASection />
       </main>
       <Footer />
