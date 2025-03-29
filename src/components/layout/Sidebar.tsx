@@ -85,7 +85,7 @@ const Sidebar = () => {
             text="Policies" 
             isActive={currentPath === 'policies'}
           />
-
+          
           <SidebarItem 
             to="/voice-ai" 
             icon={<Speech size={18} />} 

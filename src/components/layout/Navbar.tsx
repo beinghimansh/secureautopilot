@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Bell, User, Menu, X, Shield } from 'lucide-react';
+import { Bell, User, Menu, X, Shield, Speech } from 'lucide-react';
 import Button from '../common/Button';
 import { FadeIn } from '../common/Transitions';
 import { useAuth } from '@/contexts/AuthContext';
@@ -105,6 +105,12 @@ const Navbar = () => {
               className={`text-sm font-medium transition-colors hover:text-blue-600 ${location.pathname === '/policies' ? 'text-blue-600' : 'text-gray-600'}`}
             >
               Policies
+            </Link>
+            <Link 
+              to="/voice-ai" 
+              className={`text-sm font-medium transition-colors hover:text-blue-600 ${location.pathname === '/voice-ai' ? 'text-blue-600' : 'text-gray-600'}`}
+            >
+              ComplyVoiceAI
             </Link>
             <Link 
               to="/reports" 
