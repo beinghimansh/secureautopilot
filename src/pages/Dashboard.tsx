@@ -18,7 +18,7 @@ const Dashboard = () => {
         <Sidebar />
         <main className="flex-1 p-6 lg:p-10">
           <PageTransition>
-            <div className="max-w-6xl mx-auto">
+            <div className="max-w-7xl mx-auto">
               <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
                 <div>
                   <h1 className="text-3xl font-semibold tracking-tight">Dashboard</h1>

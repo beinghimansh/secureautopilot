@@ -10,7 +10,7 @@ import Footer from './Footer';
 
 const Home = () => {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-900 to-black text-white overflow-hidden">
+    <div className="min-h-screen overflow-x-hidden">
       <Header />
       <main>
         <HeroSection />
