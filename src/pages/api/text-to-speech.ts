@@ -40,6 +40,16 @@ export async function POST(request: Request) {
     }
     
     const data = await response.json();
+    
+    // If the edge function returned an error
+    if (!data.success) {
+      console.error('Edge function returned error:', data.error);
+      return new Response(
+        JSON.stringify({ success: false, error: data.error || 'Unknown error from speech service' }),
+        { status: 400, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+    
     return new Response(
       JSON.stringify(data),
       { status: response.status, headers: { 'Content-Type': 'application/json' } }

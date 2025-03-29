@@ -55,36 +55,57 @@ serve(async (req) => {
       }),
     });
 
-    // Check if the response is successful
+    // First check the response status
     if (!response.ok) {
-      let errorMessage;
+      let errorText;
+      const contentType = response.headers.get('content-type');
+      
       try {
-        // Try to parse as JSON if possible
-        const contentType = response.headers.get('content-type');
         if (contentType && contentType.includes('application/json')) {
+          // Try to parse as JSON if possible
           const errorData = await response.json();
-          errorMessage = errorData.detail?.message || errorData.detail || errorData.error || `API Error (${response.status})`;
+          errorText = errorData.detail?.message || errorData.detail || errorData.error || `API Error (${response.status})`;
         } else {
-          // If it's not JSON, just get the status and text for debugging
-          const responseText = await response.text();
-          errorMessage = `ElevenLabs API Error: Status ${response.status}, Response: ${responseText.substring(0, 100)}...`;
+          // If it's not JSON, get the text for debugging
+          errorText = await response.text();
+          errorText = `ElevenLabs API Error: Status ${response.status}, Response: ${errorText.substring(0, 100)}...`;
         }
       } catch (parseError) {
         // Fallback if parsing fails
-        errorMessage = `ElevenLabs API Error: Status ${response.status}, unable to parse response`;
+        errorText = `ElevenLabs API Error: Status ${response.status}, unable to parse response`;
       }
       
-      console.error('ElevenLabs API error:', errorMessage);
-      throw new Error(errorMessage);
+      console.error('ElevenLabs API error:', errorText);
+      
+      return new Response(
+        JSON.stringify({ 
+          success: false, 
+          error: errorText 
+        }),
+        { 
+          status: 400, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
     }
 
-    // Check content type to make sure we got audio
+    // Verify we got audio content
     const contentType = response.headers.get('content-type');
     if (!contentType || !contentType.includes('audio/')) {
       const textResponse = await response.text();
       console.error('Unexpected content type from ElevenLabs:', contentType);
       console.error('Response preview:', textResponse.substring(0, 200));
-      throw new Error(`Unexpected response format: ${contentType}`);
+      
+      return new Response(
+        JSON.stringify({ 
+          success: false, 
+          error: `Unexpected response format: ${contentType || 'unknown'}`
+        }),
+        { 
+          status: 400, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
     }
 
     // Get audio data and convert to base64
