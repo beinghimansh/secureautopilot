@@ -1,3 +1,4 @@
+
 import React, { createContext, useState, useEffect, useContext, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Session, User } from '@supabase/supabase-js';
@@ -39,36 +40,33 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [profile, setProfile] = useState<Profile | null>(null);
-  const authCheckedRef = useRef(false);
+  const subscriptionRef = useRef<{ unsubscribe: () => void } | null>(null);
 
   // Helper function to safely fetch user profile
-  const fetchUserProfile = (userId: string) => {
-    // Use setTimeout to break potential deadlock
-    setTimeout(async () => {
-      try {
-        const { data, error } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', userId)
-          .single();
+  const fetchUserProfile = async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .single();
 
-        if (error) {
-          console.error('Error fetching user profile:', error);
-        } else if (data) {
-          setProfile(data as Profile);
-        }
-      } catch (error) {
-        console.error('Unexpected error fetching user profile:', error);
+      if (error) {
+        console.error('Error fetching user profile:', error);
+      } else if (data) {
+        setProfile(data as Profile);
       }
-    }, 0);
+    } catch (error) {
+      console.error('Unexpected error fetching user profile:', error);
+    }
   };
 
   useEffect(() => {
-    let subscription: { unsubscribe: () => void } | null = null;
-    
     const initAuth = async () => {
       try {
-        // 1. Set up auth state listener FIRST
+        setIsLoading(true);
+        
+        // First set up the auth state listener
         const { data } = supabase.auth.onAuthStateChange((event, newSession) => {
           console.info(`Auth state changed: ${event}`);
           setSession(newSession);
@@ -83,9 +81,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         });
         
         // Store the subscription for cleanup
-        subscription = data.subscription;
+        subscriptionRef.current = data.subscription;
 
-        // 2. THEN check for existing session
+        // Then check for existing session
         const { data: sessionData, error } = await supabase.auth.getSession();
         
         if (error) {
@@ -97,7 +95,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             
             // Fetch user profile if user exists
             if (sessionData.session.user) {
-              fetchUserProfile(sessionData.session.user.id);
+              await fetchUserProfile(sessionData.session.user.id);
             }
           }
         }
@@ -105,7 +103,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         console.error('Unexpected error initializing auth:', error);
       } finally {
         setIsLoading(false);
-        authCheckedRef.current = true;
       }
     };
 
@@ -113,8 +110,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     // Clean up subscription
     return () => {
-      if (subscription) {
-        subscription.unsubscribe();
+      if (subscriptionRef.current) {
+        subscriptionRef.current.unsubscribe();
+        subscriptionRef.current = null;
       }
     };
   }, []);

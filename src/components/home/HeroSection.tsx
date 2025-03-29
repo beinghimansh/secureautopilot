@@ -79,7 +79,7 @@ const HeroSection = () => {
             <Button 
               variant="outline" 
               size="lg"
-              onClick={() => navigate('/compliance')}
+              onClick={() => navigate('/auth?mode=register')}
               className="px-8 py-3 text-lg border-gray-700 text-gray-300 hover:text-white hover:border-gray-500 bg-transparent"
             >
               View Frameworks
@@ -108,16 +108,12 @@ const HeroSection = () => {
               </div>
             </div>
             
-            {/* Static dashboard image */}
+            {/* Dashboard image */}
             <img 
               src="/lovable-uploads/90284a2c-e980-47c3-bbd2-6ccc022d722f.png" 
               alt="ComplyAI Dashboard" 
               className="w-full h-auto object-cover"
-              loading="eager"
             />
-            
-            {/* Reflection effect */}
-            <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-[#111] to-transparent"></div>
           </div>
         </motion.div>
       </div>
