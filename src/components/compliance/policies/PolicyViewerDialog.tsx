@@ -58,7 +58,7 @@ const PolicyViewerDialog: React.FC<PolicyViewerDialogProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col bg-white">
         <div className="flex justify-between items-center mb-4">
           <DialogTitle className="text-xl">
             Policy Viewer
@@ -77,7 +77,7 @@ const PolicyViewerDialog: React.FC<PolicyViewerDialogProps> = ({
         </div>
 
         <div className="grid grid-cols-3 gap-4 flex-grow overflow-hidden">
-          <div className="col-span-1 border-r pr-4 overflow-auto">
+          <div className="col-span-1 border-r pr-4 overflow-auto bg-white">
             <div className="font-medium mb-2">Available Policies</div>
             <div className="space-y-2">
               {policies.map((policy, index) => (
@@ -99,7 +99,9 @@ const PolicyViewerDialog: React.FC<PolicyViewerDialogProps> = ({
           <div className="col-span-2 overflow-auto">
             <div className="bg-white rounded-md border border-gray-200 overflow-auto h-full p-4">
               <div className="prose prose-sm max-w-none markdown-content">
-                <ReactMarkdown>
+                <ReactMarkdown components={{
+                  p: ({node, ...props}) => <p className="mb-4" {...props} />
+                }}>
                   {policies[selectedPolicyIndex]?.content || ''}
                 </ReactMarkdown>
               </div>
@@ -107,7 +109,7 @@ const PolicyViewerDialog: React.FC<PolicyViewerDialogProps> = ({
           </div>
         </div>
 
-        <div className="flex justify-end space-x-2 mt-4 pt-4 border-t border-gray-200">
+        <div className="flex justify-end space-x-2 mt-4 pt-4 border-t border-gray-200 bg-white">
           <Button
             variant="outline"
             onClick={handleDownload}

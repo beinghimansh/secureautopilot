@@ -13,6 +13,7 @@ const AuthPage = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const [isLoading, setIsLoading] = useState(true);
   
   // Get the return URL from location state or default to dashboard
   const from = location.state?.from?.pathname || '/dashboard';
@@ -21,15 +22,29 @@ const AuthPage = () => {
   useEffect(() => {
     console.log('Auth page rendered', { user, from });
     
-    // Redirect if already authenticated
-    if (user) {
-      console.log('User already authenticated, redirecting to:', from);
-      navigate(from, { replace: true });
-    }
+    // Add a slight delay before determining redirect to prevent flash of login screen
+    const timer = setTimeout(() => {
+      // Redirect if already authenticated
+      if (user) {
+        console.log('User already authenticated, redirecting to:', from);
+        navigate(from, { replace: true });
+      }
+      setIsLoading(false);
+    }, 100);
+    
+    return () => clearTimeout(timer);
   }, [user, navigate, from]);
   
   // Check if mode is specified in URL
   const initialMode = searchParams.get('mode') === 'register' ? 'register' : 'login';
+  
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex justify-center items-center bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500">
+        <div className="w-16 h-16 border-4 border-white border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
+  }
   
   return (
     <PageTransition>

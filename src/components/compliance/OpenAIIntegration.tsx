@@ -6,6 +6,7 @@ import Button from '@/components/common/Button';
 import { toast } from 'sonner';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import ReactMarkdown from 'react-markdown';
+import AIGuidanceButton from './AIGuidanceButton';
 
 interface OpenAIIntegrationProps {
   title?: string;
@@ -109,7 +110,9 @@ const OpenAIIntegration: React.FC<OpenAIIntegrationProps> = ({
           <div className="mb-5 bg-gray-50 rounded-lg border border-gray-200 p-4">
             <ScrollArea className="h-[300px] pr-4">
               <div className="prose prose-sm max-w-none">
-                <ReactMarkdown>
+                <ReactMarkdown components={{
+                  p: ({node, className, ...props}) => <p className="mb-4" {...props} />
+                }}>
                   {response}
                 </ReactMarkdown>
               </div>
@@ -142,20 +145,11 @@ const OpenAIIntegration: React.FC<OpenAIIntegrationProps> = ({
               <div className="text-xs text-gray-400 mb-1 text-right">
                 Press Ctrl+Enter to submit
               </div>
-              <Button
-                type="submit"
+              <AIGuidanceButton
+                onClick={handleSubmit}
+                isLoading={isLoading}
                 className="py-1 px-3 h-8"
-                disabled={isLoading}
-              >
-                {isLoading ? (
-                  <>
-                    <Loader2 className="w-3 h-3 mr-2 animate-spin" />
-                    <span>Thinking...</span>
-                  </>
-                ) : (
-                  <span>Get AI Guidance</span>
-                )}
-              </Button>
+              />
             </div>
           </div>
         </form>

@@ -65,10 +65,12 @@ const RulesDisplay: React.FC<RulesDisplayProps> = ({ frameworkId }) => {
     if (selectedRule?.id) {
       const fetchNotes = async () => {
         try {
+          const ruleId = typeof selectedRule.id === 'string' ? selectedRule.id : selectedRule.id.toString();
+          
           const { data, error } = await supabase
             .from('implementation_notes')
             .select('*')
-            .eq('requirement_id', selectedRule.id.toString())
+            .eq('requirement_id', ruleId)
             .maybeSingle();
 
           if (error && error.code !== 'PGRST116') {
@@ -91,7 +93,7 @@ const RulesDisplay: React.FC<RulesDisplayProps> = ({ frameworkId }) => {
             const { data: oldData, error: oldError } = await supabase
               .from('control_implementation_notes')
               .select('*')
-              .eq('control_id', selectedRule.id.toString())
+              .eq('control_id', ruleId)
               .maybeSingle();
               
             if (!oldError && oldData) {
@@ -114,12 +116,14 @@ const RulesDisplay: React.FC<RulesDisplayProps> = ({ frameworkId }) => {
     if (!selectedRule) return;
 
     try {
+      const ruleId = typeof selectedRule.id === 'string' ? selectedRule.id : selectedRule.id.toString();
+      
       // First try updating
       const { data, error } = await supabase
         .from('implementation_notes')
         .upsert(
           { 
-            requirement_id: selectedRule.id.toString(),
+            requirement_id: ruleId,
             content: implementationNotes,
             status: selectedRule.status || 'in_progress',
             updated_at: new Date().toISOString()

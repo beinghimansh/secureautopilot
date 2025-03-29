@@ -3,10 +3,11 @@ import { lazy, Suspense } from 'react';
 import { createRoot } from 'react-dom/client';
 import './index.css';
 
-// Simple loading component
+// Simple loading component with improved aesthetics
 const LoadingIndicator = () => (
-  <div className="flex items-center justify-center h-screen">
-    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+  <div className="flex flex-col items-center justify-center h-screen bg-gray-50">
+    <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mb-4"></div>
+    <p className="text-gray-700 font-medium">Loading application...</p>
   </div>
 );
 
@@ -20,10 +21,21 @@ const rootElement = document.getElementById("root");
 if (!rootElement) {
   console.error("Failed to find the root element");
 } else {
+  // Initialize with a performance marker
+  const startTime = performance.now();
+  
   console.log("Initializing application");
+  
+  // Use createRoot for concurrent mode
   createRoot(rootElement).render(
     <Suspense fallback={<LoadingIndicator />}>
       <App />
     </Suspense>
   );
+  
+  // Log performance timing
+  window.addEventListener('load', () => {
+    const loadTime = performance.now() - startTime;
+    console.log(`Application loaded in ${loadTime.toFixed(2)}ms`);
+  });
 }

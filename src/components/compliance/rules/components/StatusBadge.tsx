@@ -14,7 +14,7 @@ interface StatusBadgeProps {
   size?: 'sm' | 'md' | 'lg';
 }
 
-const getStatusIcon = (status?: string, iconSize: number = 20) => {
+export const getStatusIcon = (status?: string, iconSize: number = 20) => {
   switch (status) {
     case 'compliant':
       return <CheckCircle size={iconSize} className="text-green-600" />;
@@ -29,7 +29,7 @@ const getStatusIcon = (status?: string, iconSize: number = 20) => {
   }
 };
 
-const getStatusColor = (status?: string) => {
+export const getStatusColor = (status?: string) => {
   switch (status) {
     case 'compliant':
       return 'bg-green-100 text-green-800';
@@ -44,7 +44,7 @@ const getStatusColor = (status?: string) => {
   }
 };
 
-const getStatusText = (status?: string) => {
+export const getStatusText = (status?: string) => {
   switch (status) {
     case 'compliant':
       return 'Compliant';

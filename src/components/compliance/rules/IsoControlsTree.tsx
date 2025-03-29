@@ -1,10 +1,11 @@
-
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Folder, File, ChevronRight, ChevronDown } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { toast } from 'sonner';
 import { TreeItem } from '@/components/compliance/types/complianceTypes';
+import TreeView from 'react-treeview';
+import 'react-treeview/react-treeview.css';
 
 export interface IsoControlsTreeProps {
   onSelectControl: (control: any) => void;
@@ -12,7 +13,7 @@ export interface IsoControlsTreeProps {
   frameworkId?: string;
 }
 
-const IsoControlsTree: React.FC<IsoControlsTreeProps> = ({ 
+const IsoControlsTree: React.FC<IsoControlsTreeProps> = ({
   onSelectControl, 
   selectedRuleId,
   frameworkId = 'iso27001'
@@ -120,48 +121,6 @@ const IsoControlsTree: React.FC<IsoControlsTreeProps> = ({
     }));
   };
   
-  const renderTreeItems = (items: TreeItem[]) => {
-    return items.map(item => (
-      <div key={item.id} className="ml-1">
-        {item.type === 'category' ? (
-          <div className="mb-1">
-            <button
-              onClick={() => toggleExpand(item.id)}
-              className="flex items-center w-full text-left py-1 px-2 hover:bg-gray-100 rounded"
-            >
-              {expandedItems[item.id] ? (
-                <ChevronDown size={16} className="mr-1 text-gray-400" />
-              ) : (
-                <ChevronRight size={16} className="mr-1 text-gray-400" />
-              )}
-              <Folder size={16} className="mr-2 text-blue-500" />
-              <span className="text-sm font-medium">{item.title}</span>
-            </button>
-            
-            {expandedItems[item.id] && item.children && item.children.length > 0 && (
-              <div className="ml-4 border-l border-gray-200 pl-2 mt-1">
-                {renderTreeItems(item.children)}
-              </div>
-            )}
-          </div>
-        ) : (
-          <button
-            onClick={() => onSelectControl(item)}
-            className={`flex items-center w-full text-left py-1 px-2 rounded mb-1 text-sm ${
-              selectedRuleId === parseInt(item.id.toString()) ? 'bg-blue-100 text-blue-800' : 'hover:bg-gray-100'
-            }`}
-          >
-            <File size={16} className="mr-2 text-gray-500" />
-            <span>{item.title}</span>
-            {item.status && (
-              <span className={`ml-auto w-2 h-2 rounded-full ${getStatusColor(item.status)}`}></span>
-            )}
-          </button>
-        )}
-      </div>
-    ));
-  };
-  
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'implemented':
@@ -175,6 +134,52 @@ const IsoControlsTree: React.FC<IsoControlsTreeProps> = ({
       default:
         return 'bg-gray-400';
     }
+  };
+  
+  // Tree rendering with react-treeview
+  const renderTreeWithLibrary = (items: TreeItem[]) => {
+    return items.map(item => {
+      if (item.type === 'category' && item.children && item.children.length > 0) {
+        const isExpanded = expandedItems[item.id] || false;
+        const label = (
+          <div 
+            className="flex items-center py-1 cursor-pointer"
+            onClick={() => toggleExpand(item.id)}
+          >
+            <Folder size={16} className="mr-2 text-blue-500" />
+            <span className="text-sm font-medium">{item.title}</span>
+          </div>
+        );
+        
+        return (
+          <TreeView 
+            key={item.id} 
+            nodeLabel={label} 
+            defaultCollapsed={!isExpanded}
+            itemClassName="my-1"
+            treeViewClassName="ml-2 border-l border-gray-200 pl-2"
+          >
+            {renderTreeWithLibrary(item.children)}
+          </TreeView>
+        );
+      } else {
+        return (
+          <div 
+            key={item.id}
+            className={`flex items-center w-full text-left py-1 px-2 rounded mb-1 text-sm cursor-pointer ${
+              selectedRuleId === parseInt(item.id.toString()) ? 'bg-blue-100 text-blue-800' : 'hover:bg-gray-100'
+            }`}
+            onClick={() => onSelectControl(item)}
+          >
+            <File size={16} className="mr-2 text-gray-500" />
+            <span>{item.title}</span>
+            {item.status && (
+              <span className={`ml-auto w-2.5 h-2.5 rounded-full ${getStatusColor(item.status)}`}></span>
+            )}
+          </div>
+        );
+      }
+    });
   };
   
   // Fallback data functions
@@ -251,7 +256,7 @@ const IsoControlsTree: React.FC<IsoControlsTreeProps> = ({
         children: [
           { 
             id: '1', 
-            title: 'CC1.1: Commitment to Integrity and Ethical Values', 
+            title: 'CC1.1: COSO Principle 1: Demonstrates Commitment to Integrity and Ethical Values', 
             type: 'control', 
             status: 'not_implemented', 
             number: 'CC1.1', 
@@ -412,7 +417,9 @@ const IsoControlsTree: React.FC<IsoControlsTreeProps> = ({
          'Compliance Controls'}
       </h3>
       <ScrollArea className="h-[calc(100vh-260px)]">
-        <div className="pr-4">{renderTreeItems(treeData)}</div>
+        <div className="pr-4">
+          {renderTreeWithLibrary(treeData)}
+        </div>
       </ScrollArea>
     </div>
   );
