@@ -7,13 +7,11 @@ import { useAuth } from '@/contexts/AuthContext';
 
 // Create a lightweight loading component for Suspense
 const ComponentSkeleton = () => (
-  <div className="w-full h-48 animate-pulse bg-gray-800 rounded-lg"></div>
+  <div className="w-full h-16 animate-pulse bg-gray-800 rounded-lg mb-4"></div>
 );
 
-// Lazily load less critical components
+// Lazily load less critical components with reduced chunk size
 const FeatureHighlights = React.lazy(() => import('./FeatureHighlights'));
-const SocialProof = React.lazy(() => import('./SocialProof'));
-const FeaturesSection = React.lazy(() => import('./FeaturesSection'));
 const CTASection = React.lazy(() => import('./CTASection'));
 const Footer = React.lazy(() => import('./Footer'));
 
@@ -31,10 +29,9 @@ const Home = () => {
     // Scroll to top when component mounts
     window.scrollTo(0, 0);
     
-    // Prefetch critical resources
+    // Prefetch critical resources (reduced number for better performance)
     const prefetchLinks = [
-      { href: '/auth?mode=register', as: 'document' },
-      { href: '/compliance', as: 'document' }
+      { href: '/auth?mode=register', as: 'document' }
     ];
     
     prefetchLinks.forEach(({ href, as }) => {
@@ -44,14 +41,6 @@ const Home = () => {
       link.as = as;
       document.head.appendChild(link);
     });
-    
-    // Preload images
-    const preloadImage = (src: string) => {
-      const img = new Image();
-      img.src = src;
-    };
-    
-    preloadImage('/lovable-uploads/400fcdce-b265-46c4-a1fc-c2ad19c2c12a.png');
     
     // Cleanup function to remove dark theme class when component unmounts
     return () => {
@@ -72,20 +61,12 @@ const Home = () => {
         {/* Always render the Hero section for fast initial load */}
         <HeroSection />
         
-        {/* Lazily load the rest of the components */}
+        {/* Lazily load the rest of the components with simplified structure */}
         <div className="container mx-auto px-4 md:px-6">
           <Suspense fallback={<ComponentSkeleton />}>
             <FeatureHighlights />
           </Suspense>
         </div>
-        
-        <Suspense fallback={<ComponentSkeleton />}>
-          <SocialProof />
-        </Suspense>
-        
-        <Suspense fallback={<ComponentSkeleton />}>
-          <FeaturesSection />
-        </Suspense>
         
         <Suspense fallback={<ComponentSkeleton />}>
           <CTASection />

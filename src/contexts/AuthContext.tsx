@@ -1,5 +1,5 @@
 
-import React, { createContext, useState, useEffect, useContext } from 'react';
+import React, { createContext, useState, useEffect, useContext, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Session, User } from '@supabase/supabase-js';
 import { Profile, UserRole } from '@/types/database.types';
@@ -8,7 +8,7 @@ export interface AuthContextProps {
   user: User | null;
   session: Session | null;
   isLoading: boolean;
-  profile: Profile | null; // Added profile property
+  profile: Profile | null;
   signIn: (email: string, password: string) => Promise<{
     error: any | null;
     data: any | null;
@@ -28,7 +28,7 @@ const AuthContext = createContext<AuthContextProps>({
   user: null,
   session: null,
   isLoading: true,
-  profile: null, // Initialize profile as null
+  profile: null,
   signIn: async () => ({ error: null, data: null }),
   signUp: async () => ({ error: null, data: null }),
   signOut: async () => {},
@@ -40,7 +40,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [profile, setProfile] = useState<Profile | null>(null);
-  const [authChecked, setAuthChecked] = useState(false);
+  const authCheckedRef = useRef(false);
 
   // Helper function to safely fetch user profile
   const fetchUserProfile = (userId: string) => {
@@ -65,51 +65,55 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   useEffect(() => {
-    // Set up auth state listener FIRST
-    const { data: authListener } = supabase.auth.onAuthStateChange(
-      (event, newSession) => {
-        console.log(`Auth state changed: ${event}`);
-        setSession(newSession);
-        setUser(newSession?.user || null);
-        
-        // Fetch user profile when auth state changes
-        if (newSession?.user) {
-          fetchUserProfile(newSession.user.id);
-        } else {
-          setProfile(null);
-        }
-      }
-    );
-
-    // THEN check for existing session
-    const checkSession = async () => {
+    let authSubscription: { subscription: { unsubscribe: () => void } } | null = null;
+    
+    const initAuth = async () => {
       try {
+        // 1. Set up auth state listener FIRST
+        authSubscription = supabase.auth.onAuthStateChange((event, newSession) => {
+          console.info(`Auth state changed: ${event}`);
+          setSession(newSession);
+          setUser(newSession?.user || null);
+          
+          // Fetch user profile when auth state changes
+          if (newSession?.user) {
+            fetchUserProfile(newSession.user.id);
+          } else {
+            setProfile(null);
+          }
+        });
+
+        // 2. THEN check for existing session
         const { data, error } = await supabase.auth.getSession();
         
         if (error) {
           console.error('Error fetching session:', error);
         } else {
-          setSession(data.session);
-          setUser(data.session?.user || null);
-          
-          // Fetch user profile if user exists
-          if (data.session?.user) {
-            fetchUserProfile(data.session.user.id);
+          if (data.session) {
+            setSession(data.session);
+            setUser(data.session.user);
+            
+            // Fetch user profile if user exists
+            if (data.session.user) {
+              fetchUserProfile(data.session.user.id);
+            }
           }
         }
       } catch (error) {
-        console.error('Unexpected error fetching session:', error);
+        console.error('Unexpected error initializing auth:', error);
       } finally {
         setIsLoading(false);
-        setAuthChecked(true);
+        authCheckedRef.current = true;
       }
     };
 
-    checkSession();
+    initAuth();
 
     // Clean up subscription
     return () => {
-      authListener.subscription.unsubscribe();
+      if (authSubscription) {
+        authSubscription.subscription.unsubscribe();
+      }
     };
   }, []);
 

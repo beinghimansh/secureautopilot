@@ -10,6 +10,7 @@ const Auth = () => {
   const navigate = useNavigate();
   const { user, isLoading } = useAuth();
   const [isChecking, setIsChecking] = useState(true);
+  const [redirectAttempted, setRedirectAttempted] = useState(false);
   
   // Get the mode from the URL parameters (login or register)
   const mode = searchParams.get('mode') === 'register' ? 'register' : 'login';
@@ -18,27 +19,31 @@ const Auth = () => {
     // Apply dark theme to auth pages to match landing page
     document.body.classList.add('dark-theme');
     
-    // Add a small delay to prevent immediate redirects
+    // Only redirect if not already attempted (prevents infinite redirects)
     const timer = setTimeout(() => {
-      // If the user is already logged in, redirect to dashboard
-      if (user && !isLoading) {
-        document.body.classList.remove('dark-theme'); // Remove dark theme before redirecting to dashboard
+      if (user && !isLoading && !redirectAttempted) {
+        setRedirectAttempted(true);
+        document.body.classList.remove('dark-theme');
         navigate('/dashboard');
       }
       setIsChecking(false);
     }, 1000);
     
     return () => {
-      // Only remove dark theme if we're navigating to a protected route
+      clearTimeout(timer);
       if (user) {
         document.body.classList.remove('dark-theme');
       }
-      clearTimeout(timer);
     };
-  }, [user, isLoading, navigate]);
+  }, [user, isLoading, navigate, redirectAttempted]);
 
   // Show loading while checking auth state
   if (isLoading || isChecking) {
+    return <Loading />;
+  }
+
+  // Only render auth form if user is not logged in
+  if (user) {
     return <Loading />;
   }
 

@@ -8,7 +8,7 @@ import { ArrowRight } from 'lucide-react';
 const HeroSection = () => {
   const navigate = useNavigate();
 
-  // Define animations with subtle effects for modern Apple-like feel
+  // Define animations with subtle effects
   const fadeIn = {
     initial: { opacity: 0, y: 20 },
     animate: { opacity: 1, y: 0 },
@@ -17,7 +17,7 @@ const HeroSection = () => {
 
   return (
     <section className="relative overflow-hidden py-24 sm:py-32">
-      {/* Dark gradient background with subtle Apple-like colors */}
+      {/* Dark gradient background */}
       <div className="absolute inset-0 bg-gradient-to-br from-[#111] to-[#1d1d1f]"></div>
       
       {/* Subtle grid pattern overlay */}
@@ -96,7 +96,7 @@ const HeroSection = () => {
           <div className="relative rounded-xl overflow-hidden border border-gray-800 shadow-2xl">
             <div className="absolute inset-0 bg-gradient-to-tr from-blue-500/10 to-purple-500/10"></div>
             
-            {/* App window mockup with macOS-style header */}
+            {/* App window mockup header */}
             <div className="bg-[#1e1e1e] border-b border-gray-800 flex items-center p-3">
               <div className="flex space-x-2">
                 <div className="w-3 h-3 rounded-full bg-[#ff5f57]"></div>
@@ -108,11 +108,11 @@ const HeroSection = () => {
               </div>
             </div>
             
-            {/* Use static dashboard image instead of dynamic component that causes errors */}
+            {/* Static dashboard image */}
             <img 
-              src="/lovable-uploads/7b834d06-0777-4c52-ba5b-410d3ee4edaf.png" 
+              src="/lovable-uploads/90284a2c-e980-47c3-bbd2-6ccc022d722f.png" 
               alt="ComplyAI Dashboard" 
-              className="w-full object-cover"
+              className="w-full h-auto object-cover"
               loading="eager"
             />
             
