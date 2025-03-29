@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { FadeIn, ScaleIn } from '@/components/common/Transitions';
 import { Shield, CheckSquare, AlertCircle, FileText, BarChart, Clock } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import RoleBasedContent from '@/components/auth/RoleBasedContent';
 
 interface ComplianceScoreProps {
   score: number;
@@ -62,9 +63,8 @@ const Dashboard = () => {
     <div className="space-y-6">
       <FadeIn>
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
-          <div>
-            <h1 className="text-3xl font-semibold tracking-tight">Dashboard</h1>
-            <p className="text-gray-500">Your compliance overview and current status</p>
+          <div className="flex-1">
+            {/* This space is for the welcome message in the parent component */}
           </div>
           <div className="flex items-center gap-2">
             <Link to="/reports/export">
@@ -88,113 +88,215 @@ const Dashboard = () => {
         </div>
       </FadeIn>
       
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <ScaleIn delay={100}>
-          <Card className="hover:shadow-md transition-all duration-300">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-lg">Overall Compliance</CardTitle>
-              <CardDescription>ISO 27001 Framework</CardDescription>
-            </CardHeader>
-            <CardContent className="flex justify-center py-4">
-              <ComplianceScore score={78} framework="ISO 27001" />
-            </CardContent>
-          </Card>
-        </ScaleIn>
-        
-        <ScaleIn delay={150}>
-          <Card className="hover:shadow-md transition-all duration-300">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-lg">Tasks Status</CardTitle>
-              <CardDescription>Compliance activities</CardDescription>
-            </CardHeader>
-            <CardContent className="py-4">
-              <div className="grid grid-cols-3 gap-2 text-center">
-                <div className="flex flex-col items-center p-2">
-                  <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center mb-2">
-                    <CheckSquare size={18} className="text-green-600" />
+      {/* Super Admin Dashboard */}
+      <RoleBasedContent allowedRoles={['super_admin']}>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <ScaleIn delay={100}>
+            <Card className="hover:shadow-md transition-all duration-300">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg">Platform Stats</CardTitle>
+                <CardDescription>System overview</CardDescription>
+              </CardHeader>
+              <CardContent className="pt-6">
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm font-medium">Total Organizations</span>
+                    <span className="text-2xl font-bold">12</span>
                   </div>
-                  <span className="text-2xl font-semibold">12</span>
-                  <span className="text-xs text-gray-500">Completed</span>
-                </div>
-                <div className="flex flex-col items-center p-2">
-                  <div className="w-10 h-10 rounded-full bg-yellow-100 flex items-center justify-center mb-2">
-                    <Clock size={18} className="text-yellow-600" />
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm font-medium">Active Users</span>
+                    <span className="text-2xl font-bold">87</span>
                   </div>
-                  <span className="text-2xl font-semibold">8</span>
-                  <span className="text-xs text-gray-500">Pending</span>
-                </div>
-                <div className="flex flex-col items-center p-2">
-                  <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center mb-2">
-                    <AlertCircle size={18} className="text-red-600" />
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm font-medium">Frameworks Used</span>
+                    <span className="text-2xl font-bold">5</span>
                   </div>
-                  <span className="text-2xl font-semibold">3</span>
-                  <span className="text-xs text-gray-500">Overdue</span>
                 </div>
-              </div>
-              <div className="mt-4">
-                <Link to="/tasks">
+              </CardContent>
+            </Card>
+          </ScaleIn>
+          
+          <ScaleIn delay={150}>
+            <Card className="hover:shadow-md transition-all duration-300">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg">Recent Organizations</CardTitle>
+                <CardDescription>Latest platforms onboarded</CardDescription>
+              </CardHeader>
+              <CardContent className="pt-6">
+                <div className="space-y-4">
+                  {['Acme Inc.', 'TechCorp', 'GlobalFinance'].map((org, i) => (
+                    <div key={i} className="flex justify-between items-center">
+                      <span className="text-sm font-medium">{org}</span>
+                      <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">Active</span>
+                    </div>
+                  ))}
                   <Button
-                    variant="outline" 
-                    className="w-full"
+                    variant="link" 
+                    className="p-0 h-auto"
                     size="sm"
                   >
-                    View All Tasks
+                    View all organizations
                   </Button>
-                </Link>
-              </div>
-            </CardContent>
-          </Card>
-        </ScaleIn>
-        
-        <ScaleIn delay={200}>
-          <Card className="hover:shadow-md transition-all duration-300">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-lg">Risk Overview</CardTitle>
-              <CardDescription>Identified security risks</CardDescription>
-            </CardHeader>
-            <CardContent className="py-4">
-              <div className="space-y-3">
-                <div className="flex justify-between items-center">
-                  <span className="text-sm">High Risk</span>
-                  <span className="text-sm font-medium">4</span>
                 </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div className="bg-red-500 h-2 rounded-full" style={{ width: '20%' }}></div>
+              </CardContent>
+            </Card>
+          </ScaleIn>
+          
+          <ScaleIn delay={200}>
+            <Card className="hover:shadow-md transition-all duration-300">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg">System Health</CardTitle>
+                <CardDescription>Platform performance</CardDescription>
+              </CardHeader>
+              <CardContent className="pt-6">
+                <div className="space-y-4">
+                  <div className="flex flex-col gap-2">
+                    <div className="flex justify-between">
+                      <span className="text-sm font-medium">Database</span>
+                      <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">Healthy</span>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-2">
+                      <div className="bg-green-500 h-2 rounded-full" style={{ width: '7%' }}></div>
+                    </div>
+                  </div>
+                  
+                  <div className="flex flex-col gap-2">
+                    <div className="flex justify-between">
+                      <span className="text-sm font-medium">Storage</span>
+                      <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">Healthy</span>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-2">
+                      <div className="bg-green-500 h-2 rounded-full" style={{ width: '14%' }}></div>
+                    </div>
+                  </div>
+                  
+                  <div className="flex flex-col gap-2">
+                    <div className="flex justify-between">
+                      <span className="text-sm font-medium">API Usage</span>
+                      <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">Normal</span>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-2">
+                      <div className="bg-green-500 h-2 rounded-full" style={{ width: '32%' }}></div>
+                    </div>
+                  </div>
                 </div>
-                
-                <div className="flex justify-between items-center">
-                  <span className="text-sm">Medium Risk</span>
-                  <span className="text-sm font-medium">9</span>
+              </CardContent>
+            </Card>
+          </ScaleIn>
+        </div>
+      </RoleBasedContent>
+      
+      {/* Company Admin and Standard User Dashboard */}
+      <RoleBasedContent allowedRoles={['company_admin', 'compliance_officer', 'employee', 'auditor']}>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <ScaleIn delay={100}>
+            <Card className="hover:shadow-md transition-all duration-300">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg">Overall Compliance</CardTitle>
+                <CardDescription>ISO 27001 Framework</CardDescription>
+              </CardHeader>
+              <CardContent className="flex justify-center py-4">
+                <ComplianceScore score={78} framework="ISO 27001" />
+              </CardContent>
+            </Card>
+          </ScaleIn>
+          
+          <ScaleIn delay={150}>
+            <Card className="hover:shadow-md transition-all duration-300">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg">Tasks Status</CardTitle>
+                <CardDescription>Compliance activities</CardDescription>
+              </CardHeader>
+              <CardContent className="py-4">
+                <div className="grid grid-cols-3 gap-2 text-center">
+                  <div className="flex flex-col items-center p-2">
+                    <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center mb-2">
+                      <CheckSquare size={18} className="text-green-600" />
+                    </div>
+                    <span className="text-2xl font-semibold">12</span>
+                    <span className="text-xs text-gray-500">Completed</span>
+                  </div>
+                  <div className="flex flex-col items-center p-2">
+                    <div className="w-10 h-10 rounded-full bg-yellow-100 flex items-center justify-center mb-2">
+                      <Clock size={18} className="text-yellow-600" />
+                    </div>
+                    <span className="text-2xl font-semibold">8</span>
+                    <span className="text-xs text-gray-500">Pending</span>
+                  </div>
+                  <div className="flex flex-col items-center p-2">
+                    <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center mb-2">
+                      <AlertCircle size={18} className="text-red-600" />
+                    </div>
+                    <span className="text-2xl font-semibold">3</span>
+                    <span className="text-xs text-gray-500">Overdue</span>
+                  </div>
                 </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div className="bg-yellow-500 h-2 rounded-full" style={{ width: '45%' }}></div>
-                </div>
-                
-                <div className="flex justify-between items-center">
-                  <span className="text-sm">Low Risk</span>
-                  <span className="text-sm font-medium">7</span>
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div className="bg-green-500 h-2 rounded-full" style={{ width: '35%' }}></div>
-                </div>
-                
                 <div className="mt-4">
-                  <Link to="/compliance/risks">
+                  <Link to="/tasks">
                     <Button
                       variant="outline" 
                       className="w-full"
                       size="sm"
                     >
-                      View Risk Assessment
+                      View All Tasks
                     </Button>
                   </Link>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
-        </ScaleIn>
-      </div>
+              </CardContent>
+            </Card>
+          </ScaleIn>
+          
+          <ScaleIn delay={200}>
+            <Card className="hover:shadow-md transition-all duration-300">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg">Risk Overview</CardTitle>
+                <CardDescription>Identified security risks</CardDescription>
+              </CardHeader>
+              <CardContent className="py-4">
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm">High Risk</span>
+                    <span className="text-sm font-medium">4</span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div className="bg-red-500 h-2 rounded-full" style={{ width: '20%' }}></div>
+                  </div>
+                  
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm">Medium Risk</span>
+                    <span className="text-sm font-medium">9</span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div className="bg-yellow-500 h-2 rounded-full" style={{ width: '45%' }}></div>
+                  </div>
+                  
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm">Low Risk</span>
+                    <span className="text-sm font-medium">7</span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div className="bg-green-500 h-2 rounded-full" style={{ width: '35%' }}></div>
+                  </div>
+                  
+                  <div className="mt-4">
+                    <Link to="/compliance/risks">
+                      <Button
+                        variant="outline" 
+                        className="w-full"
+                        size="sm"
+                      >
+                        View Risk Assessment
+                      </Button>
+                    </Link>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </ScaleIn>
+        </div>
+      </RoleBasedContent>
       
+      {/* Lower section - common for all users */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <ScaleIn delay={250}>
           <Card className="hover:shadow-md transition-all duration-300">
