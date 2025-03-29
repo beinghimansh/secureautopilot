@@ -66,13 +66,13 @@ const Footer = () => {
                 </Link>
               </li>
               <li>
-                <Link to="/integrations" className="hover:text-white transition-colors inline-flex items-center">
+                <Link to="/features" className="hover:text-white transition-colors inline-flex items-center">
                   <ChevronRight size={14} className="mr-1 text-blue-500" />
                   Integrations
                 </Link>
               </li>
               <li>
-                <Link to="/roadmap" className="hover:text-white transition-colors inline-flex items-center">
+                <Link to="/about" className="hover:text-white transition-colors inline-flex items-center">
                   <ChevronRight size={14} className="mr-1 text-blue-500" />
                   Roadmap
                 </Link>
@@ -90,19 +90,19 @@ const Footer = () => {
                 </Link>
               </li>
               <li>
-                <Link to="/customers" className="hover:text-white transition-colors inline-flex items-center">
+                <Link to="/about" className="hover:text-white transition-colors inline-flex items-center">
                   <ChevronRight size={14} className="mr-1 text-blue-500" />
                   Customers
                 </Link>
               </li>
               <li>
-                <Link to="/careers" className="hover:text-white transition-colors inline-flex items-center">
+                <Link to="/about" className="hover:text-white transition-colors inline-flex items-center">
                   <ChevronRight size={14} className="mr-1 text-blue-500" />
                   Careers
                 </Link>
               </li>
               <li>
-                <Link to="/contact" className="hover:text-white transition-colors inline-flex items-center">
+                <Link to="/support" className="hover:text-white transition-colors inline-flex items-center">
                   <ChevronRight size={14} className="mr-1 text-blue-500" />
                   Contact
                 </Link>
@@ -144,13 +144,13 @@ const Footer = () => {
         <div className="mt-16 pt-8 border-t border-gray-800 flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
           <p>© {currentYear} ComplyAI. All rights reserved.</p>
           <div className="flex space-x-6">
-            <Link to="/privacy" className="hover:text-white transition-colors">
+            <Link to="/about" className="hover:text-white transition-colors">
               Privacy Policy
             </Link>
-            <Link to="/terms" className="hover:text-white transition-colors">
+            <Link to="/about" className="hover:text-white transition-colors">
               Terms of Service
             </Link>
-            <Link to="/cookies" className="hover:text-white transition-colors">
+            <Link to="/about" className="hover:text-white transition-colors">
               Cookie Policy
             </Link>
           </div>

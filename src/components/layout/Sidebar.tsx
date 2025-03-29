@@ -1,153 +1,146 @@
 
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { 
-  LayoutDashboard, 
-  Shield, 
-  CheckSquare, 
-  Users, 
-  Settings,
-  FileText,
-  BarChart,
-  ChevronLeft,
-  ChevronRight,
-  Menu
-} from 'lucide-react';
+import { AnimatePresence, motion } from 'framer-motion';
+import { LucideIcon } from 'lucide-react';
+import { Shield, LayoutDashboard, CheckSquare, FileText, BarChart3, Settings, ChevronRight, ChevronLeft } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { useAuth } from '@/contexts/AuthContext';
-import { motion } from 'framer-motion';
 
-interface SidebarItemProps {
-  icon: React.ReactNode;
+interface SidebarLinkProps {
+  to: string;
+  icon: LucideIcon;
   label: string;
-  href: string;
-  active?: boolean;
-  collapsed?: boolean;
+  isActive?: boolean;
+  isCollapsed?: boolean;
 }
 
-const SidebarItem = ({ icon, label, href, active, collapsed }: SidebarItemProps) => {
+const SidebarLink: React.FC<SidebarLinkProps> = ({ to, icon: Icon, label, isActive = false, isCollapsed = false }) => {
   return (
-    <Link 
-      to={href}
+    <Link
+      to={to}
       className={cn(
-        "flex items-center gap-3 rounded-lg px-3 py-2 transition-all duration-300 group",
-        active ? 
-          "bg-blue-600 text-white" : 
-          "text-gray-700 hover:bg-blue-100 hover:text-blue-600"
+        "group flex items-center py-2 px-3 my-1 rounded-md transition-colors",
+        isActive 
+          ? "bg-blue-600 text-white"
+          : "text-gray-600 hover:bg-blue-50 hover:text-blue-700"
       )}
-      title={collapsed ? label : undefined}
     >
-      <div className="flex-shrink-0">
-        {icon}
-      </div>
-      {!collapsed && <span className="font-medium">{label}</span>}
+      <Icon className={cn(
+        "flex-shrink-0",
+        isActive ? "text-white" : "text-gray-500 group-hover:text-blue-600"
+      )} size={20} />
+      
+      {!isCollapsed && (
+        <span className="ml-3 text-sm font-medium">{label}</span>
+      )}
     </Link>
   );
 };
 
 const Sidebar = () => {
   const location = useLocation();
-  const pathname = location.pathname;
-  const { profile } = useAuth();
-  const [collapsed, setCollapsed] = useState(false);
-
-  // Check if the current path starts with a specific route
-  const isPathActive = (path: string) => {
-    if (path === '/dashboard' && pathname === '/dashboard') return true;
-    if (path === '/compliance' && (pathname === '/compliance' || pathname.includes('/compliance/'))) return true;
-    if (path !== '/dashboard' && path !== '/compliance' && pathname === path) return true;
-    return false;
+  const [isCollapsed, setIsCollapsed] = useState(false);
+  
+  const toggleSidebar = () => {
+    setIsCollapsed(!isCollapsed);
   };
 
-  // Toggle sidebar collapse state
-  const toggleCollapse = () => {
-    setCollapsed(!collapsed);
-  };
-
-  // If we're on the root or auth page, don't show the sidebar
-  if (pathname === '/' || pathname === '/auth' || pathname.includes('/auth')) {
+  // Hide sidebar on landing page
+  if (location.pathname === '/') {
     return null;
   }
 
   return (
-    <motion.aside 
-      className={`hidden lg:flex h-screen sticky top-0 flex-col border-r bg-white px-3 py-4 transition-all duration-300 ${
-        collapsed ? 'w-16' : 'w-64'
-      }`}
-      initial={{ x: -20, opacity: 0 }}
-      animate={{ x: 0, opacity: 1 }}
-      transition={{ duration: 0.3 }}
+    <aside
+      className={cn(
+        "h-screen border-r border-gray-200 bg-white transition-all duration-300 flex flex-col",
+        isCollapsed ? "w-[70px]" : "w-[240px]"
+      )}
     >
-      <div className={`mb-6 flex items-center px-2 ${collapsed ? 'justify-center' : ''}`}>
-        {!collapsed ? (
-          <>
-            <div className="h-10 w-10 rounded-full bg-blue-600 flex items-center justify-center mr-2">
-              <Shield size={24} className="text-white" />
-            </div>
-            <div>
-              <h1 className="text-xl font-bold text-gray-900">ComplyFlow</h1>
-              <p className="text-xs text-gray-500">Compliance made simple</p>
-            </div>
-          </>
-        ) : (
-          <div className="h-10 w-10 rounded-full bg-blue-600 flex items-center justify-center">
-            <Shield size={24} className="text-white" />
+      <div className="px-4 py-5 border-b border-gray-200">
+        <div className="flex items-center">
+          <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center mr-3 flex-shrink-0">
+            <Shield size={20} className="text-white" />
           </div>
-        )}
+          {!isCollapsed && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+            >
+              <div className="flex flex-col">
+                <span className="text-lg font-bold text-gray-800">ComplyAI</span>
+                <span className="text-xs text-gray-500">Compliance made simple</span>
+              </div>
+            </motion.div>
+          )}
+        </div>
       </div>
       
-      <div className="space-y-1">
-        {!collapsed && (
-          <div className="px-3 py-2">
-            <h3 className="text-xs font-medium uppercase text-gray-500">GENERAL</h3>
-          </div>
-        )}
-        <SidebarItem 
-          icon={<LayoutDashboard size={18} />} 
-          label="Dashboard" 
-          href="/dashboard" 
-          active={isPathActive('/dashboard')} 
-          collapsed={collapsed}
-        />
-        <SidebarItem 
-          icon={<Shield size={18} />} 
-          label="Compliance" 
-          href="/compliance" 
-          active={isPathActive('/compliance')} 
-          collapsed={collapsed}
-        />
-        <SidebarItem 
-          icon={<CheckSquare size={18} />} 
-          label="Tasks" 
-          href="/tasks" 
-          active={isPathActive('/tasks')} 
-          collapsed={collapsed}
-        />
-        <SidebarItem 
-          icon={<FileText size={18} />} 
-          label="Policies" 
-          href="/policies" 
-          active={isPathActive('/policies')} 
-          collapsed={collapsed}
-        />
-        <SidebarItem 
-          icon={<BarChart size={18} />} 
-          label="Reports" 
-          href="/reports" 
-          active={isPathActive('/reports')} 
-          collapsed={collapsed}
-        />
+      <div className="flex-1 py-4 px-3 overflow-y-auto">
+        <div className="mb-2">
+          <p className="px-3 mb-1 text-xs font-medium text-gray-400 uppercase">
+            {!isCollapsed && "General"}
+          </p>
+          <SidebarLink
+            to="/dashboard"
+            icon={LayoutDashboard}
+            label="Dashboard"
+            isActive={location.pathname === '/dashboard'}
+            isCollapsed={isCollapsed}
+          />
+          <SidebarLink
+            to="/compliance"
+            icon={Shield}
+            label="Compliance"
+            isActive={location.pathname === '/compliance' || location.pathname.includes('/compliance/')}
+            isCollapsed={isCollapsed}
+          />
+          <SidebarLink
+            to="/tasks"
+            icon={CheckSquare}
+            label="Tasks"
+            isActive={location.pathname === '/tasks' || location.pathname.includes('/tasks/')}
+            isCollapsed={isCollapsed}
+          />
+          <SidebarLink
+            to="/policies"
+            icon={FileText}
+            label="Policies"
+            isActive={location.pathname === '/policies'}
+            isCollapsed={isCollapsed}
+          />
+          <SidebarLink
+            to="/reports"
+            icon={BarChart3}
+            label="Reports"
+            isActive={location.pathname === '/reports' || location.pathname.includes('/reports/')}
+            isCollapsed={isCollapsed}
+          />
+          <SidebarLink
+            to="/settings"
+            icon={Settings}
+            label="Settings"
+            isActive={location.pathname === '/settings'}
+            isCollapsed={isCollapsed}
+          />
+        </div>
       </div>
       
-      <div className="mt-auto">
+      <div className="p-3 border-t border-gray-200">
         <button
-          onClick={toggleCollapse}
-          className="flex items-center justify-center w-full p-2 rounded-md text-gray-600 hover:text-blue-600 hover:bg-blue-50"
+          onClick={toggleSidebar}
+          className="w-full p-2 flex justify-center items-center rounded-md hover:bg-gray-100 transition-colors"
         >
-          {collapsed ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
+          {isCollapsed ? (
+            <ChevronRight size={18} className="text-gray-500" />
+          ) : (
+            <ChevronLeft size={18} className="text-gray-500" />
+          )}
         </button>
       </div>
-    </motion.aside>
+    </aside>
   );
 };
 

@@ -43,8 +43,13 @@ const Navbar = () => {
     <header className="sticky top-0 z-50 w-full border-b border-gray-100 bg-white/80 backdrop-blur-lg">
       <div className="container flex h-16 items-center justify-between px-4 sm:px-6">
         <div className="flex items-center">
-          <Link to={user ? "/dashboard" : "/"} className="text-xl font-bold tracking-tight text-gray-900">
-            ComplyFlow
+          <Link to={user ? "/dashboard" : "/"} className="flex items-center">
+            <div className="h-8 w-8 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center mr-2">
+              <Shield size={18} className="text-white" />
+            </div>
+            <span className="text-xl font-bold tracking-tight text-gray-900">
+              ComplyAI
+            </span>
           </Link>
         </div>
         

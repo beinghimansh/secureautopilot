@@ -1,3 +1,4 @@
+
 import { lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useParams } from 'react-router-dom';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
@@ -37,13 +38,19 @@ const Features = lazy(() => import('@/pages/Features'));
 const Pricing = lazy(() => import('@/pages/Pricing'));
 const About = lazy(() => import('@/pages/About'));
 
+// New pages
+const Blog = lazy(() => import('@/pages/Blog'));
+const Documentation = lazy(() => import('@/pages/Documentation'));
+const Support = lazy(() => import('@/pages/Support'));
+const Security = lazy(() => import('@/pages/Security'));
+
 // Redirect component for legacy URLs
 const RedirectToFramework = () => {
   const { frameworkId } = useParams();
   return <Navigate to={`/compliance/frameworks/${frameworkId}`} replace />;
 };
 
-// Create a client with improved caching
+// Create a client with improved caching and optimized performance
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -70,6 +77,10 @@ function App() {
               <Route path="/features" element={<Features />} />
               <Route path="/pricing" element={<Pricing />} />
               <Route path="/about" element={<About />} />
+              <Route path="/blog" element={<Blog />} />
+              <Route path="/documentation" element={<Documentation />} />
+              <Route path="/support" element={<Support />} />
+              <Route path="/security" element={<Security />} />
               
               {/* Protected routes */}
               <Route 

@@ -9,11 +9,10 @@ import Button from '@/components/common/Button';
 import { useFrameworkName } from '@/components/compliance/hooks/useFrameworkName';
 import { Card, CardContent } from '@/components/common/Card';
 import { ScaleIn } from '@/components/common/Transitions';
-import { InfoIcon, ArrowLeft } from 'lucide-react';
+import { InfoIcon, ArrowLeft, ChevronLeft } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
 import OpenAIIntegration from '@/components/compliance/OpenAIIntegration';
-import AIGuidanceButton from '@/components/compliance/AIGuidanceButton';
 import Loading from '@/components/common/Loading';
 
 const RiskRegister = lazy(() => import('@/components/compliance/risks/RiskRegister'));
@@ -79,7 +78,7 @@ const FrameworkRequirements = () => {
       <Navbar />
       <div className="flex">
         <Sidebar />
-        <main className="flex-1 p-6 lg:p-8 overflow-x-hidden overflow-y-auto">
+        <main className="flex-1 p-4 lg:p-6 overflow-x-hidden overflow-y-auto">
           <PageTransition>
             <div className="max-w-7xl mx-auto">
               <motion.div 
@@ -89,18 +88,22 @@ const FrameworkRequirements = () => {
                 className="mb-6 flex justify-between items-center"
               >
                 <div>
+                  <div className="flex items-center mb-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleBackClick}
+                      className="mr-3 flex items-center"
+                    >
+                      <ChevronLeft size={16} className="mr-1" />
+                      Back to Frameworks
+                    </Button>
+                  </div>
                   <h1 className="text-3xl font-semibold tracking-tight mb-2">
                     {frameworkName} Requirements
                   </h1>
                   <p className="text-gray-600">Manage your compliance controls and implementation status</p>
                 </div>
-                <Button
-                  variant="outline"
-                  leftIcon={<ArrowLeft size={16} />}
-                  onClick={handleBackClick}
-                >
-                  Back to Framework
-                </Button>
               </motion.div>
               
               <ScaleIn delay={100}>

@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Loader2, Save } from 'lucide-react';
+import { Loader2, Save, ArrowLeft, ChevronLeft } from 'lucide-react';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 
 interface RulesDisplayProps {
@@ -27,6 +27,7 @@ const RulesDisplay: React.FC<RulesDisplayProps> = ({
   const [implementationNotes, setImplementationNotes] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [localRules, setLocalRules] = useState<any[]>([]);
+  const [showRulesList, setShowRulesList] = useState(true);
 
   useEffect(() => {
     if (frameworkId) {
@@ -43,8 +44,11 @@ const RulesDisplay: React.FC<RulesDisplayProps> = ({
   useEffect(() => {
     if (ruleId) {
       const rule = localRules.find(r => r.id === ruleId);
-      setSelectedRule(rule);
-      setImplementationNotes(rule?.notes || null);
+      if (rule) {
+        setSelectedRule(rule);
+        setImplementationNotes(rule?.notes || null);
+        setShowRulesList(false);
+      }
     }
   }, [ruleId, localRules]);
 
@@ -68,6 +72,14 @@ const RulesDisplay: React.FC<RulesDisplayProps> = ({
           description: 'The information security policy should be reviewed at planned intervals.',
           status: 'not_started',
           notes: ''
+        },
+        {
+          id: '3',
+          control_id: 'A.2.1',
+          title: 'Asset Management',
+          description: 'All assets should be clearly identified and an inventory of all important assets drawn up and maintained.',
+          status: 'completed',
+          notes: 'Asset inventory has been completed and documented.'
         }
       ];
       
@@ -124,21 +136,41 @@ const RulesDisplay: React.FC<RulesDisplayProps> = ({
     }
   };
 
-  if (!selectedRule && localRules.length > 0) {
+  const backToRulesList = () => {
+    setShowRulesList(true);
+    setSelectedRule(null);
+  };
+
+  if (showRulesList || (!selectedRule && localRules.length > 0)) {
     return (
-      <div className="p-4">
+      <div className="p-4 bg-white rounded-lg border border-gray-200 shadow-sm">
         <h3 className="text-lg font-medium mb-4">Select a control to view details</h3>
         <div className="space-y-2">
           {localRules.map(rule => (
             <div 
               key={rule.id}
-              className="p-3 border rounded-md hover:bg-gray-50 cursor-pointer"
+              className="p-3 border rounded-md hover:bg-gray-50 cursor-pointer transition-colors"
               onClick={() => {
                 setSelectedRule(rule);
                 setImplementationNotes(rule.notes || null);
+                setShowRulesList(false);
               }}
             >
-              <p className="font-medium">{rule.control_id} - {rule.title}</p>
+              <div className="flex justify-between items-center">
+                <div>
+                  <span className="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded mr-2">
+                    {rule.control_id}
+                  </span>
+                  <span className="font-medium">{rule.title}</span>
+                </div>
+                <span className={`text-xs px-2 py-1 rounded-full ${
+                  rule.status === 'completed' ? 'bg-green-100 text-green-800' :
+                  rule.status === 'in_progress' ? 'bg-blue-100 text-blue-800' :
+                  'bg-gray-100 text-gray-800'
+                }`}>
+                  {rule.status}
+                </span>
+              </div>
             </div>
           ))}
         </div>
@@ -147,13 +179,21 @@ const RulesDisplay: React.FC<RulesDisplayProps> = ({
   }
 
   if (!selectedRule) {
-    return <div className="p-4">Loading controls or no controls available for this framework.</div>;
+    return <div className="p-4 bg-white rounded-lg border border-gray-200 shadow-sm">Loading controls or no controls available for this framework.</div>;
   }
 
   return (
     <Card className="shadow-sm">
       <CardContent className="p-6 space-y-6">
         <div>
+          <button
+            onClick={backToRulesList}
+            className="inline-flex items-center text-sm text-blue-600 hover:text-blue-800 mb-3"
+          >
+            <ChevronLeft className="h-4 w-4 mr-1" />
+            Back to all controls
+          </button>
+          
           <div className="flex justify-between items-start">
             <div>
               <span className="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded mb-2">
@@ -163,7 +203,11 @@ const RulesDisplay: React.FC<RulesDisplayProps> = ({
                 {selectedRule.title}
               </h3>
             </div>
-            <span className="inline-block px-3 py-1 rounded-full text-xs text-white bg-blue-500">
+            <span className={`inline-block px-3 py-1 rounded-full text-xs ${
+              selectedRule.status === 'completed' ? 'bg-green-500 text-white' :
+              selectedRule.status === 'in_progress' ? 'bg-blue-500 text-white' :
+              'bg-gray-500 text-white'
+            }`}>
               {selectedRule.status}
             </span>
           </div>
@@ -177,10 +221,10 @@ const RulesDisplay: React.FC<RulesDisplayProps> = ({
               <SelectValue placeholder="Select a status" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="Not Started">Not Started</SelectItem>
-              <SelectItem value="In Progress">In Progress</SelectItem>
-              <SelectItem value="Completed">Completed</SelectItem>
-              <SelectItem value="Not Applicable">Not Applicable</SelectItem>
+              <SelectItem value="not_started">Not Started</SelectItem>
+              <SelectItem value="in_progress">In Progress</SelectItem>
+              <SelectItem value="completed">Completed</SelectItem>
+              <SelectItem value="not_applicable">Not Applicable</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -201,7 +245,7 @@ const RulesDisplay: React.FC<RulesDisplayProps> = ({
         <Button 
           onClick={saveImplementationNotes} 
           disabled={saving}
-          className="w-full md:w-auto"
+          className="w-full md:w-auto bg-blue-600 hover:bg-blue-700 text-white"
         >
           {saving ? (
             <>

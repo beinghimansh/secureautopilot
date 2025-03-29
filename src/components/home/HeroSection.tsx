@@ -1,12 +1,13 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import Button from '@/components/common/Button';
-import { ArrowRight, Shield, Lock, CheckCircle, FileText } from 'lucide-react';
+import { ArrowRight, Shield, Lock, CheckCircle, FileText, ChevronLeft, ChevronRight } from 'lucide-react';
 
 const HeroSection = () => {
   const navigate = useNavigate();
+  const [activeFrameworkIndex, setActiveFrameworkIndex] = useState(0);
 
   // Define animations with subtle effects
   const fadeIn = {
@@ -20,8 +21,51 @@ const HeroSection = () => {
     { name: "SOC 2", description: "Service Organization Controls" },
     { name: "GDPR", description: "Data Protection Regulation" },
     { name: "HIPAA", description: "Health Information Privacy" },
-    { name: "PCI DSS", description: "Payment Card Security" }
+    { name: "PCI DSS", description: "Payment Card Security" },
+    { name: "ISO 42001", description: "Artificial Intelligence Management" }
   ];
+
+  // Auto-rotate carousel
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setActiveFrameworkIndex((prevIndex) => 
+        prevIndex === complianceFrameworks.length - 1 ? 0 : prevIndex + 1
+      );
+    }, 5000);
+    
+    return () => clearInterval(interval);
+  }, [complianceFrameworks.length]);
+
+  const nextFramework = () => {
+    setActiveFrameworkIndex((prevIndex) => 
+      prevIndex === complianceFrameworks.length - 1 ? 0 : prevIndex + 1
+    );
+  };
+
+  const prevFramework = () => {
+    setActiveFrameworkIndex((prevIndex) => 
+      prevIndex === 0 ? complianceFrameworks.length - 1 : prevIndex - 1
+    );
+  };
+
+  // Calculate visible frameworks for the carousel
+  const getVisibleFrameworks = () => {
+    // For mobile, just show the active one
+    if (typeof window !== 'undefined' && window.innerWidth < 768) {
+      return [complianceFrameworks[activeFrameworkIndex]];
+    }
+    
+    // For desktop, show 3 frameworks centered around the active one
+    const visibleCount = Math.min(3, complianceFrameworks.length);
+    const frameworks = [];
+    
+    for (let i = 0; i < visibleCount; i++) {
+      const index = (activeFrameworkIndex + i) % complianceFrameworks.length;
+      frameworks.push(complianceFrameworks[index]);
+    }
+    
+    return frameworks;
+  };
 
   return (
     <section className="relative overflow-hidden py-20 sm:py-28">
@@ -95,36 +139,77 @@ const HeroSection = () => {
           </motion.div>
         </div>
         
-        {/* Framework cards */}
-        <motion.div
-          initial={{ opacity: 0, y: 40 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.4 }}
-          className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto"
-        >
-          {complianceFrameworks.map((framework, index) => (
-            <motion.div
-              key={framework.name}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: 0.5 + (index * 0.1) }}
-              className="bg-gradient-to-br from-gray-900 to-gray-800 p-6 rounded-xl border border-gray-700 hover:border-blue-500/50 hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-300"
-              onClick={() => navigate('/compliance')}
-            >
-              <div className="flex items-center gap-4 mb-4">
-                <div className="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center">
-                  <Shield className="h-5 w-5 text-blue-400" />
-                </div>
-                <h3 className="text-xl font-semibold text-white">{framework.name}</h3>
-              </div>
-              <p className="text-gray-400 mb-3">{framework.description}</p>
-              <a className="text-blue-400 text-sm flex items-center hover:text-blue-300 transition-colors">
-                Explore requirements
-                <ArrowRight className="ml-1 h-3 w-3" />
-              </a>
-            </motion.div>
-          ))}
-        </motion.div>
+        {/* Framework cards carousel */}
+        <div className="relative max-w-5xl mx-auto">
+          <motion.div
+            initial={{ opacity: 0, y: 40 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.4 }}
+            className="flex justify-between items-center mb-4"
+          >
+            <h2 className="text-xl md:text-2xl font-semibold text-white text-center w-full">
+              Supported Compliance Frameworks
+            </h2>
+          </motion.div>
+          
+          <div className="relative">
+            <div className="hidden md:flex absolute inset-y-0 left-0 items-center">
+              <button 
+                onClick={prevFramework}
+                className="bg-gray-900/50 hover:bg-gray-900/80 rounded-full p-2 text-white focus:outline-none transform -translate-x-1/2"
+              >
+                <ChevronLeft className="w-6 h-6" />
+              </button>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {getVisibleFrameworks().map((framework, index) => (
+                <motion.div
+                  key={`${framework.name}-${index}`}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4, delay: 0.5 + (index * 0.1) }}
+                  className="bg-gradient-to-br from-gray-900 to-gray-800 p-6 rounded-xl border border-gray-700 hover:border-blue-500/50 hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-300"
+                  onClick={() => navigate('/compliance')}
+                >
+                  <div className="flex items-center gap-4 mb-4">
+                    <div className="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center">
+                      <Shield className="h-5 w-5 text-blue-400" />
+                    </div>
+                    <h3 className="text-xl font-semibold text-white">{framework.name}</h3>
+                  </div>
+                  <p className="text-gray-400 mb-3">{framework.description}</p>
+                  <a className="text-blue-400 text-sm flex items-center hover:text-blue-300 transition-colors">
+                    Explore requirements
+                    <ArrowRight className="ml-1 h-3 w-3" />
+                  </a>
+                </motion.div>
+              ))}
+            </div>
+            
+            <div className="hidden md:flex absolute inset-y-0 right-0 items-center">
+              <button 
+                onClick={nextFramework}
+                className="bg-gray-900/50 hover:bg-gray-900/80 rounded-full p-2 text-white focus:outline-none transform translate-x-1/2"
+              >
+                <ChevronRight className="w-6 h-6" />
+              </button>
+            </div>
+          </div>
+          
+          {/* Mobile Carousel Indicators */}
+          <div className="flex justify-center mt-4 md:hidden">
+            {complianceFrameworks.map((_, idx) => (
+              <button
+                key={idx}
+                className={`h-2 w-2 mx-1 rounded-full ${
+                  idx === activeFrameworkIndex ? 'bg-blue-500' : 'bg-gray-600'
+                }`}
+                onClick={() => setActiveFrameworkIndex(idx)}
+              />
+            ))}
+          </div>
+        </div>
       </div>
     </section>
   );

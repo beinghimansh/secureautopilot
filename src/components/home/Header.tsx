@@ -1,12 +1,15 @@
 
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Shield, Menu, X } from 'lucide-react';
 import Button from '@/components/common/Button';
+import { useAuth } from '@/contexts/AuthContext';
 
 const Header = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const navigate = useNavigate();
+  const { user, signOut } = useAuth();
 
   // Track scroll for header transparency effect
   useEffect(() => {
@@ -17,6 +20,15 @@ const Header = () => {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+      navigate('/');
+    } catch (error) {
+      console.error('Error signing out:', error);
+    }
+  };
 
   return (
     <header 
@@ -48,15 +60,34 @@ const Header = () => {
             <Link to="/about" className="text-gray-300 hover:text-white transition-colors">
               About
             </Link>
+            <Link to="/blog" className="text-gray-300 hover:text-white transition-colors">
+              Blog
+            </Link>
             <div className="flex items-center space-x-3">
-              <Link to="/auth?mode=login" className="text-gray-300 hover:text-white transition-colors">
-                Sign In
-              </Link>
-              <Link to="/auth?mode=register">
-                <Button className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white border-none">
-                  Sign Up Free
-                </Button>
-              </Link>
+              {user ? (
+                <>
+                  <Link to="/dashboard" className="text-gray-300 hover:text-white transition-colors">
+                    Dashboard
+                  </Link>
+                  <Button 
+                    onClick={handleSignOut}
+                    className="bg-transparent border border-gray-600 hover:bg-gray-800 text-white"
+                  >
+                    Sign Out
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Link to="/auth?mode=login" className="text-gray-300 hover:text-white transition-colors">
+                    Sign In
+                  </Link>
+                  <Link to="/auth?mode=register">
+                    <Button className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white border-none">
+                      Sign Up Free
+                    </Button>
+                  </Link>
+                </>
+              )}
             </div>
           </div>
           
@@ -99,22 +130,52 @@ const Header = () => {
             >
               About
             </Link>
+            <Link 
+              to="/blog" 
+              className="text-gray-300 hover:text-white py-2 transition-colors"
+              onClick={() => setIsMobileMenuOpen(false)}
+            >
+              Blog
+            </Link>
             <div className="flex flex-col space-y-3 pt-2 border-t border-gray-800">
-              <Link 
-                to="/auth?mode=login" 
-                className="text-gray-300 hover:text-white py-2 transition-colors"
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                Sign In
-              </Link>
-              <Link 
-                to="/auth?mode=register"
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                <Button className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white border-none">
-                  Sign Up Free
-                </Button>
-              </Link>
+              {user ? (
+                <>
+                  <Link 
+                    to="/dashboard" 
+                    className="text-gray-300 hover:text-white py-2 transition-colors"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    Dashboard
+                  </Link>
+                  <button 
+                    onClick={() => {
+                      handleSignOut();
+                      setIsMobileMenuOpen(false);
+                    }}
+                    className="text-gray-300 hover:text-white py-2 text-left transition-colors"
+                  >
+                    Sign Out
+                  </button>
+                </>
+              ) : (
+                <>
+                  <Link 
+                    to="/auth?mode=login" 
+                    className="text-gray-300 hover:text-white py-2 transition-colors"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    Sign In
+                  </Link>
+                  <Link 
+                    to="/auth?mode=register"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    <Button className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white border-none">
+                      Sign Up Free
+                    </Button>
+                  </Link>
+                </>
+              )}
             </div>
           </div>
         </div>

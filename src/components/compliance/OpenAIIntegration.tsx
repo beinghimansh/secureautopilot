@@ -2,7 +2,8 @@
 import React from 'react';
 import { 
   Bot,
-  Loader2 
+  Loader2,
+  Zap
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
@@ -46,7 +47,7 @@ const OpenAIIntegration: React.FC<OpenAIIntegrationProps> = ({
           value={prompt}
           onChange={(e) => setPrompt(e.target.value)}
           placeholder={placeholder}
-          className="w-full px-4 py-3 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 min-h-[150px] resize-y"
+          className="w-full px-4 py-3 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 min-h-[180px] resize-y"
           disabled={isLoading}
         />
         
@@ -55,15 +56,20 @@ const OpenAIIntegration: React.FC<OpenAIIntegrationProps> = ({
             type="submit" 
             disabled={isLoading || !prompt.trim()}
             variant="default"
-            size="sm"
-            className="w-full md:w-auto"
+            size="default"
+            className="w-full md:w-auto bg-blue-600 hover:bg-blue-700 text-white"
           >
             {isLoading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 Generating...
               </>
-            ) : 'Generate'}
+            ) : (
+              <>
+                <Zap className="mr-2 h-4 w-4" />
+                Generate
+              </>
+            )}
           </Button>
         </div>
       </form>
