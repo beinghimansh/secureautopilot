@@ -604,6 +604,162 @@ export type Database = {
           },
         ]
       }
+      user_voice_preferences: {
+        Row: {
+          auto_play: boolean | null
+          created_at: string
+          id: string
+          playback_speed: number | null
+          preferred_voice_id: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          auto_play?: boolean | null
+          created_at?: string
+          id?: string
+          playback_speed?: number | null
+          preferred_voice_id: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          auto_play?: boolean | null
+          created_at?: string
+          id?: string
+          playback_speed?: number | null
+          preferred_voice_id?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      voice_summaries: {
+        Row: {
+          audio_url: string | null
+          created_at: string
+          duration: number | null
+          framework_id: string | null
+          id: string
+          is_featured: boolean | null
+          language: string | null
+          organization_id: string | null
+          policy_id: string | null
+          summary_text: string
+          title: string
+          updated_at: string
+          voice_id: string
+        }
+        Insert: {
+          audio_url?: string | null
+          created_at?: string
+          duration?: number | null
+          framework_id?: string | null
+          id?: string
+          is_featured?: boolean | null
+          language?: string | null
+          organization_id?: string | null
+          policy_id?: string | null
+          summary_text: string
+          title: string
+          updated_at?: string
+          voice_id: string
+        }
+        Update: {
+          audio_url?: string | null
+          created_at?: string
+          duration?: number | null
+          framework_id?: string | null
+          id?: string
+          is_featured?: boolean | null
+          language?: string | null
+          organization_id?: string | null
+          policy_id?: string | null
+          summary_text?: string
+          title?: string
+          updated_at?: string
+          voice_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "voice_summaries_framework_id_fkey"
+            columns: ["framework_id"]
+            isOneToOne: false
+            referencedRelation: "compliance_frameworks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "voice_summaries_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "voice_summaries_policy_id_fkey"
+            columns: ["policy_id"]
+            isOneToOne: false
+            referencedRelation: "policies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      voice_training_sessions: {
+        Row: {
+          audio_url: string | null
+          category: string
+          content: string
+          created_at: string
+          description: string | null
+          duration: number | null
+          id: string
+          is_featured: boolean | null
+          language: string | null
+          organization_id: string | null
+          title: string
+          updated_at: string
+          voice_id: string
+        }
+        Insert: {
+          audio_url?: string | null
+          category: string
+          content: string
+          created_at?: string
+          description?: string | null
+          duration?: number | null
+          id?: string
+          is_featured?: boolean | null
+          language?: string | null
+          organization_id?: string | null
+          title: string
+          updated_at?: string
+          voice_id: string
+        }
+        Update: {
+          audio_url?: string | null
+          category?: string
+          content?: string
+          created_at?: string
+          description?: string | null
+          duration?: number | null
+          id?: string
+          is_featured?: boolean | null
+          language?: string | null
+          organization_id?: string | null
+          title?: string
+          updated_at?: string
+          voice_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "voice_training_sessions_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never

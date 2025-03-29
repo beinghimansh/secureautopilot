@@ -1,144 +1,180 @@
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { AnimatePresence, motion } from 'framer-motion';
-import { LucideIcon } from 'lucide-react';
-import { Shield, LayoutDashboard, CheckSquare, FileText, BarChart3, Settings, ChevronRight, ChevronLeft } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { useAuth } from '@/contexts/AuthContext';
+import RoleBasedContent from '@/components/auth/RoleBasedContent';
+import { 
+  LayoutDashboard, 
+  CheckSquare, 
+  BarChart2, 
+  Settings, 
+  Shield, 
+  FileText, 
+  AlertTriangle,
+  Cloud,
+  Database,
+  Bell,
+  Users,
+  Cog,
+  Speech
+} from 'lucide-react';
 
-interface SidebarLinkProps {
+interface SidebarItemProps {
   to: string;
-  icon: LucideIcon;
-  label: string;
-  isActive?: boolean;
-  isCollapsed?: boolean;
+  icon: React.ReactNode;
+  text: string;
+  isActive: boolean;
 }
 
-const SidebarLink: React.FC<SidebarLinkProps> = ({ to, icon: Icon, label, isActive = false, isCollapsed = false }) => {
+const SidebarItem = ({ to, icon, text, isActive }: SidebarItemProps) => {
   return (
-    <Link
+    <Link 
       to={to}
-      className={cn(
-        "group flex items-center py-2 px-3 my-1 rounded-md transition-colors",
+      className={`flex items-center px-4 py-3 text-sm rounded-lg transition-colors ${
         isActive 
-          ? "bg-blue-600 text-white"
-          : "text-gray-600 hover:bg-blue-50 hover:text-blue-700"
-      )}
+          ? 'bg-primary/10 text-primary' 
+          : 'text-gray-600 hover:bg-gray-100'
+      }`}
     >
-      <Icon className={cn(
-        "flex-shrink-0",
-        isActive ? "text-white" : "text-gray-500 group-hover:text-blue-600"
-      )} size={20} />
-      
-      {!isCollapsed && (
-        <span className="ml-3 text-sm font-medium">{label}</span>
-      )}
+      <span className="mr-3">{icon}</span>
+      <span>{text}</span>
     </Link>
   );
 };
 
 const Sidebar = () => {
   const location = useLocation();
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  const { profile } = useAuth();
+  const [currentPath, setCurrentPath] = useState('');
   
-  const toggleSidebar = () => {
-    setIsCollapsed(!isCollapsed);
-  };
-
-  // Hide sidebar on landing page
-  if (location.pathname === '/') {
-    return null;
-  }
-
+  useEffect(() => {
+    // Extract the main path segment
+    const pathSegments = location.pathname.split('/');
+    setCurrentPath(pathSegments[1] || 'dashboard');
+  }, [location]);
+  
   return (
-    <aside
-      className={cn(
-        "h-screen border-r border-gray-200 bg-white transition-all duration-300 flex flex-col",
-        isCollapsed ? "w-[70px]" : "w-[240px]"
-      )}
-    >
-      <div className="px-4 py-5 border-b border-gray-200">
-        <div className="flex items-center">
-          <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center mr-3 flex-shrink-0">
-            <Shield size={20} className="text-white" />
+    <aside className="w-64 hidden md:flex flex-col h-screen bg-white border-r border-gray-200 sticky top-0 pt-16">
+      <div className="flex flex-col flex-1 overflow-y-auto py-6 px-3">
+        {/* Core Navigation */}
+        <div className="space-y-1">
+          <SidebarItem 
+            to="/dashboard" 
+            icon={<LayoutDashboard size={18} />} 
+            text="Dashboard" 
+            isActive={currentPath === 'dashboard'}
+          />
+          
+          <SidebarItem 
+            to="/tasks" 
+            icon={<CheckSquare size={18} />} 
+            text="Tasks" 
+            isActive={currentPath === 'tasks'}
+          />
+          
+          <SidebarItem 
+            to="/compliance" 
+            icon={<Shield size={18} />} 
+            text="Compliance" 
+            isActive={currentPath === 'compliance'}
+          />
+          
+          <SidebarItem 
+            to="/policies" 
+            icon={<FileText size={18} />} 
+            text="Policies" 
+            isActive={currentPath === 'policies'}
+          />
+
+          <SidebarItem 
+            to="/voice-ai" 
+            icon={<Speech size={18} />} 
+            text="ComplyVoiceAI" 
+            isActive={currentPath === 'voice-ai'}
+          />
+          
+          <SidebarItem 
+            to="/reports" 
+            icon={<BarChart2 size={18} />} 
+            text="Reports" 
+            isActive={currentPath === 'reports'}
+          />
+        </div>
+        
+        {/* Risk Management */}
+        <div className="mt-8">
+          <h3 className="px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+            Risk Management
+          </h3>
+          <div className="mt-2 space-y-1">
+            <SidebarItem 
+              to="/compliance/risks" 
+              icon={<AlertTriangle size={18} />} 
+              text="Risk Register" 
+              isActive={location.pathname === '/compliance/risks'}
+            />
+            
+            <SidebarItem 
+              to="/cloud-security" 
+              icon={<Cloud size={18} />} 
+              text="Cloud Security" 
+              isActive={currentPath === 'cloud-security'}
+            />
           </div>
-          {!isCollapsed && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.2 }}
-            >
-              <div className="flex flex-col">
-                <span className="text-lg font-bold text-gray-800">ComplyAI</span>
-                <span className="text-xs text-gray-500">Compliance made simple</span>
-              </div>
-            </motion.div>
-          )}
         </div>
-      </div>
-      
-      <div className="flex-1 py-4 px-3 overflow-y-auto">
-        <div className="mb-2">
-          <p className="px-3 mb-1 text-xs font-medium text-gray-400 uppercase">
-            {!isCollapsed && "General"}
-          </p>
-          <SidebarLink
-            to="/dashboard"
-            icon={LayoutDashboard}
-            label="Dashboard"
-            isActive={location.pathname === '/dashboard'}
-            isCollapsed={isCollapsed}
-          />
-          <SidebarLink
-            to="/compliance"
-            icon={Shield}
-            label="Compliance"
-            isActive={location.pathname === '/compliance' || location.pathname.includes('/compliance/')}
-            isCollapsed={isCollapsed}
-          />
-          <SidebarLink
-            to="/tasks"
-            icon={CheckSquare}
-            label="Tasks"
-            isActive={location.pathname === '/tasks' || location.pathname.includes('/tasks/')}
-            isCollapsed={isCollapsed}
-          />
-          <SidebarLink
-            to="/policies"
-            icon={FileText}
-            label="Policies"
-            isActive={location.pathname === '/policies'}
-            isCollapsed={isCollapsed}
-          />
-          <SidebarLink
-            to="/reports"
-            icon={BarChart3}
-            label="Reports"
-            isActive={location.pathname === '/reports' || location.pathname.includes('/reports/')}
-            isCollapsed={isCollapsed}
-          />
-          <SidebarLink
-            to="/settings"
-            icon={Settings}
-            label="Settings"
-            isActive={location.pathname === '/settings'}
-            isCollapsed={isCollapsed}
-          />
+        
+        {/* Platform Management */}
+        <div className="mt-8">
+          <h3 className="px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+            Platform
+          </h3>
+          <div className="mt-2 space-y-1">
+            <SidebarItem 
+              to="/data-sources" 
+              icon={<Database size={18} />} 
+              text="Data Sources" 
+              isActive={currentPath === 'data-sources'}
+            />
+            
+            <SidebarItem 
+              to="/notifications" 
+              icon={<Bell size={18} />} 
+              text="Notifications" 
+              isActive={currentPath === 'notifications'}
+            />
+            
+            <SidebarItem 
+              to="/team" 
+              icon={<Users size={18} />} 
+              text="Team" 
+              isActive={currentPath === 'team'}
+            />
+            
+            <SidebarItem 
+              to="/settings" 
+              icon={<Settings size={18} />} 
+              text="Settings" 
+              isActive={currentPath === 'settings'}
+            />
+          </div>
         </div>
-      </div>
-      
-      <div className="p-3 border-t border-gray-200">
-        <button
-          onClick={toggleSidebar}
-          className="w-full p-2 flex justify-center items-center rounded-md hover:bg-gray-100 transition-colors"
-        >
-          {isCollapsed ? (
-            <ChevronRight size={18} className="text-gray-500" />
-          ) : (
-            <ChevronLeft size={18} className="text-gray-500" />
-          )}
-        </button>
+        
+        {/* Super Admin only section */}
+        <RoleBasedContent allowedRoles={['super_admin']}>
+          <div className="mt-8">
+            <h3 className="px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+              Administration
+            </h3>
+            <div className="mt-2 space-y-1">
+              <SidebarItem 
+                to="/admin/setup" 
+                icon={<Cog size={18} />} 
+                text="System Setup" 
+                isActive={location.pathname === '/admin/setup'}
+              />
+            </div>
+          </div>
+        </RoleBasedContent>
       </div>
     </aside>
   );

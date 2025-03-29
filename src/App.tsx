@@ -43,6 +43,7 @@ const SuperAdminSetup = lazy(() => import('@/pages/SuperAdminSetup'));
 const CloudSecurity = lazy(() => import('@/pages/CloudSecurity'));
 const DataSources = lazy(() => import('@/pages/DataSources'));
 const Notifications = lazy(() => import('@/pages/Notifications'));
+const ComplyVoiceAI = lazy(() => import('@/pages/ComplyVoiceAI')); // Add new ComplyVoiceAI page
 
 // Redirect component for legacy URLs
 const RedirectToFramework = () => {
@@ -257,6 +258,17 @@ function App() {
                 <Suspense fallback={<Loading />}>
                   <ProtectedRoute>
                     <Notifications />
+                  </ProtectedRoute>
+                </Suspense>
+              } 
+            />
+            {/* Add new ComplyVoiceAI route */}
+            <Route 
+              path="/voice-ai" 
+              element={
+                <Suspense fallback={<Loading />}>
+                  <ProtectedRoute>
+                    <ComplyVoiceAI />
                   </ProtectedRoute>
                 </Suspense>
               } 
