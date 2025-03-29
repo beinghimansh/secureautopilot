@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -8,14 +9,6 @@
   --background-end-rgb: 255, 255, 255;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --foreground-rgb: 255, 255, 255;
-    --background-start-rgb: 0, 0, 0;
-    --background-end-rgb: 0, 0, 0;
-  }
-}
-
 body {
   color: rgb(var(--foreground-rgb));
   background: linear-gradient(
@@ -24,6 +17,28 @@ body {
       rgb(var(--background-end-rgb))
     )
     rgb(var(--background-start-rgb));
+}
+
+/* Dark theme for public pages */
+body.dark-theme {
+  --foreground-rgb: 255, 255, 255;
+  --background-start-rgb: 17, 17, 17;
+  --background-end-rgb: 17, 17, 17;
+}
+
+/* Apple-style smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Improved Dark Mode Glass Effect */
+.glass-dark {
+  @apply backdrop-blur-xl bg-white/5 border border-white/10 shadow-[0_4px_12px_-2px_rgba(0,0,0,0.3)];
+}
+
+/* Text gradient for headings */
+.text-gradient {
+  @apply bg-gradient-to-br from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent;
 }
 
 /* Add styling for markdown content */
@@ -101,4 +116,30 @@ body {
 
 .markdown-content em {
   @apply italic;
+}
+
+/* Apple-like animations */
+@keyframes fade-up {
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-up {
+  animation: fade-up 0.6s ease-out forwards;
+}
+
+/* Improved button hover effects */
+.button-hover-effect {
+  transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.button-hover-effect:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
 }

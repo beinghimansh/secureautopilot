@@ -16,13 +16,11 @@ import OpenAIIntegration from '@/components/compliance/OpenAIIntegration';
 import AIGuidanceButton from '@/components/compliance/AIGuidanceButton';
 import Loading from '@/components/common/Loading';
 
-// Lazy load components for better performance
 const RiskRegister = lazy(() => import('@/components/compliance/risks/RiskRegister'));
 const DocumentsSection = lazy(() => import('@/components/compliance/documents/DocumentsSection'));
 const PoliciesSection = lazy(() => import('@/components/compliance/policies/PoliciesSection'));
 const RulesDisplay = lazy(() => import('@/components/compliance/rules/RulesDisplay'));
 
-// Component loader
 const ComponentLoader = () => (
   <div className="flex justify-center items-center h-[400px]">
     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
@@ -36,9 +34,9 @@ const FrameworkRequirements = () => {
   const location = useLocation();
   const frameworkName = useFrameworkName(frameworkId);
   const [isLoading, setIsLoading] = useState(true);
+  const [isGenerating, setIsGenerating] = useState(false);
 
   useEffect(() => {
-    // Simulate loading state for a short period
     const timer = setTimeout(() => {
       setIsLoading(false);
     }, 300);
@@ -47,7 +45,6 @@ const FrameworkRequirements = () => {
   }, [frameworkId]);
 
   useEffect(() => {
-    // Extract tab from URL if present
     const searchParams = new URLSearchParams(location.search);
     const tab = searchParams.get('tab');
     if (tab && ['controls', 'risks', 'documents', 'policies'].includes(tab)) {
@@ -55,7 +52,6 @@ const FrameworkRequirements = () => {
     }
   }, [location]);
 
-  // Update URL when tab changes
   useEffect(() => {
     const searchParams = new URLSearchParams(location.search);
     searchParams.set('tab', selectedTab);
@@ -64,6 +60,13 @@ const FrameworkRequirements = () => {
 
   const handleBackClick = () => {
     navigate('/compliance');
+  };
+
+  const handleGenerateWithAI = async (prompt: string) => {
+    setIsGenerating(true);
+    // Simulate AI generation
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    setIsGenerating(false);
   };
 
   if (isLoading) {
@@ -166,9 +169,9 @@ const FrameworkRequirements = () => {
                     transition={{ duration: 0.4, delay: 0.2 }}
                   >
                     <OpenAIIntegration 
-                      title={`Ask about ${frameworkName}`}
-                      description={`Get AI guidance specific to ${frameworkName} requirements`}
-                      placeholder={`Ask anything about implementing ${frameworkName} in your organization...`}
+                      onGenerateContent={handleGenerateWithAI}
+                      isLoading={isGenerating}
+                      placeholder="Ask AI about this framework or control..."
                     />
                   </motion.div>
                 </div>

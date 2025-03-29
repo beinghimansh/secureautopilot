@@ -302,7 +302,7 @@ const PoliciesSection: React.FC<PoliciesSectionProps> = ({ frameworkId }) => {
 
   return (
     <>
-      <div className="bg-white rounded-lg shadow p-6">
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
         <div className="text-center mb-8">
           <h2 className="text-2xl font-bold mb-2">{frameworkName} Policy Generator</h2>
           <p className="text-gray-600 mb-6">
