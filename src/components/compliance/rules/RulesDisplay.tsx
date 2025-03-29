@@ -112,8 +112,8 @@ const RulesDisplay: React.FC<RulesDisplayProps> = ({ frameworkId }) => {
       number: control.id,
       content: control.title,
       status: control.status === 'implemented' ? 'compliant' : 
-             control.status === 'in_progress' ? 'in_progress' : 
-             control.status === 'not_implemented' ? 'non_compliant' : 'not_applicable'
+              control.status === 'in_progress' ? 'in_progress' : 
+              control.status === 'not_implemented' ? 'non_compliant' : 'not_applicable'
     };
     
     setSelectedRule(rule);

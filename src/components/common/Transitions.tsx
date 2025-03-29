@@ -17,24 +17,12 @@ export const FadeIn: React.FC<FadeProps> = ({
   className,
   ...props
 }) => {
-  const [render, setRender] = React.useState(show);
-
-  React.useEffect(() => {
-    if (show) setRender(true);
-  }, [show]);
-
-  const onAnimationEnd = () => {
-    if (!show) setRender(false);
-  };
-
-  if (!render) return null;
-
   return (
     <div
       style={{
-        animation: `${show ? "fadeIn" : "fadeOut"} ${duration}ms ease-in-out ${delay}ms forwards`,
+        opacity: show ? 1 : 0,
+        transition: `opacity ${duration}ms ease-in-out ${delay}ms`,
       }}
-      onAnimationEnd={onAnimationEnd}
       className={cn(className)}
       {...props}
     >
@@ -51,26 +39,13 @@ export const SlideUp: React.FC<FadeProps> = ({
   className,
   ...props
 }) => {
-  const [render, setRender] = React.useState(show);
-
-  React.useEffect(() => {
-    if (show) setRender(true);
-  }, [show]);
-
-  const onAnimationEnd = () => {
-    if (!show) setRender(false);
-  };
-
-  if (!render) return null;
-
   return (
     <div
       style={{
-        animation: `${
-          show ? "slideInUp" : "slideOutDown"
-        } ${duration}ms ease-in-out ${delay}ms forwards`,
+        opacity: show ? 1 : 0,
+        transform: show ? 'translateY(0)' : 'translateY(20px)',
+        transition: `opacity ${duration}ms ease-in-out ${delay}ms, transform ${duration}ms ease-in-out ${delay}ms`,
       }}
-      onAnimationEnd={onAnimationEnd}
       className={cn(className)}
       {...props}
     >
@@ -87,26 +62,13 @@ export const ScaleIn: React.FC<FadeProps> = ({
   className,
   ...props
 }) => {
-  const [render, setRender] = React.useState(show);
-
-  React.useEffect(() => {
-    if (show) setRender(true);
-  }, [show]);
-
-  const onAnimationEnd = () => {
-    if (!show) setRender(false);
-  };
-
-  if (!render) return null;
-
   return (
     <div
       style={{
-        animation: `${
-          show ? "scaleIn" : "scaleOut"
-        } ${duration}ms ease-in-out ${delay}ms forwards`,
+        opacity: show ? 1 : 0,
+        transform: show ? 'scale(1)' : 'scale(0.95)',
+        transition: `opacity ${duration}ms ease-in-out ${delay}ms, transform ${duration}ms ease-in-out ${delay}ms`,
       }}
-      onAnimationEnd={onAnimationEnd}
       className={cn(className)}
       {...props}
     >
@@ -116,5 +78,5 @@ export const ScaleIn: React.FC<FadeProps> = ({
 };
 
 export const PageTransition: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  return <div className="page-transition-enter-active">{children}</div>;
+  return <div className="animate-fade-in">{children}</div>;
 };
