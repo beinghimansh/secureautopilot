@@ -1,71 +1,31 @@
 
-import React, { useState, useEffect, useCallback, Suspense, lazy } from 'react';
-import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
-import { PageTransition } from '@/components/common/Transitions';
+import React, { useEffect } from 'react';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import AuthOptimized from '@/components/auth/AuthOptimized';
 import Loading from '@/components/common/Loading';
 
-// Lazy load the optimized auth component
-const AuthOptimized = lazy(() => import('@/components/auth/AuthOptimized'));
-
-const AuthPage = () => {
+const Auth = () => {
   const [searchParams] = useSearchParams();
-  const { user, isLoading: authLoading } = useAuth();
   const navigate = useNavigate();
-  const location = useLocation();
-  const [isLoading, setIsLoading] = useState(true);
-  const [isRedirecting, setIsRedirecting] = useState(false);
+  const { user, isLoading } = useAuth(); // Use isLoading instead of loading
   
-  // Get the return URL from location state or default to dashboard
-  const from = location.state?.from?.pathname || '/dashboard';
-  
-  // Check if mode is specified in URL
-  const initialMode = searchParams.get('mode') === 'register' ? 'register' : 'login';
-  
-  // Handle redirection logic
-  const handleRedirect = useCallback(() => {
-    if (user && !authLoading) {
-      console.log('User already authenticated, redirecting to:', from);
-      setIsRedirecting(true);
-      
-      // Add a short delay before redirecting to prevent immediate redirects
-      setTimeout(() => {
-        navigate(from, { replace: true });
-      }, 100);
-    } else {
-      setIsLoading(false);
-    }
-  }, [user, authLoading, from, navigate]);
-  
-  // Handle initial check to see if user is already logged in
+  // Get the mode from the URL parameters (login or register)
+  const mode = searchParams.get('mode') === 'register' ? 'register' : 'login';
+
   useEffect(() => {
-    if (!authLoading) {
-      console.log('Auth page: checking authentication', { user, authLoading });
-      
-      // Add a slight delay before checking auth status to ensure accurate data
-      const timer = setTimeout(() => {
-        handleRedirect();
-      }, 300);
-      
-      return () => clearTimeout(timer);
+    // If the user is already logged in, redirect to dashboard
+    if (user && !isLoading) {
+      navigate('/dashboard');
     }
-  }, [user, authLoading, handleRedirect]);
-  
-  if (isLoading || authLoading || isRedirecting) {
-    return (
-      <div className="min-h-screen flex justify-center items-center bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500">
-        <div className="w-16 h-16 border-4 border-white border-t-transparent rounded-full animate-spin"></div>
-      </div>
-    );
+  }, [user, isLoading, navigate]);
+
+  // Show loading while checking auth state
+  if (isLoading) {
+    return <Loading />;
   }
-  
-  return (
-    <PageTransition>
-      <Suspense fallback={<Loading />}>
-        <AuthOptimized initialMode={initialMode} />
-      </Suspense>
-    </PageTransition>
-  );
+
+  return <AuthOptimized initialMode={mode} />;
 };
 
-export default AuthPage;
+export default Auth;

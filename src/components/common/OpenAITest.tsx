@@ -1,114 +1,102 @@
 
 import React, { useState } from 'react';
-import Button from './Button';
-import { toast } from 'sonner';
-import { supabase } from '@/integrations/supabase/client';
+import { Bot, Loader2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
-const OpenAITest = () => {
-  const [testing, setTesting] = useState(false);
-  const [result, setResult] = useState<null | { success: boolean; message: string; models?: string[]; error?: string }>(null);
+interface OpenAITestProps {
+  title?: string;
+  description?: string;
+}
 
-  const testOpenAI = async () => {
-    setTesting(true);
-    setResult(null);
+const OpenAITest: React.FC<OpenAITestProps> = ({ 
+  title = "AI Integration Test", 
+  description = "Test the OpenAI integration"
+}) => {
+  const [prompt, setPrompt] = useState('');
+  const [response, setResponse] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!prompt.trim()) return;
+    
+    setIsLoading(true);
+    setError(null);
     
     try {
-      console.log("Sending test request to OpenAI edge function");
-      
-      // Add a timeout with a promise that rejects after 15 seconds
-      const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error('Request timed out')), 15000);
+      const res = await fetch('/api/openai/test', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ prompt }),
       });
       
-      // Create the fetch promise
-      const fetchPromise = supabase.functions.invoke('test-openai');
-      
-      // Race the two promises
-      const { data, error } = await Promise.race([
-        fetchPromise,
-        timeoutPromise.then(() => {
-          throw new Error('Request timed out. The Supabase Edge Function may be cold starting, please try again.');
-        })
-      ]) as any;
-      
-      if (error) {
-        console.error('Edge Function Error:', error);
-        toast.error('Error testing OpenAI: ' + error.message);
-        setResult({ success: false, message: error.message });
-        return;
+      if (!res.ok) {
+        throw new Error(`API request failed with status ${res.status}`);
       }
       
-      if (!data) {
-        throw new Error('No data returned from the edge function');
-      }
-      
-      console.log('OpenAI test response:', data);
-      setResult(data);
-      
-      if (data.success) {
-        toast.success('OpenAI API is working correctly!');
-      } else {
-        toast.error('OpenAI API test failed: ' + (data.error || 'Unknown error'));
-      }
+      const data = await res.json();
+      setResponse(data.result || 'No response received');
     } catch (err: any) {
       console.error('Error testing OpenAI:', err);
-      
-      let errorMessage = 'Failed to test OpenAI connection';
-      if (err.message === 'Request timed out') {
-        errorMessage = 'Request timed out. The Supabase Edge Function may be cold starting, please try again.';
-      } else if (err instanceof Error) {
-        errorMessage = err.message;
-      }
-      
-      toast.error(errorMessage);
-      setResult({ 
-        success: false, 
-        message: errorMessage
-      });
+      setError(err.message || 'Failed to connect to OpenAI');
     } finally {
-      setTesting(false);
+      setIsLoading(false);
     }
   };
 
   return (
-    <div className="bg-white p-6 rounded-xl shadow-md">
-      <h2 className="text-xl font-semibold mb-4">OpenAI API Connection Test</h2>
-      <p className="text-gray-600 mb-4">
-        Click the button below to test if your OpenAI API key is configured correctly.
-      </p>
+    <div className="p-4 border rounded-lg bg-white shadow-sm">
+      <div className="flex items-center mb-4">
+        <Bot className="text-blue-500 mr-2 h-5 w-5" />
+        <h3 className="font-medium text-lg">{title}</h3>
+      </div>
       
-      <Button 
-        onClick={testOpenAI} 
-        isLoading={testing}
-        disabled={testing}
-      >
-        {testing ? 'Testing...' : 'Test OpenAI Connection'}
-      </Button>
+      <p className="text-gray-600 mb-4">{description}</p>
       
-      {result && (
-        <div className={`mt-4 p-3 rounded ${result.success ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'}`}>
-          <h3 className={`font-medium ${result.success ? 'text-green-800' : 'text-red-800'}`}>
-            {result.success ? 'Success!' : 'Error'}
-          </h3>
-          <p className="text-sm mt-1">
-            {result.success ? result.message : (result.error || result.message)}
-          </p>
-          {result.models && (
-            <div className="mt-2 p-2 bg-gray-50 rounded border text-sm">
-              <strong>Available models:</strong> {result.models.join(', ')}
-            </div>
-          )}
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div>
+          <label htmlFor="prompt" className="block text-sm font-medium text-gray-700 mb-1">
+            Prompt
+          </label>
+          <input
+            id="prompt"
+            type="text"
+            value={prompt}
+            onChange={(e) => setPrompt(e.target.value)}
+            placeholder="Enter a test prompt for OpenAI..."
+            className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
+        
+        <Button 
+          type="submit" 
+          disabled={isLoading || !prompt.trim()}
+          className="w-full"
+        >
+          {isLoading ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Processing...
+            </>
+          ) : 'Test OpenAI Integration'}
+        </Button>
+      </form>
+      
+      {error && (
+        <div className="mt-4 p-3 bg-red-50 text-red-700 rounded-md text-sm">
+          <strong>Error:</strong> {error}
         </div>
       )}
       
-      <div className="mt-6 pt-4 border-t border-gray-200 text-sm text-gray-500">
-        <p>If the test fails, please check:</p>
-        <ul className="list-disc pl-5 mt-2 space-y-1">
-          <li>Your OpenAI API key is correctly set in Supabase Edge Function secrets</li>
-          <li>The API key has sufficient permissions and credits</li>
-          <li>The Edge Function is properly deployed</li>
-        </ul>
-      </div>
+      {response && !error && (
+        <div className="mt-4">
+          <h4 className="font-medium text-sm text-gray-700 mb-2">Response:</h4>
+          <div className="p-3 bg-gray-50 rounded-md text-sm whitespace-pre-wrap">{response}</div>
+        </div>
+      )}
     </div>
   );
 };

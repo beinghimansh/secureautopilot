@@ -75,7 +75,7 @@ const HeroSection = () => {
               alt="ComplyFlow Dashboard" 
               className="w-full h-full object-cover relative z-10"
               loading="eager"
-              fetchPriority="high"
+              // Remove fetchPriority as it's causing a warning
             />
           </div>
         </motion.div>

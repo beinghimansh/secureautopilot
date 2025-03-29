@@ -1,9 +1,9 @@
-
 import React, { useState, lazy, Suspense } from 'react';
 import { Card, CardContent } from '@/components/common/Card';
 import { SearchIcon, Filter, List, Grid } from 'lucide-react';
 import Button from '@/components/common/Button';
 import OpenAIIntegration from '@/components/compliance/OpenAIIntegration';
+import FileText from '@/components/common/FileText';
 
 // Lazy load the RulesDisplay component to improve initial load time
 const RulesDisplay = lazy(() => import('@/components/compliance/rules/RulesDisplay'));
@@ -15,6 +15,7 @@ interface FrameworkControlsProps {
 const FrameworkControls: React.FC<FrameworkControlsProps> = ({ frameworkId }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [showAIGuidance, setShowAIGuidance] = useState(false);
+  const [showPolicyGenerator, setShowPolicyGenerator] = useState(false);
   
   const frameworkName = 
     frameworkId === 'iso27001' ? 'ISO 27001' : 
@@ -56,6 +57,7 @@ const FrameworkControls: React.FC<FrameworkControlsProps> = ({ frameworkId }) =>
               >
                 {showAIGuidance ? 'Hide AI Guidance' : 'Get AI Guidance'}
               </Button>
+              <PolicyGenerateButton />
             </div>
           </div>
           
@@ -83,5 +85,16 @@ const FrameworkControls: React.FC<FrameworkControlsProps> = ({ frameworkId }) =>
     </div>
   );
 };
+
+const PolicyGenerateButton = () => (
+  <Button
+    onClick={() => setShowPolicyGenerator(true)}
+    variant="default"
+    className="flex items-center"
+  >
+    <FileText className="mr-2 h-4 w-4" />
+    Generate Policy
+  </Button>
+);
 
 export default FrameworkControls;
