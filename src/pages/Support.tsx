@@ -85,6 +85,8 @@ const Support = () => {
               description="Chat with our support team during business hours for immediate assistance."
               action="Start Chat"
               onClick={() => alert('Live chat would launch here')}
+              isEmail={false}
+              isPhone={false}
             />
             
             <SupportChannelCard
@@ -93,6 +95,8 @@ const Support = () => {
               description="Send us an email and we'll respond within 24 hours on business days."
               action="support@complyai.com"
               isEmail={true}
+              isPhone={false}
+              onClick={() => {}}
             />
             
             <SupportChannelCard
@@ -101,6 +105,8 @@ const Support = () => {
               description="Available for Enterprise customers with priority support plans."
               action="+1 (888) 555-0123"
               isPhone={true}
+              isEmail={false}
+              onClick={() => {}}
             />
           </div>
           
@@ -256,7 +262,25 @@ const Support = () => {
   );
 };
 
-const SupportChannelCard = ({ icon: Icon, title, description, action, onClick, isEmail, isPhone }) => {
+interface SupportChannelCardProps {
+  icon: React.ComponentType<any>;
+  title: string;
+  description: string;
+  action: string;
+  onClick?: () => void;
+  isEmail: boolean;
+  isPhone: boolean;
+}
+
+const SupportChannelCard: React.FC<SupportChannelCardProps> = ({ 
+  icon: Icon, 
+  title, 
+  description, 
+  action, 
+  onClick, 
+  isEmail, 
+  isPhone 
+}) => {
   return (
     <div className="bg-[#1d1d1f] border border-gray-800 rounded-xl p-6 text-center">
       <div className="w-16 h-16 rounded-full bg-blue-500/20 flex items-center justify-center mx-auto mb-4">
