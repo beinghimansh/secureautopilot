@@ -4,7 +4,6 @@ import Navbar from '@/components/layout/Navbar';
 import Sidebar from '@/components/layout/Sidebar';
 import { PageTransition } from '@/components/common/Transitions';
 import { useAuth } from '@/contexts/AuthContext';
-import RoleBasedContent from '@/components/auth/RoleBasedContent';
 import DashboardContent from '@/components/dashboard/Dashboard';
 
 const Dashboard = () => {
