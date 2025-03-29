@@ -1,4 +1,3 @@
-
 import React, { createContext, useState, useEffect, useContext, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Session, User } from '@supabase/supabase-js';
@@ -65,12 +64,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   useEffect(() => {
-    let authSubscription: { subscription: { unsubscribe: () => void } } | null = null;
+    let subscription: { unsubscribe: () => void } | null = null;
     
     const initAuth = async () => {
       try {
         // 1. Set up auth state listener FIRST
-        authSubscription = supabase.auth.onAuthStateChange((event, newSession) => {
+        const { data } = supabase.auth.onAuthStateChange((event, newSession) => {
           console.info(`Auth state changed: ${event}`);
           setSession(newSession);
           setUser(newSession?.user || null);
@@ -82,20 +81,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             setProfile(null);
           }
         });
+        
+        // Store the subscription for cleanup
+        subscription = data.subscription;
 
         // 2. THEN check for existing session
-        const { data, error } = await supabase.auth.getSession();
+        const { data: sessionData, error } = await supabase.auth.getSession();
         
         if (error) {
           console.error('Error fetching session:', error);
         } else {
-          if (data.session) {
-            setSession(data.session);
-            setUser(data.session.user);
+          if (sessionData.session) {
+            setSession(sessionData.session);
+            setUser(sessionData.session.user);
             
             // Fetch user profile if user exists
-            if (data.session.user) {
-              fetchUserProfile(data.session.user.id);
+            if (sessionData.session.user) {
+              fetchUserProfile(sessionData.session.user.id);
             }
           }
         }
@@ -111,8 +113,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     // Clean up subscription
     return () => {
-      if (authSubscription) {
-        authSubscription.subscription.unsubscribe();
+      if (subscription) {
+        subscription.unsubscribe();
       }
     };
   }, []);
