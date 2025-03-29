@@ -18,19 +18,20 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Double-check auth state after component mounts
+    // Only show the toast message if we're not loading and user is not authenticated
     if (!isLoading && !user) {
       toast.error('You must be signed in to access this page');
       navigate('/auth');
     }
     
-    // Check role-based access if specified
+    // Check role-based access if specified and user is authenticated
     if (!isLoading && user && profile && requiredRole && !requiredRole.includes(profile.role)) {
       toast.error('You do not have permission to access this page');
       navigate('/dashboard');
     }
   }, [user, profile, isLoading, navigate, requiredRole]);
 
+  // Show loading state
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -39,6 +40,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     );
   }
 
+  // Redirect to login if not authenticated
   if (!user) {
     return <Navigate to="/auth" replace />;
   }
@@ -48,6 +50,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     return <Navigate to="/dashboard" replace />;
   }
 
+  // User is authenticated and has the required role, render the children
   return <>{children}</>;
 };
 

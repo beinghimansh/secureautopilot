@@ -94,137 +94,171 @@ function App() {
             <Route 
               path="/tasks" 
               element={
-                <ProtectedRoute>
-                  <Tasks />
-                </ProtectedRoute>
+                <Suspense fallback={<Loading />}>
+                  <ProtectedRoute>
+                    <Tasks />
+                  </ProtectedRoute>
+                </Suspense>
               } 
             />
             <Route 
               path="/tasks/upcoming" 
               element={
-                <ProtectedRoute>
-                  <Upcoming />
-                </ProtectedRoute>
+                <Suspense fallback={<Loading />}>
+                  <ProtectedRoute>
+                    <Upcoming />
+                  </ProtectedRoute>
+                </Suspense>
               } 
             />
             <Route 
               path="/reports" 
               element={
-                <ProtectedRoute>
-                  <Reports />
-                </ProtectedRoute>
+                <Suspense fallback={<Loading />}>
+                  <ProtectedRoute>
+                    <Reports />
+                  </ProtectedRoute>
+                </Suspense>
               } 
             />
             <Route 
               path="/reports/activities" 
               element={
-                <ProtectedRoute>
-                  <Activities />
-                </ProtectedRoute>
+                <Suspense fallback={<Loading />}>
+                  <ProtectedRoute>
+                    <Activities />
+                  </ProtectedRoute>
+                </Suspense>
               } 
             />
             <Route 
               path="/reports/analytics" 
               element={
-                <ProtectedRoute>
-                  <Analytics />
-                </ProtectedRoute>
+                <Suspense fallback={<Loading />}>
+                  <ProtectedRoute>
+                    <Analytics />
+                  </ProtectedRoute>
+                </Suspense>
               } 
             />
             <Route 
               path="/reports/export" 
               element={
-                <ProtectedRoute>
-                  <Export />
-                </ProtectedRoute>
+                <Suspense fallback={<Loading />}>
+                  <ProtectedRoute>
+                    <Export />
+                  </ProtectedRoute>
+                </Suspense>
               } 
             />
             <Route 
               path="/settings" 
               element={
-                <ProtectedRoute>
-                  <Settings />
-                </ProtectedRoute>
+                <Suspense fallback={<Loading />}>
+                  <ProtectedRoute>
+                    <Settings />
+                  </ProtectedRoute>
+                </Suspense>
               } 
             />
             <Route 
               path="/compliance" 
               element={
-                <ProtectedRoute>
-                  <Compliance />
-                </ProtectedRoute>
+                <Suspense fallback={<Loading />}>
+                  <ProtectedRoute>
+                    <Compliance />
+                  </ProtectedRoute>
+                </Suspense>
               } 
             />
             <Route 
               path="/compliance/frameworks/:frameworkId" 
               element={
-                <ProtectedRoute>
-                  <FrameworkRequirements />
-                </ProtectedRoute>
+                <Suspense fallback={<Loading />}>
+                  <ProtectedRoute>
+                    <FrameworkRequirements />
+                  </ProtectedRoute>
+                </Suspense>
               } 
             />
             <Route 
               path="/compliance/:frameworkId/requirements" 
               element={
-                <ProtectedRoute>
-                  <RedirectToFramework />
-                </ProtectedRoute>
+                <Suspense fallback={<Loading />}>
+                  <ProtectedRoute>
+                    <RedirectToFramework />
+                  </ProtectedRoute>
+                </Suspense>
               } 
             />
             <Route 
               path="/policies" 
               element={
-                <ProtectedRoute>
-                  <Policies />
-                </ProtectedRoute>
+                <Suspense fallback={<Loading />}>
+                  <ProtectedRoute>
+                    <Policies />
+                  </ProtectedRoute>
+                </Suspense>
               } 
             />
             <Route 
               path="/team" 
               element={
-                <ProtectedRoute>
-                  <Team />
-                </ProtectedRoute>
+                <Suspense fallback={<Loading />}>
+                  <ProtectedRoute>
+                    <Team />
+                  </ProtectedRoute>
+                </Suspense>
               } 
             />
             <Route 
               path="/compliance/risks" 
               element={
-                <ProtectedRoute>
-                  <Risks />
-                </ProtectedRoute>
+                <Suspense fallback={<Loading />}>
+                  <ProtectedRoute>
+                    <Risks />
+                  </ProtectedRoute>
+                </Suspense>
               } 
             />
             <Route 
               path="/admin/setup" 
               element={
-                <ProtectedRoute>
-                  <SuperAdminSetup />
-                </ProtectedRoute>
+                <Suspense fallback={<Loading />}>
+                  <ProtectedRoute>
+                    <SuperAdminSetup />
+                  </ProtectedRoute>
+                </Suspense>
               } 
             />
             <Route 
               path="/cloud-security" 
               element={
-                <ProtectedRoute>
-                  <CloudSecurity />
-                </ProtectedRoute>
+                <Suspense fallback={<Loading />}>
+                  <ProtectedRoute>
+                    <CloudSecurity />
+                  </ProtectedRoute>
+                </Suspense>
               } 
             />
             <Route 
               path="/data-sources" 
               element={
-                <ProtectedRoute>
-                  <DataSources />
-                </ProtectedRoute>
+                <Suspense fallback={<Loading />}>
+                  <ProtectedRoute>
+                    <DataSources />
+                  </ProtectedRoute>
+                </Suspense>
               } 
             />
             <Route 
               path="/notifications" 
               element={
-                <ProtectedRoute>
-                  <Notifications />
-                </ProtectedRoute>
+                <Suspense fallback={<Loading />}>
+                  <ProtectedRoute>
+                    <Notifications />
+                  </ProtectedRoute>
+                </Suspense>
               } 
             />
             <Route path="*" element={<NotFound />} />
