@@ -1,13 +1,18 @@
 
-import React, { useEffect } from 'react';
-import { motion } from 'framer-motion';
-import HeroSection from './HeroSection';
-import Header from './Header';
-import FeatureHighlights from './FeatureHighlights';
-import CTASection from './CTASection';
-import Footer from './Footer';
+import React, { useEffect, lazy, Suspense } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
+import Loading from '@/components/common/Loading';
+
+// Lazy loaded components to improve performance
+const Header = lazy(() => import('./Header'));
+const HeroSection = lazy(() => import('./HeroSection'));
+const FeatureHighlights = lazy(() => import('./FeatureHighlights'));
+const CTASection = lazy(() => import('./CTASection'));
+const Footer = lazy(() => import('./Footer'));
 
 const Home = () => {
+  const { user } = useAuth();
+
   useEffect(() => {
     // Apply dark theme to body when on public landing page
     document.body.classList.add('dark-theme');
@@ -21,21 +26,32 @@ const Home = () => {
     };
   }, []);
 
+  // Performance optimization - if user is logged in, show minimal home page
+  if (user) {
+    return (
+      <div className="min-h-screen overflow-x-hidden bg-[#111]">
+        <Suspense fallback={<Loading />}>
+          <Header />
+          <main className="pt-20">
+            <HeroSection />
+          </main>
+          <Footer />
+        </Suspense>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen overflow-x-hidden bg-[#111]">
-      <Header />
-      
-      <main className="pt-20">
-        <HeroSection />
-        
-        <div className="container mx-auto px-4 md:px-6">
+      <Suspense fallback={<Loading />}>
+        <Header />
+        <main className="pt-20">
+          <HeroSection />
           <FeatureHighlights />
-        </div>
-        
-        <CTASection />
-      </main>
-      
-      <Footer />
+          <CTASection />
+        </main>
+        <Footer />
+      </Suspense>
     </div>
   );
 };

@@ -67,6 +67,7 @@ const FrameworkRequirements = () => {
     // Simulate AI generation
     await new Promise(resolve => setTimeout(resolve, 1000));
     setIsGenerating(false);
+    toast.success('AI guidance generated');
   };
 
   if (isLoading) {
@@ -174,6 +175,33 @@ const FrameworkRequirements = () => {
                       isLoading={isGenerating}
                       placeholder="Ask AI about this framework or control..."
                     />
+                    
+                    <div className="mt-4 space-y-2">
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="w-full justify-start text-left"
+                        onClick={() => navigate('/compliance')}
+                      >
+                        <ArrowLeft className="mr-2 h-4 w-4" />
+                        Back to all frameworks
+                      </Button>
+                      
+                      <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
+                        <h3 className="font-medium text-gray-800 mb-2">Quick Links</h3>
+                        <ul className="space-y-1 text-sm">
+                          <li>
+                            <a href="#" className="text-blue-600 hover:underline">Download framework requirements</a>
+                          </li>
+                          <li>
+                            <a href="#" className="text-blue-600 hover:underline">View implementation guide</a>
+                          </li>
+                          <li>
+                            <a href="#" className="text-blue-600 hover:underline">Schedule compliance review</a>
+                          </li>
+                        </ul>
+                      </div>
+                    </div>
                   </motion.div>
                 </div>
               </div>

@@ -46,7 +46,7 @@ const OpenAIIntegration: React.FC<OpenAIIntegrationProps> = ({
           value={prompt}
           onChange={(e) => setPrompt(e.target.value)}
           placeholder={placeholder}
-          className="w-full px-4 py-3 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 min-h-[120px] resize-y"
+          className="w-full px-4 py-3 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 min-h-[150px] resize-y"
           disabled={isLoading}
         />
         

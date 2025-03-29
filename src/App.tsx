@@ -1,4 +1,3 @@
-
 import { lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useParams } from 'react-router-dom';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
@@ -34,6 +33,9 @@ const SuperAdminSetup = lazy(() => import('@/pages/SuperAdminSetup'));
 const CloudSecurity = lazy(() => import('@/pages/CloudSecurity'));
 const DataSources = lazy(() => import('@/pages/DataSources'));
 const Notifications = lazy(() => import('@/pages/Notifications'));
+const Features = lazy(() => import('@/pages/Features'));
+const Pricing = lazy(() => import('@/pages/Pricing'));
+const About = lazy(() => import('@/pages/About'));
 
 // Redirect component for legacy URLs
 const RedirectToFramework = () => {
@@ -63,6 +65,13 @@ function App() {
             <Routes>
               <Route path="/" element={<Home />} />
               <Route path="/auth" element={<Auth />} />
+              
+              {/* Public pages */}
+              <Route path="/features" element={<Features />} />
+              <Route path="/pricing" element={<Pricing />} />
+              <Route path="/about" element={<About />} />
+              
+              {/* Protected routes */}
               <Route 
                 path="/dashboard" 
                 element={
