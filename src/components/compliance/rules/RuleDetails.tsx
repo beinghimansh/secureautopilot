@@ -20,17 +20,18 @@ interface RuleDetailsProps {
   implementationNotes: string;
   onNotesChange: (content: string) => void;
   onSaveNotes: () => Promise<void>;
+  isSaving?: boolean;
 }
 
 const RuleDetails: React.FC<RuleDetailsProps> = ({ 
   rule, 
   implementationNotes, 
   onNotesChange, 
-  onSaveNotes 
+  onSaveNotes,
+  isSaving = false
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [status, setStatus] = useState<ComplianceRule['status']>(rule?.status || 'in_progress');
-  const [isSaving, setIsSaving] = useState(false);
   
   // Update local state when selected rule changes
   useEffect(() => {
@@ -57,7 +58,6 @@ const RuleDetails: React.FC<RuleDetailsProps> = ({
   };
 
   const handleSave = async () => {
-    setIsSaving(true);
     try {
       await onSaveNotes();
       toast.success('Changes saved successfully');
@@ -65,8 +65,6 @@ const RuleDetails: React.FC<RuleDetailsProps> = ({
     } catch (error) {
       toast.error('Failed to save changes');
       console.error('Error saving notes:', error);
-    } finally {
-      setIsSaving(false);
     }
   };
 

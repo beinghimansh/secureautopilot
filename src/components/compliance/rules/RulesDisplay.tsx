@@ -19,6 +19,7 @@ const RulesDisplay: React.FC<RulesDisplayProps> = ({ frameworkId }) => {
   const [isTreeView, setIsTreeView] = useState<boolean>(
     frameworkId === 'iso27001' || frameworkId === 'soc2'
   );
+  const [isSaving, setIsSaving] = useState(false);
   
   useEffect(() => {
     const fetchRules = async () => {
@@ -115,6 +116,7 @@ const RulesDisplay: React.FC<RulesDisplayProps> = ({ frameworkId }) => {
   const handleSaveNotes = async () => {
     if (!selectedRule) return;
 
+    setIsSaving(true);
     try {
       const ruleId = typeof selectedRule.id === 'string' ? selectedRule.id : selectedRule.id.toString();
       
@@ -141,6 +143,8 @@ const RulesDisplay: React.FC<RulesDisplayProps> = ({ frameworkId }) => {
     } catch (err) {
       toast.error('An error occurred while saving');
       console.error('Error saving implementation notes:', err);
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -209,6 +213,7 @@ const RulesDisplay: React.FC<RulesDisplayProps> = ({ frameworkId }) => {
             implementationNotes={implementationNotes}
             onNotesChange={handleNotesChange}
             onSaveNotes={handleSaveNotes}
+            isSaving={isSaving}
           />
         ) : (
           <div className="bg-white p-6 rounded-lg shadow border border-gray-100 h-full flex items-center justify-center">

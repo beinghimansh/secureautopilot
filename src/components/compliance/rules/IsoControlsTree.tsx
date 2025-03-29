@@ -1,426 +1,305 @@
-import React, { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { Folder, File, ChevronRight, ChevronDown } from 'lucide-react';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { toast } from 'sonner';
-import { TreeItem } from '@/components/compliance/types/complianceTypes';
-import TreeView from 'react-treeview';
-import 'react-treeview/react-treeview.css';
 
-export interface IsoControlsTreeProps {
+import React, { useState, useEffect, useMemo } from 'react';
+import { Tree, MultiBackend, getBackendOptions } from 'react-complex-tree';
+import 'react-complex-tree/lib/style-modern.css';
+import { DndProvider } from 'react-dnd';
+import { ComplianceRule } from '@/components/compliance/types/complianceTypes';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
+
+interface IsoControlsTreeProps {
   onSelectControl: (control: any) => void;
   selectedRuleId: number | null;
-  frameworkId?: string;
+  frameworkId: string;
+}
+
+// Define the structure for ISO control tree items
+interface TreeItem {
+  id: string;
+  children?: string[];
+  data: {
+    title: string;
+    control?: any;
+    isSection?: boolean;
+  };
 }
 
 const IsoControlsTree: React.FC<IsoControlsTreeProps> = ({
-  onSelectControl, 
+  onSelectControl,
   selectedRuleId,
-  frameworkId = 'iso27001'
+  frameworkId
 }) => {
-  const [treeData, setTreeData] = useState<TreeItem[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [expandedItems, setExpandedItems] = useState<Record<string, boolean>>({});
-  
+  const [treeData, setTreeData] = useState<{ [key: string]: TreeItem }>({});
+  const [isLoading, setIsLoading] = useState(true);
+  const [expandedItems, setExpandedItems] = useState<string[]>([]);
+  const treeId = 'iso-controls-tree';
+
   useEffect(() => {
-    const fetchControls = async () => {
-      setLoading(true);
+    // Transform the data into a format suitable for the tree component
+    const fetchAndFormatControls = async () => {
+      setIsLoading(true);
       try {
+        let controls = [];
+        
+        // Get standard ISO controls data
+        const isoData = require('@/components/compliance/rules/iso27001.json');
+        
         if (frameworkId === 'soc2') {
-          // Fetch SOC2 requirements from the database
+          // Try to get SOC2 data from database
           const { data, error } = await supabase
             .from('soc2_requirements')
             .select('*')
             .order('control_number');
-          
+            
           if (error) throw error;
           
           if (data && data.length > 0) {
-            // Transform data into tree structure
-            const tempTreeData: TreeItem[] = [
-              {
-                id: 'cc',
-                title: 'Common Criteria',
-                type: 'category',
-                expanded: true,
-                children: []
-              },
-              {
-                id: 'a',
-                title: 'Availability',
-                type: 'category',
-                expanded: false,
-                children: []
-              },
-              {
-                id: 'c',
-                title: 'Confidentiality',
-                type: 'category',
-                expanded: false,
-                children: []
-              }
-            ];
+            controls = data.map((item: any) => ({
+              id: item.id,
+              number: item.control_number,
+              title: item.title,
+              description: item.description,
+              requirement: item.requirement,
+              status: 'in_progress'
+            }));
+          } else {
+            // Fallback to hardcoded SOC2 data if needed
+            const soc2Data = require('@/components/compliance/rules/soc2.json');
+            controls = soc2Data;
+          }
+        } else if (frameworkId === 'iso27001') {
+          controls = isoData;
+        } else {
+          // Fallback to empty array for other frameworks
+          controls = [];
+        }
+        
+        // Convert controls to tree structure
+        const items: { [key: string]: TreeItem } = {
+          root: {
+            id: 'root',
+            children: [],
+            data: {
+              title: frameworkId === 'soc2' ? 'SOC 2 Controls' : 'ISO 27001 Controls',
+              isSection: true
+            }
+          }
+        };
+        
+        // Group by major sections (for ISO) or categories (for SOC2)
+        if (frameworkId === 'iso27001') {
+          // Group ISO controls by their main section (e.g., A.5, A.6)
+          const sections: { [key: string]: string[] } = {};
+          
+          controls.forEach((control: any) => {
+            const sectionId = control.number.split('.')[0]; // e.g., "A.5" from "A.5.1.1"
+            if (!sections[sectionId]) {
+              sections[sectionId] = [];
+            }
             
-            // Group controls by category
-            data.forEach(item => {
-              const control: TreeItem = {
-                id: item.id,
-                title: `${item.control_number}: ${item.title}`,
-                type: 'control',
-                status: 'not_implemented',
-                description: item.description,
-                requirement: item.requirement,
-                number: item.control_number
+            const controlId = `control-${control.id}`;
+            sections[sectionId].push(controlId);
+            
+            items[controlId] = {
+              id: controlId,
+              data: {
+                title: `${control.number} ${control.title}`,
+                control: control
+              }
+            };
+          });
+          
+          // Create section items
+          Object.keys(sections).forEach(sectionId => {
+            const sectionItemId = `section-${sectionId}`;
+            items[sectionItemId] = {
+              id: sectionItemId,
+              children: sections[sectionId],
+              data: {
+                title: getSectionTitle(sectionId),
+                isSection: true
+              }
+            };
+            
+            items.root.children!.push(sectionItemId);
+          });
+        } else if (frameworkId === 'soc2') {
+          // For SOC2, group by TSC categories (Common Criteria, Availability, etc.)
+          const categories: { [key: string]: string[] } = {
+            'CC': [],
+            'A': [],
+            'C': [],
+            'PI': [],
+            'P': []
+          };
+          
+          controls.forEach((control: any) => {
+            // Extract prefix (CC, A, C, PI, P) from control number
+            const prefix = control.number.split('.')[0];
+            const controlId = `control-${control.id}`;
+            
+            if (categories[prefix]) {
+              categories[prefix].push(controlId);
+            } else {
+              categories['CC'].push(controlId);
+            }
+            
+            items[controlId] = {
+              id: controlId,
+              data: {
+                title: `${control.number} ${control.title}`,
+                control: control
+              }
+            };
+          });
+          
+          // Map category codes to full names
+          const categoryNames: { [key: string]: string } = {
+            'CC': 'Common Criteria',
+            'A': 'Availability',
+            'C': 'Confidentiality',
+            'PI': 'Processing Integrity',
+            'P': 'Privacy'
+          };
+          
+          // Create category items
+          Object.keys(categories).forEach(categoryId => {
+            if (categories[categoryId].length > 0) {
+              const categoryItemId = `category-${categoryId}`;
+              items[categoryItemId] = {
+                id: categoryItemId,
+                children: categories[categoryId],
+                data: {
+                  title: categoryNames[categoryId] || categoryId,
+                  isSection: true
+                }
               };
               
-              // Add to appropriate category
-              if (item.control_number.startsWith('CC')) {
-                tempTreeData[0].children?.push(control);
-              } else if (item.control_number.startsWith('A')) {
-                tempTreeData[1].children?.push(control);
-              } else if (item.control_number.startsWith('C')) {
-                tempTreeData[2].children?.push(control);
-              }
-            });
-            
-            setTreeData(tempTreeData);
-            setExpandedItems({ cc: true });
-          } else {
-            // Fallback for SOC 2 controls if database is empty
-            const fallbackData = getSoc2FallbackTree();
-            setTreeData(fallbackData);
-            setExpandedItems({ cc: true });
-          }
-        } else {
-          // Default ISO 27001 controls structure
-          setTreeData(getIso27001Tree());
-          setExpandedItems({ a5: true });
+              items.root.children!.push(categoryItemId);
+            }
+          });
         }
-      } catch (error) {
-        console.error('Error fetching controls:', error);
-        toast.error('Failed to load controls data');
         
-        // Use fallback data
-        if (frameworkId === 'soc2') {
-          setTreeData(getSoc2FallbackTree());
-        } else {
-          setTreeData(getIso27001Tree());
-        }
+        setTreeData(items);
+        
+        // Auto-expand the root and main sections
+        setExpandedItems(['root', ...Object.keys(items).filter(id => id.startsWith('section-') || id.startsWith('category-'))]);
+        
+      } catch (error) {
+        console.error('Error loading controls:', error);
+        toast.error('Failed to load control data');
       } finally {
-        setLoading(false);
+        setIsLoading(false);
       }
     };
     
-    fetchControls();
+    fetchAndFormatControls();
   }, [frameworkId]);
-  
-  const toggleExpand = (itemId: string) => {
-    setExpandedItems(prev => ({
-      ...prev,
-      [itemId]: !prev[itemId]
-    }));
+
+  // Get ISO section titles
+  const getSectionTitle = (sectionId: string): string => {
+    const sectionTitles: { [key: string]: string } = {
+      'A.5': 'Information Security Policies',
+      'A.6': 'Organization of Information Security',
+      'A.7': 'Human Resource Security',
+      'A.8': 'Asset Management',
+      'A.9': 'Access Control',
+      'A.10': 'Cryptography',
+      'A.11': 'Physical and Environmental Security',
+      'A.12': 'Operations Security',
+      'A.13': 'Communications Security',
+      'A.14': 'System Acquisition, Development, Maintenance',
+      'A.15': 'Supplier Relationships',
+      'A.16': 'Information Security Incident Management',
+      'A.17': 'Business Continuity Management',
+      'A.18': 'Compliance'
+    };
+    
+    return sectionTitles[sectionId] || sectionId;
   };
-  
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'implemented':
-      case 'compliant':
-        return 'bg-green-500';
-      case 'in_progress':
-        return 'bg-yellow-500';
-      case 'not_implemented':
-      case 'non_compliant':
-        return 'bg-red-500';
-      default:
-        return 'bg-gray-400';
-    }
-  };
-  
-  // Tree rendering with react-treeview
-  const renderTreeWithLibrary = (items: TreeItem[]) => {
-    return items.map(item => {
-      if (item.type === 'category' && item.children && item.children.length > 0) {
-        const isExpanded = expandedItems[item.id] || false;
-        const label = (
-          <div 
-            className="flex items-center py-1 cursor-pointer"
-            onClick={() => toggleExpand(item.id)}
-          >
-            <Folder size={16} className="mr-2 text-blue-500" />
-            <span className="text-sm font-medium">{item.title}</span>
-          </div>
-        );
+
+  // Customize the tree rendering
+  const renderers = useMemo(() => {
+    return {
+      renderItemTitle: ({ title, isSection, depth }: any) => (
+        <div className={`tree-item-title ${isSection ? 'font-semibold' : ''}`}>
+          {title}
+        </div>
+      ),
+      renderItemArrow: ({ item, context }: any) => {
+        // Only render arrows for items with children
+        if (!item.children || item.children.length === 0) return null;
         
         return (
-          <TreeView 
-            key={item.id} 
-            nodeLabel={label} 
-            defaultCollapsed={!isExpanded}
-            itemClassName="my-1"
-            treeViewClassName="ml-2 border-l border-gray-200 pl-2"
-          >
-            {renderTreeWithLibrary(item.children)}
-          </TreeView>
-        );
-      } else {
-        return (
-          <div 
-            key={item.id}
-            className={`flex items-center w-full text-left py-1 px-2 rounded mb-1 text-sm cursor-pointer ${
-              selectedRuleId === parseInt(item.id.toString()) ? 'bg-blue-100 text-blue-800' : 'hover:bg-gray-100'
-            }`}
-            onClick={() => onSelectControl(item)}
-          >
-            <File size={16} className="mr-2 text-gray-500" />
-            <span>{item.title}</span>
-            {item.status && (
-              <span className={`ml-auto w-2.5 h-2.5 rounded-full ${getStatusColor(item.status)}`}></span>
-            )}
+          <div className={`arrow ${context.isExpanded ? 'expanded' : ''}`}>
+            {context.isExpanded ? '▼' : '►'}
           </div>
         );
       }
-    });
-  };
-  
-  // Fallback data functions
-  const getIso27001Tree = (): TreeItem[] => {
-    return [
-      {
-        id: 'a5',
-        title: 'A.5 Information Security Policies',
-        type: 'category',
-        expanded: true,
-        children: [
-          { 
-            id: '1', 
-            title: 'A.5.1 Information security policies', 
-            type: 'control', 
-            status: 'implemented' 
-          },
-          { 
-            id: '2', 
-            title: 'A.5.2 Review of the policies for information security', 
-            type: 'control', 
-            status: 'in_progress' 
-          }
-        ]
-      },
-      {
-        id: 'a6',
-        title: 'A.6 Organization of Information Security',
-        type: 'category',
-        children: [
-          { 
-            id: '3', 
-            title: 'A.6.1 Internal organization', 
-            type: 'control', 
-            status: 'not_implemented' 
-          },
-          { 
-            id: '4', 
-            title: 'A.6.2 Mobile devices and teleworking', 
-            type: 'control', 
-            status: 'implemented' 
-          }
-        ]
-      },
-      {
-        id: 'a7',
-        title: 'A.7 Human Resource Security',
-        type: 'category',
-        children: [
-          { 
-            id: '5', 
-            title: 'A.7.1 Prior to employment', 
-            type: 'control', 
-            status: 'not_applicable' 
-          },
-          { 
-            id: '6', 
-            title: 'A.7.2 During employment', 
-            type: 'control', 
-            status: 'implemented' 
-          }
-        ]
+    };
+  }, []);
+
+  const handleSelectItem = (items: string[]) => {
+    if (items.length > 0) {
+      const selectedId = items[0];
+      if (selectedId.startsWith('control-')) {
+        const control = treeData[selectedId]?.data.control;
+        if (control) {
+          onSelectControl(control);
+        }
       }
-    ];
+    }
   };
-  
-  const getSoc2FallbackTree = (): TreeItem[] => {
-    return [
-      {
-        id: 'cc',
-        title: 'Common Criteria',
-        type: 'category',
-        expanded: true,
-        children: [
-          { 
-            id: '1', 
-            title: 'CC1.1: COSO Principle 1: Demonstrates Commitment to Integrity and Ethical Values', 
-            type: 'control', 
-            status: 'not_implemented', 
-            number: 'CC1.1', 
-            description: 'The entity demonstrates a commitment to integrity and ethical values.', 
-            requirement: 'Organization should establish a code of conduct that defines ethical expectations and acceptable workplace behavior.' 
-          },
-          { 
-            id: '2', 
-            title: 'CC1.2: Board Independence and Oversight', 
-            type: 'control', 
-            status: 'in_progress', 
-            number: 'CC1.2', 
-            description: 'The board of directors demonstrates independence from management and exercises oversight of the development and performance of internal control.', 
-            requirement: 'Board of directors should include members who are independent from management and provide oversight of the system.' 
-          },
-          { 
-            id: '3', 
-            title: 'CC2.1: Communication and Information', 
-            type: 'control', 
-            status: 'implemented', 
-            number: 'CC2.1', 
-            description: 'The entity obtains or generates and uses relevant, quality information to support the functioning of internal control.', 
-            requirement: 'Organization should implement processes to identify information requirements needed for control objectives.' 
-          },
-          { 
-            id: '4', 
-            title: 'CC3.1: Risk Assessment Process', 
-            type: 'control', 
-            status: 'not_implemented', 
-            number: 'CC3.1', 
-            description: 'The entity specifies objectives with sufficient clarity to enable the identification and assessment of risks relating to objectives.', 
-            requirement: 'Organization should establish formal risk assessment processes and document specific control objectives.' 
-          },
-          { 
-            id: '5', 
-            title: 'CC4.1: Control Activities Design', 
-            type: 'control', 
-            status: 'in_progress', 
-            number: 'CC4.1', 
-            description: 'The entity selects and develops control activities that contribute to the mitigation of risks to the achievement of objectives to acceptable levels.', 
-            requirement: 'Organization should implement appropriate controls to mitigate identified risks to acceptable levels.' 
-          },
-          { 
-            id: '6', 
-            title: 'CC5.1: Logical Access Controls', 
-            type: 'control', 
-            status: 'not_implemented', 
-            number: 'CC5.1', 
-            description: 'The entity selects and develops control activities over technology to support the achievement of objectives.', 
-            requirement: 'Organization should implement logical access security measures to protect against unauthorized access to systems.' 
-          },
-          { 
-            id: '7', 
-            title: 'CC6.1: Security Policy', 
-            type: 'control', 
-            status: 'implemented', 
-            number: 'CC6.1', 
-            description: 'The entity implements logical access security software, infrastructure, and architectures over protected information assets to protect them from security events.', 
-            requirement: 'Organization should establish formal security policies to protect information assets.' 
-          },
-          { 
-            id: '8', 
-            title: 'CC7.1: Incident Response', 
-            type: 'control', 
-            status: 'in_progress', 
-            number: 'CC7.1', 
-            description: 'The entity selects and develops control activities to identify and respond to security breaches and other incidents in a timely manner.', 
-            requirement: 'Organization should establish incident response procedures to identify, respond to, and mitigate security incidents.' 
-          },
-          { 
-            id: '9', 
-            title: 'CC8.1: Change Management', 
-            type: 'control', 
-            status: 'not_implemented', 
-            number: 'CC8.1', 
-            description: 'The entity authorizes, designs, develops or acquires, configures, documents, tests, approves, and implements changes to infrastructure, data, software, and procedures to meet its objectives.', 
-            requirement: 'Organization should implement formal change management processes for all system changes.' 
-          },
-          { 
-            id: '10', 
-            title: 'CC9.1: Risk Mitigation Activities', 
-            type: 'control', 
-            status: 'implemented', 
-            number: 'CC9.1', 
-            description: 'The entity identifies, selects, and develops risk mitigation activities for risks arising from potential business disruptions.', 
-            requirement: 'Organization should implement business continuity and disaster recovery plans to mitigate business disruption risks.' 
-          }
-        ]
-      },
-      {
-        id: 'a',
-        title: 'Availability',
-        type: 'category',
-        children: [
-          { 
-            id: '11', 
-            title: 'A1.1: Availability Performance Objectives', 
-            type: 'control', 
-            status: 'not_implemented', 
-            number: 'A1.1', 
-            description: 'The entity maintains, monitors, and evaluates current processing capacity and use of system components to manage capacity demand and to enable the implementation of additional capacity to help meet availability commitments and requirements.', 
-            requirement: 'Organization should define and monitor performance metrics for system availability.' 
-          },
-          { 
-            id: '12', 
-            title: 'A1.2: Availability Recovery Plan', 
-            type: 'control', 
-            status: 'in_progress', 
-            number: 'A1.2', 
-            description: 'The entity authorizes, designs, develops or acquires, implements, operates, approves, maintains, and monitors environmental protections, software, data backup processes, and recovery infrastructure to meet its availability commitments and requirements.', 
-            requirement: 'Organization should implement and test backup and recovery procedures for critical systems and data.' 
-          }
-        ]
-      },
-      {
-        id: 'c',
-        title: 'Confidentiality',
-        type: 'category',
-        children: [
-          { 
-            id: '13', 
-            title: 'C1.1: Confidentiality Policies', 
-            type: 'control', 
-            status: 'not_implemented', 
-            number: 'C1.1', 
-            description: 'The entity identifies and maintains confidential information to meet the entity\'s confidentiality commitments and requirements.', 
-            requirement: 'Organization should establish policies for identifying and protecting confidential information.' 
-          },
-          { 
-            id: '14', 
-            title: 'C1.2: Confidentiality of Inputs', 
-            type: 'control', 
-            status: 'not_implemented', 
-            number: 'C1.2', 
-            description: 'The entity disposes of confidential information to meet the entity\'s confidentiality commitments and requirements.', 
-            requirement: 'Organization should implement secure disposal procedures for confidential information when no longer needed.' 
-          }
-        ]
-      }
-    ];
-  };
-  
-  if (loading) {
+
+  if (isLoading) {
     return (
-      <div className="bg-white p-4 rounded-lg shadow border border-gray-100 h-full flex items-center justify-center">
-        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+      <div className="flex justify-center items-center h-64">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
       </div>
     );
   }
-  
+
   return (
-    <div className="bg-white p-4 rounded-lg shadow border border-gray-100 h-full">
-      <h3 className="font-semibold text-lg mb-4">
-        {frameworkId === 'soc2' ? 'SOC 2 Controls' : 
-         frameworkId === 'iso27001' ? 'ISO 27001 Controls' : 
-         frameworkId === 'gdpr' ? 'GDPR Controls' :
-         frameworkId === 'hipaa' ? 'HIPAA Controls' :
-         'Compliance Controls'}
-      </h3>
-      <ScrollArea className="h-[calc(100vh-260px)]">
-        <div className="pr-4">
-          {renderTreeWithLibrary(treeData)}
+    <div className="border border-gray-200 rounded-lg overflow-hidden bg-white">
+      <DndProvider backend={MultiBackend} options={getBackendOptions()}>
+        <div className="p-2 bg-gray-50 border-b border-gray-200">
+          <h3 className="font-medium">
+            {frameworkId === 'soc2' ? 'SOC 2 Controls' : 'ISO 27001 Controls'}
+          </h3>
         </div>
-      </ScrollArea>
+        <div className="max-h-[calc(100vh-250px)] overflow-auto p-2">
+          {Object.keys(treeData).length > 0 && (
+            <Tree
+              tree={treeId}
+              rootItem="root"
+              treeData={{ [treeId]: { items: treeData } }}
+              defaultInteractionMode="clickItemToExpand"
+              canDrag={() => false}
+              canDropAt={() => false}
+              canReorderItems={false}
+              isItemExpanded={(itemId) => expandedItems.includes(itemId)}
+              onExpandItem={(itemId) => setExpandedItems([...expandedItems, itemId])}
+              onCollapseItem={(itemId) => 
+                setExpandedItems(expandedItems.filter(id => id !== itemId))
+              }
+              isItemSelected={(itemId) => {
+                if (!selectedRuleId) return false;
+                const controlId = `control-${selectedRuleId}`;
+                return itemId === controlId;
+              }}
+              onSelectItems={handleSelectItem}
+              renderItemArrow={renderers.renderItemArrow}
+              renderItemTitle={({ title, item }) => 
+                renderers.renderItemTitle({
+                  title,
+                  isSection: item.data.isSection,
+                  depth: 0
+                })
+              }
+            />
+          )}
+        </div>
+      </DndProvider>
     </div>
   );
 };

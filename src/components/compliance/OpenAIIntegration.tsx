@@ -1,156 +1,171 @@
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent } from '@/components/common/Card';
-import { Bot, Loader2, Download } from 'lucide-react';
 import Button from '@/components/common/Button';
+import { Robot, Send, Loader, AlertCircle, CheckCircle, Copy } from 'lucide-react';
 import { toast } from 'sonner';
-import { ScrollArea } from '@/components/ui/scroll-area';
+import { motion } from 'framer-motion';
+import { AIGuidanceButton } from './AIGuidanceButton';
 import ReactMarkdown from 'react-markdown';
-import AIGuidanceButton from './AIGuidanceButton';
 
 interface OpenAIIntegrationProps {
-  title?: string;
-  description?: string;
-  placeholder?: string;
+  frameworkId: string;
+  promptContext?: string;
+  initialPrompt?: string;
+  isEmbedded?: boolean;
+  headingText?: string;
 }
 
 const OpenAIIntegration: React.FC<OpenAIIntegrationProps> = ({
-  title = "Ask AI Assistant",
-  description = "Get AI guidance on compliance questions",
-  placeholder = "Ask anything about compliance..."
+  frameworkId,
+  promptContext = '',
+  initialPrompt = '',
+  isEmbedded = false,
+  headingText = 'AI Compliance Assistant'
 }) => {
-  const [prompt, setPrompt] = useState("");
-  const [response, setResponse] = useState("");
+  const [prompt, setPrompt] = useState(initialPrompt);
   const [isLoading, setIsLoading] = useState(false);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const [response, setResponse] = useState('');
+  const [error, setError] = useState<string | null>(null);
+  const [isOpen, setIsOpen] = useState(!isEmbedded);
+  const [copySuccess, setCopySuccess] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
+  useEffect(() => {
+    scrollToBottom();
+  }, [response]);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  // Define a function to handle the API call directly
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!prompt.trim()) {
-      toast.error("Please enter a question");
-      return;
-    }
-    
+    if (!prompt.trim()) return;
+
     setIsLoading(true);
-    setResponse("");
+    setError(null);
     
     try {
-      const res = await fetch('/api/ask-ai', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt })
+      // Call the Supabase Edge Function
+      const { data, error } = await supabase.functions.invoke('test-openai', {
+        body: {
+          prompt: `${promptContext ? promptContext + '\n\n' : ''}${prompt}`,
+          model: 'gpt-4o-mini',
+          temperature: 0.7
+        }
       });
-      
-      if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.error || "Failed to get AI response");
+
+      if (error) {
+        throw new Error(`Error calling OpenAI API: ${error.message}`);
       }
-      
-      const data = await res.json();
-      setResponse(data.response || "I couldn't generate a response. Please try again.");
-    } catch (error) {
-      console.error("Error fetching AI response:", error);
-      toast.error("Failed to get AI response. Please try again.");
-      
-      // Fallback response for demo purposes
-      setResponse(`Here's what I know about your question regarding "${prompt}":\n\n## Overview\nThis would be a comprehensive response to your compliance question.\n\n### Key Points\n- Important point 1 about compliance requirements\n- Important point 2 about implementation strategies\n- Important point 3 about documentation needs\n\n#### Next Steps\n1. First, review your current policies\n2. Then, identify gaps in your implementation\n3. Finally, develop an action plan to address deficiencies`);
+
+      if (data?.text) {
+        setResponse(data.text);
+      } else {
+        throw new Error('No response from AI');
+      }
+    } catch (err: any) {
+      console.error('OpenAI request failed:', err);
+      setError(err.message || 'Failed to get response from AI');
+      toast.error('Failed to get AI guidance');
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && e.ctrlKey) {
-      handleSubmit(e);
-    }
+  const handleOpenAIClicked = () => {
+    setIsOpen(true);
   };
 
-  const handleTextareaChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setPrompt(e.target.value);
-    adjustTextareaHeight();
+  const handleCopyToClipboard = () => {
+    navigator.clipboard.writeText(response).then(
+      function() {
+        setCopySuccess(true);
+        toast.success('Response copied to clipboard');
+        
+        // Reset copy success after 2 seconds
+        setTimeout(() => {
+          setCopySuccess(false);
+        }, 2000);
+      },
+      function(err) {
+        console.error('Could not copy text: ', err);
+        toast.error('Failed to copy to clipboard');
+      }
+    );
   };
 
-  const adjustTextareaHeight = () => {
-    if (textareaRef.current) {
-      textareaRef.current.style.height = 'auto';
-      textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 150)}px`;
-    }
-  };
-
-  const handleDownloadResponse = () => {
-    if (!response) return;
-    
-    const blob = new Blob([response], { type: 'text/markdown' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `ai-compliance-response-${new Date().toISOString().split('T')[0]}.md`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    toast.success('Response downloaded');
-  };
+  if (!isOpen && isEmbedded) {
+    return (
+      <AIGuidanceButton onClick={handleOpenAIClicked} className="w-full" />
+    );
+  }
 
   return (
-    <Card>
-      <CardContent className="p-5">
-        <div className="flex items-start mb-4">
-          <div className="bg-primary/10 p-2 rounded-full mr-3">
-            <Bot className="h-5 w-5 text-primary" />
-          </div>
-          <div>
-            <h3 className="font-medium text-lg">{title}</h3>
-            <p className="text-gray-500 text-sm">{description}</p>
-          </div>
+    <Card className={`${isEmbedded ? 'border border-blue-200 shadow-md' : ''}`}>
+      <CardContent className="p-4">
+        <div className="flex items-center mb-4">
+          <Robot className="text-blue-600 mr-2" size={20} />
+          <h3 className="text-lg font-medium">{headingText}</h3>
         </div>
-
+        
         {response && (
-          <div className="mb-5 bg-gray-50 rounded-lg border border-gray-200 p-4">
-            <ScrollArea className="h-[300px] pr-4">
-              <div className="prose prose-sm max-w-none">
-                <ReactMarkdown components={{
-                  p: ({node, className, ...props}) => <p className="mb-4" {...props} />
-                }}>
-                  {response}
-                </ReactMarkdown>
-              </div>
-            </ScrollArea>
-            <div className="flex justify-end mt-3 border-t pt-3">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleDownloadResponse}
-                leftIcon={<Download size={16} />}
-              >
-                Download Response
-              </Button>
+          <motion.div 
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-4 p-4 bg-gray-50 rounded-lg border border-gray-200 text-gray-800 relative"
+          >
+            <div className="prose prose-sm max-w-none overflow-auto">
+              <ReactMarkdown>{response}</ReactMarkdown>
             </div>
-          </div>
+            <button 
+              onClick={handleCopyToClipboard}
+              className="absolute top-2 right-2 p-1 text-gray-500 hover:text-gray-700 bg-white rounded-md border border-gray-200 hover:border-gray-300 transition-colors"
+              aria-label="Copy to clipboard"
+            >
+              {copySuccess ? (
+                <CheckCircle size={16} className="text-green-600" />
+              ) : (
+                <Copy size={16} />
+              )}
+            </button>
+            <div ref={messagesEndRef} />
+          </motion.div>
         )}
-
-        <form onSubmit={handleSubmit}>
-          <div className="relative">
-            <textarea
-              ref={textareaRef}
-              value={prompt}
-              onChange={handleTextareaChange}
-              onKeyDown={handleKeyDown}
-              className="resize-none overflow-hidden w-full border border-gray-300 rounded-lg p-3 pr-[90px] focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
-              placeholder={placeholder}
-              rows={2}
-            />
-            <div className="absolute bottom-2 right-2">
-              <div className="text-xs text-gray-400 mb-1 text-right">
-                Press Ctrl+Enter to submit
-              </div>
-              <AIGuidanceButton
-                onClick={handleSubmit}
-                isLoading={isLoading}
-                className="py-1 px-3 h-8"
-              />
-            </div>
+        
+        {error && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-md flex items-start"
+          >
+            <AlertCircle size={18} className="mr-2 mt-0.5 flex-shrink-0" />
+            <p className="text-sm">{error}</p>
+          </motion.div>
+        )}
+        
+        <form onSubmit={handleSubmit} className="space-y-3">
+          <textarea
+            rows={3}
+            placeholder="Ask about compliance requirements, get implementation guidance, or request policy templates..."
+            className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+            value={prompt}
+            onChange={(e) => setPrompt(e.target.value)}
+            disabled={isLoading}
+          />
+          
+          <div className="flex justify-end">
+            <Button 
+              type="submit"
+              disabled={isLoading || !prompt.trim()} 
+              isLoading={isLoading}
+              leftIcon={isLoading ? <Loader className="animate-spin" size={16} /> : <Send size={16} />}
+            >
+              {isLoading ? 'Getting Response...' : 'Send'}
+            </Button>
           </div>
         </form>
       </CardContent>

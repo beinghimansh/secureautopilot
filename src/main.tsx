@@ -1,18 +1,69 @@
 
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense, StrictMode, useEffect, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import './index.css';
 
-// Simple loading component with improved aesthetics
-const LoadingIndicator = () => (
-  <div className="flex flex-col items-center justify-center h-screen bg-gray-50">
-    <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mb-4"></div>
-    <p className="text-gray-700 font-medium">Loading application...</p>
-  </div>
-);
+// Advanced LoadingIndicator with progress estimation
+const LoadingIndicator = () => {
+  const [progress, setProgress] = useState(0);
+  
+  useEffect(() => {
+    // Simulated loading progress
+    const interval = setInterval(() => {
+      setProgress((prev) => {
+        // Asymptotic progress increases quickly at first, then slows down
+        const increment = Math.max(1, 10 * (1 - prev / 100));
+        const newProgress = Math.min(99, prev + increment);
+        return newProgress;
+      });
+    }, 200);
+    
+    return () => clearInterval(interval);
+  }, []);
+  
+  return (
+    <div className="flex flex-col items-center justify-center h-screen bg-gray-50">
+      <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mb-4"></div>
+      <p className="text-gray-700 font-medium mb-2">Loading application...</p>
+      <div className="w-64 h-2 bg-gray-200 rounded-full overflow-hidden">
+        <div 
+          className="h-full bg-blue-600 transition-all duration-200 ease-out"
+          style={{ width: `${progress}%` }}
+        ></div>
+      </div>
+    </div>
+  );
+};
 
-// Use lazy loading to improve initial load performance
-const App = lazy(() => import('./App'));
+// Preload important resources using link preload
+const preloadResources = () => {
+  const resources = [
+    { href: '/favicon.ico', as: 'image' },
+    // Add other critical resources here
+  ];
+  
+  resources.forEach(({ href, as }) => {
+    const link = document.createElement('link');
+    link.rel = 'preload';
+    link.href = href;
+    link.as = as;
+    document.head.appendChild(link);
+  });
+};
+
+// Implement code splitting with dynamic imports and intelligent chunk loading
+const App = lazy(() => {
+  // Start preloading resources
+  preloadResources();
+  
+  // Return the import
+  return import('./App').then(module => {
+    // Log performance after module is loaded
+    const loadTime = performance.now();
+    console.log(`App module loaded in ${loadTime.toFixed(2)}ms`);
+    return module;
+  });
+});
 
 // Get the root element
 const rootElement = document.getElementById("root");
@@ -26,16 +77,28 @@ if (!rootElement) {
   
   console.log("Initializing application");
   
-  // Use createRoot for concurrent mode
+  // Use createRoot and StrictMode for better development experience
   createRoot(rootElement).render(
-    <Suspense fallback={<LoadingIndicator />}>
-      <App />
-    </Suspense>
+    <StrictMode>
+      <Suspense fallback={<LoadingIndicator />}>
+        <App />
+      </Suspense>
+    </StrictMode>
   );
   
   // Log performance timing
   window.addEventListener('load', () => {
     const loadTime = performance.now() - startTime;
     console.log(`Application loaded in ${loadTime.toFixed(2)}ms`);
+    
+    // Implement performance monitoring
+    if ('performance' in window && 'getEntriesByType' in performance) {
+      const navigationEntries = performance.getEntriesByType('navigation');
+      if (navigationEntries.length > 0) {
+        const navTiming = navigationEntries[0] as PerformanceNavigationTiming;
+        console.log(`DOM Content Loaded: ${navTiming.domContentLoadedEventEnd}ms`);
+        console.log(`First Contentful Paint: ${performance.getEntriesByName('first-contentful-paint')[0]?.startTime || 'N/A'}ms`);
+      }
+    }
   });
 }
