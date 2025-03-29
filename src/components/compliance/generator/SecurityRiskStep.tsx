@@ -1,14 +1,15 @@
 
 import React from 'react';
-
-interface FormValues {
-  securityControls: string[];
-  riskAppetite: string;
-}
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface SecurityRiskStepProps {
-  formValues: FormValues;
-  handleInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => void;
+  formValues: {
+    securityControls: string[];
+    riskAppetite: string;
+  };
+  handleInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => void;
   handleCheckboxChange: (controlName: string) => void;
   securityControlOptions: string[];
   riskAppetiteOptions: string[];
@@ -21,46 +22,77 @@ const SecurityRiskStep: React.FC<SecurityRiskStepProps> = ({
   securityControlOptions,
   riskAppetiteOptions
 }) => {
+  // Custom handler for Select components
+  const handleSelectChange = (name: string, value: string) => {
+    const event = {
+      target: {
+        name,
+        value
+      }
+    } as React.ChangeEvent<HTMLSelectElement>;
+    
+    handleInputChange(event);
+  };
+  
   return (
     <div className="space-y-6">
-      <h2 className="text-xl font-medium">Security & Risk Profile</h2>
+      <div>
+        <h3 className="text-lg font-medium mb-4">Security & Risk Management</h3>
+        <p className="text-sm text-gray-500 mb-6">
+          Details about your organization's security controls and risk management approach.
+        </p>
+      </div>
       
-      <div className="space-y-4">
-        <div>
-          <label className="block text-sm font-medium mb-2">
-            Security Controls in Place
-          </label>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-            {securityControlOptions.map(control => (
-              <div key={control} className="flex items-center">
-                <input
-                  type="checkbox"
+      <div className="space-y-6">
+        <div className="grid gap-2">
+          <Label className="flex items-center">
+            Security Controls Currently in Place <span className="text-red-500 ml-1">*</span>
+          </Label>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-2">
+            {securityControlOptions.map((control) => (
+              <div key={control} className="flex items-center space-x-2">
+                <Checkbox
                   id={`control-${control}`}
-                  className="mr-2"
                   checked={formValues.securityControls.includes(control)}
-                  onChange={() => handleCheckboxChange(control)}
+                  onCheckedChange={() => handleCheckboxChange(control)}
                 />
-                <label htmlFor={`control-${control}`}>{control}</label>
+                <Label
+                  htmlFor={`control-${control}`}
+                  className="text-sm font-normal cursor-pointer"
+                >
+                  {control}
+                </Label>
               </div>
             ))}
           </div>
+          <p className="text-sm text-gray-500 mt-1">
+            Select all security controls that your organization currently has in place.
+          </p>
         </div>
         
-        <div>
-          <label className="block text-sm font-medium mb-1" htmlFor="riskAppetite">
-            Risk Appetite
-          </label>
-          <select
-            id="riskAppetite"
-            name="riskAppetite"
-            className="w-full p-2 border border-gray-300 rounded-md"
-            value={formValues.riskAppetite}
-            onChange={handleInputChange}
+        <div className="grid gap-2">
+          <Label htmlFor="riskAppetite" className="flex items-center">
+            Risk Appetite <span className="text-red-500 ml-1">*</span>
+          </Label>
+          <Select 
+            value={formValues.riskAppetite} 
+            onValueChange={(value) => handleSelectChange('riskAppetite', value)}
           >
-            {riskAppetiteOptions.map(option => (
-              <option key={option} value={option}>{option}</option>
-            ))}
-          </select>
+            <SelectTrigger id="riskAppetite">
+              <SelectValue placeholder="Select risk appetite level" />
+            </SelectTrigger>
+            <SelectContent>
+              {riskAppetiteOptions.map((option) => (
+                <SelectItem key={option} value={option}>
+                  {option === 'Low' ? 'Low (Risk Averse)' : 
+                   option === 'High' ? 'High (Risk Tolerant)' : option}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <p className="text-sm text-gray-500">
+            Your organization's general approach to risk in security and compliance matters.
+          </p>
         </div>
       </div>
     </div>

@@ -1,40 +1,56 @@
 
 import React from 'react';
-
-interface FormValues {
-  companyName: string;
-  industry: string;
-  companySize: string;
-  businessLocation: string;
-}
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface OrganizationStepProps {
-  formValues: FormValues;
-  handleInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => void;
+  formValues: {
+    companyName: string;
+    industry: string;
+    companySize: string;
+    businessLocation: string;
+  };
+  handleInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => void;
   industries: string[];
   companySizes: string[];
 }
 
 const OrganizationStep: React.FC<OrganizationStepProps> = ({ 
   formValues, 
-  handleInputChange, 
-  industries, 
-  companySizes 
+  handleInputChange,
+  industries,
+  companySizes
 }) => {
+  // Custom handler for Select components
+  const handleSelectChange = (name: string, value: string) => {
+    const event = {
+      target: {
+        name,
+        value
+      }
+    } as React.ChangeEvent<HTMLSelectElement>;
+    
+    handleInputChange(event);
+  };
+  
   return (
     <div className="space-y-6">
-      <h2 className="text-xl font-medium">Organization Details</h2>
+      <div>
+        <h3 className="text-lg font-medium mb-4">Organization Details</h3>
+        <p className="text-sm text-gray-500 mb-6">
+          This information helps generate policies that are tailored to your organization's specific profile.
+        </p>
+      </div>
       
       <div className="space-y-4">
-        <div>
-          <label className="block text-sm font-medium mb-1" htmlFor="companyName">
-            Company Name <span className="text-red-500">*</span>
-          </label>
-          <input
+        <div className="grid gap-2">
+          <Label htmlFor="companyName" className="flex items-center">
+            Company Name <span className="text-red-500 ml-1">*</span>
+          </Label>
+          <Input
             id="companyName"
             name="companyName"
-            type="text"
-            className="w-full p-2 border border-gray-300 rounded-md"
             placeholder="Enter your company name"
             value={formValues.companyName}
             onChange={handleInputChange}
@@ -42,53 +58,55 @@ const OrganizationStep: React.FC<OrganizationStepProps> = ({
           />
         </div>
         
-        <div>
-          <label className="block text-sm font-medium mb-1" htmlFor="industry">
-            Industry <span className="text-red-500">*</span>
-          </label>
-          <select
-            id="industry"
-            name="industry"
-            className="w-full p-2 border border-gray-300 rounded-md"
-            value={formValues.industry}
-            onChange={handleInputChange}
-            required
+        <div className="grid gap-2">
+          <Label htmlFor="industry" className="flex items-center">
+            Industry <span className="text-red-500 ml-1">*</span>
+          </Label>
+          <Select 
+            value={formValues.industry} 
+            onValueChange={(value) => handleSelectChange('industry', value)}
           >
-            <option value="">Select an industry</option>
-            {industries.map(industry => (
-              <option key={industry} value={industry}>{industry}</option>
-            ))}
-          </select>
+            <SelectTrigger id="industry">
+              <SelectValue placeholder="Select an industry" />
+            </SelectTrigger>
+            <SelectContent>
+              {industries.map((industry) => (
+                <SelectItem key={industry} value={industry}>
+                  {industry}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
         
-        <div>
-          <label className="block text-sm font-medium mb-1" htmlFor="companySize">
-            Company Size <span className="text-red-500">*</span>
-          </label>
-          <select
-            id="companySize"
-            name="companySize"
-            className="w-full p-2 border border-gray-300 rounded-md"
-            value={formValues.companySize}
-            onChange={handleInputChange}
-            required
+        <div className="grid gap-2">
+          <Label htmlFor="companySize" className="flex items-center">
+            Company Size <span className="text-red-500 ml-1">*</span>
+          </Label>
+          <Select 
+            value={formValues.companySize} 
+            onValueChange={(value) => handleSelectChange('companySize', value)}
           >
-            <option value="">Select company size</option>
-            {companySizes.map(size => (
-              <option key={size} value={size}>{size}</option>
-            ))}
-          </select>
+            <SelectTrigger id="companySize">
+              <SelectValue placeholder="Select company size" />
+            </SelectTrigger>
+            <SelectContent>
+              {companySizes.map((size) => (
+                <SelectItem key={size} value={size}>
+                  {size}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
         
-        <div>
-          <label className="block text-sm font-medium mb-1" htmlFor="businessLocation">
+        <div className="grid gap-2">
+          <Label htmlFor="businessLocation">
             Primary Business Location
-          </label>
-          <input
+          </Label>
+          <Input
             id="businessLocation"
             name="businessLocation"
-            type="text"
-            className="w-full p-2 border border-gray-300 rounded-md"
             placeholder="Country or region"
             value={formValues.businessLocation}
             onChange={handleInputChange}

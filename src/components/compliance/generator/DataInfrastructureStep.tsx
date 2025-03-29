@@ -1,52 +1,60 @@
 
 import React from 'react';
-
-interface FormValues {
-  dataTypes: string;
-  infrastructureDetails: string;
-}
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 
 interface DataInfrastructureStepProps {
-  formValues: FormValues;
-  handleInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => void;
+  formValues: {
+    dataTypes: string;
+    infrastructureDetails: string;
+  };
+  handleInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
 }
 
-const DataInfrastructureStep: React.FC<DataInfrastructureStepProps> = ({ 
-  formValues, 
-  handleInputChange 
-}) => {
+const DataInfrastructureStep: React.FC<DataInfrastructureStepProps> = ({ formValues, handleInputChange }) => {
   return (
     <div className="space-y-6">
-      <h2 className="text-xl font-medium">Data & Infrastructure</h2>
+      <div>
+        <h3 className="text-lg font-medium mb-4">Data & Infrastructure Details</h3>
+        <p className="text-sm text-gray-500 mb-6">
+          Information about the types of data your organization processes and your infrastructure setup.
+        </p>
+      </div>
       
       <div className="space-y-4">
-        <div>
-          <label className="block text-sm font-medium mb-1" htmlFor="dataTypes">
-            Types of Data Processed <span className="text-red-500">*</span>
-          </label>
-          <textarea
+        <div className="grid gap-2">
+          <Label htmlFor="dataTypes" className="flex items-center">
+            Types of Data Processed <span className="text-red-500 ml-1">*</span>
+          </Label>
+          <Textarea
             id="dataTypes"
             name="dataTypes"
-            className="w-full p-2 border border-gray-300 rounded-md min-h-[100px]"
-            placeholder="E.g., customer PII, health records, payment information, etc."
+            placeholder="e.g., Personal customer data, Financial information, Healthcare records"
             value={formValues.dataTypes}
             onChange={handleInputChange}
+            className="min-h-[100px]"
             required
           />
+          <p className="text-sm text-gray-500">
+            Describe the types of data your organization collects, processes, or stores.
+          </p>
         </div>
         
-        <div>
-          <label className="block text-sm font-medium mb-1" htmlFor="infrastructureDetails">
+        <div className="grid gap-2">
+          <Label htmlFor="infrastructureDetails">
             Infrastructure Details
-          </label>
-          <textarea
+          </Label>
+          <Textarea
             id="infrastructureDetails"
             name="infrastructureDetails"
-            className="w-full p-2 border border-gray-300 rounded-md min-h-[100px]"
-            placeholder="E.g., cloud services used, on-premises infrastructure, BYOD policies, etc."
+            placeholder="e.g., Cloud services used, on-premises infrastructure, BYOD policies"
             value={formValues.infrastructureDetails}
             onChange={handleInputChange}
+            className="min-h-[100px]"
           />
+          <p className="text-sm text-gray-500">
+            Describe your technology infrastructure, including cloud services, hardware, and software.
+          </p>
         </div>
       </div>
     </div>

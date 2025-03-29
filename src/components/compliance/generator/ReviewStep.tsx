@@ -1,105 +1,96 @@
 
 import React from 'react';
-import { Check } from 'lucide-react';
-
-interface FormValues {
-  companyName: string;
-  industry: string;
-  companySize: string;
-  businessLocation: string;
-  dataTypes: string;
-  infrastructureDetails: string;
-  securityControls: string[];
-  riskAppetite: string;
-}
+import { Check, AlertCircle } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 interface ReviewStepProps {
-  formValues: FormValues;
+  formValues: {
+    companyName: string;
+    industry: string;
+    companySize: string;
+    businessLocation: string;
+    dataTypes: string;
+    infrastructureDetails: string;
+    securityControls: string[];
+    riskAppetite: string;
+  };
   frameworkName: string;
 }
 
 const ReviewStep: React.FC<ReviewStepProps> = ({ formValues, frameworkName }) => {
   return (
     <div className="space-y-6">
-      <h2 className="text-xl font-medium">Review & Generate</h2>
-      
-      <div className="bg-gray-50 p-4 rounded-md border border-gray-200">
-        <h3 className="font-medium mb-2">Organization Details</h3>
-        <dl className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-2 text-sm">
-          <div>
-            <dt className="text-gray-500">Company Name:</dt>
-            <dd>{formValues.companyName}</dd>
-          </div>
-          <div>
-            <dt className="text-gray-500">Industry:</dt>
-            <dd>{formValues.industry}</dd>
-          </div>
-          <div>
-            <dt className="text-gray-500">Company Size:</dt>
-            <dd>{formValues.companySize}</dd>
-          </div>
-          <div>
-            <dt className="text-gray-500">Location:</dt>
-            <dd>{formValues.businessLocation || 'Not specified'}</dd>
-          </div>
-        </dl>
-      </div>
-      
-      <div className="bg-gray-50 p-4 rounded-md border border-gray-200">
-        <h3 className="font-medium mb-2">Data & Infrastructure</h3>
-        <dl className="space-y-2 text-sm">
-          <div>
-            <dt className="text-gray-500">Data Types:</dt>
-            <dd>{formValues.dataTypes}</dd>
-          </div>
-          <div>
-            <dt className="text-gray-500">Infrastructure:</dt>
-            <dd>{formValues.infrastructureDetails || 'Not specified'}</dd>
-          </div>
-        </dl>
-      </div>
-      
-      <div className="bg-gray-50 p-4 rounded-md border border-gray-200">
-        <h3 className="font-medium mb-2">Security & Risk Profile</h3>
-        <dl className="space-y-2 text-sm">
-          <div>
-            <dt className="text-gray-500">Security Controls:</dt>
-            <dd>{formValues.securityControls.length > 0 ? formValues.securityControls.join(', ') : 'None selected'}</dd>
-          </div>
-          <div>
-            <dt className="text-gray-500">Risk Appetite:</dt>
-            <dd>{formValues.riskAppetite}</dd>
-          </div>
-        </dl>
-      </div>
-      
-      <div className="border-t border-gray-200 pt-4">
-        <p className="text-gray-600 mb-4">
-          Our AI will generate the following documents based on your inputs:
+      <div>
+        <h3 className="text-lg font-medium mb-4">Review Your Information</h3>
+        <p className="text-sm text-gray-500 mb-6">
+          Please review the information below before generating your {frameworkName} policies.
         </p>
-        <ul className="space-y-2">
-          <li className="flex items-center">
-            <Check size={16} className="text-green-500 mr-2" />
-            <span>Comprehensive {frameworkName} Policy</span>
-          </li>
-          <li className="flex items-center">
-            <Check size={16} className="text-green-500 mr-2" />
-            <span>Risk Assessment Document</span>
-          </li>
-          <li className="flex items-center">
-            <Check size={16} className="text-green-500 mr-2" />
-            <span>Implementation Guide</span>
-          </li>
-          <li className="flex items-center">
-            <Check size={16} className="text-green-500 mr-2" />
-            <span>Compliance Gap Analysis</span>
-          </li>
-          <li className="flex items-center">
-            <Check size={16} className="text-green-500 mr-2" />
-            <span>AI-powered Improvement Suggestions</span>
-          </li>
-        </ul>
       </div>
+      
+      <div className="space-y-6">
+        <div className="space-y-3">
+          <h4 className="font-medium">Organization Details</h4>
+          <div className="grid md:grid-cols-2 gap-4">
+            <div>
+              <p className="text-sm font-medium text-gray-500">Company Name</p>
+              <p>{formValues.companyName}</p>
+            </div>
+            <div>
+              <p className="text-sm font-medium text-gray-500">Industry</p>
+              <p>{formValues.industry}</p>
+            </div>
+            <div>
+              <p className="text-sm font-medium text-gray-500">Company Size</p>
+              <p>{formValues.companySize}</p>
+            </div>
+            <div>
+              <p className="text-sm font-medium text-gray-500">Business Location</p>
+              <p>{formValues.businessLocation || 'Not specified'}</p>
+            </div>
+          </div>
+        </div>
+        
+        <div className="space-y-3">
+          <h4 className="font-medium">Data & Infrastructure</h4>
+          <div>
+            <p className="text-sm font-medium text-gray-500">Types of Data Processed</p>
+            <p className="whitespace-pre-line">{formValues.dataTypes}</p>
+          </div>
+          {formValues.infrastructureDetails && (
+            <div>
+              <p className="text-sm font-medium text-gray-500">Infrastructure Details</p>
+              <p className="whitespace-pre-line">{formValues.infrastructureDetails}</p>
+            </div>
+          )}
+        </div>
+        
+        <div className="space-y-3">
+          <h4 className="font-medium">Security & Risk Management</h4>
+          <div>
+            <p className="text-sm font-medium text-gray-500">Security Controls</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mt-1">
+              {formValues.securityControls.map(control => (
+                <div key={control} className="flex items-center">
+                  <Check size={16} className="mr-2 text-green-500" />
+                  <span>{control}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div>
+            <p className="text-sm font-medium text-gray-500">Risk Appetite</p>
+            <p>{formValues.riskAppetite}</p>
+          </div>
+        </div>
+      </div>
+      
+      <Alert className="mt-6">
+        <AlertCircle className="h-4 w-4" />
+        <AlertTitle>Ready to Generate</AlertTitle>
+        <AlertDescription>
+          AI will use this information to generate customized {frameworkName} policies specifically for your organization.
+        </AlertDescription>
+      </Alert>
     </div>
   );
 };
