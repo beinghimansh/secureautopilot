@@ -8,7 +8,7 @@ import { toast } from 'sonner';
 type ProtectedRouteProps = {
   children: React.ReactNode;
   requiredRole?: UserRole[];
-  requireAdmin?: boolean; // Add support for the requireAdmin prop
+  requireAdmin?: boolean;
 };
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ 
@@ -19,9 +19,9 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   const { user, profile, isLoading } = useAuth();
   const navigate = useNavigate();
   
-  // Convert requireAdmin to requiredRole if specified
+  // Correctly type the effectiveRequiredRole
   const effectiveRequiredRole = requireAdmin 
-    ? ['admin'] as UserRole[] 
+    ? ['super_admin', 'company_admin'] as UserRole[] 
     : requiredRole;
 
   useEffect(() => {
